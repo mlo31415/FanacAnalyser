@@ -115,40 +115,6 @@ class FanacNames:
         return None
 
 
-    #=======================================================================
-    def AddJoesName(self, jname):
-        # Joe's name may have case oddities or may be reversed ("xxx, The" rather than "The xxx") or something
-        # Add Joe's name to the master list.
-        # It will either match an existing entry or create a new entry
-
-        i=self.LocateFanacStandardName(jname)
-        if i != None:
-            g_fanacNameTuples[i]=g_fanacNameTuples[i]._replace(JoesName=jname)
-            return
-
-        # Try moving a leading "The " to the end
-        # TODO: use the names class to deal with this
-        if jname.lower().startswith("the "):
-            i=self.LocateFanacStandardName(jname[4:]+", The")
-            if i != None:
-                g_fanacNameTuples[i]=g_fanacNameTuples[i]._replace(JoesName=jname)
-                return
-
-        # Try adding a trailing ", the" since sometimes Joe's list omits this
-        i=self.LocateFanacStandardName(jname+", the")
-        if i!= None:
-            g_fanacNameTuples[i]=g_fanacNameTuples[i]._replace(JoesName=jname)
-            return
-
-        # If none of this works, add a new entry
-        # Deal with a potential leading "The "
-        if jname.lower().startswith("the "):
-            g_fanacNameTuples.append(FanacNameXYZ(JoesName=jname, DisplayName=None, FanacStandardName=jname+", The", RetroName=None))
-            return
-
-        # Just add it as-is
-        g_fanacNameTuples.append(FanacNameXYZ(JoesName=jname, DisplayName=None, FanacStandardName=jname, RetroName=None))
-
 
     #======================================================================
     # Given a Fanac Standard fanzine name create a new tuple if needed or add it to an existing tuple
