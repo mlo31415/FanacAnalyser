@@ -48,6 +48,16 @@ def ReadFanacFanzineIssues():
     return
 
 
+# Given a list of column headers and a list of row cell values, return the cell matching the header
+def GetCellValueByColHeader(columnHeaders, row, name):
+    for i in range(0, len(columnHeaders)):
+        if columnHeaders[i] == name:
+            return row[i]
+
+    return None
+
+
+
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzineIssueList):
@@ -56,7 +66,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
         print("   Skipping: "+fanzineName)
         return fanzineIssueList
 
-    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year Month")
+    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt")
 
     # We're only prepared to read a few formats.  Skip over the others right now.
     OKFormats=((1,1), (1,6))
@@ -95,8 +105,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
     # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
     # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
     # We wind up with a string just right to be the element designator of a named tuple.
-    columnHeaders=" ".join([col.string.replace(" ", "") for col in Helpers.RemoveNewlineRows(tab.contents[0])])
-    print("   columnHeaders="+columnHeaders)
+    columnHeaders=tab.contents[0].text.strip()
 
     # Remove some sloppy column header stuff and characters that are OK, but which can't be in Namedtuple field names
     columnHeaders=columnHeaders.replace("Vol/#", "VolNum").replace("Vol./#", "VolNum")
@@ -106,88 +115,49 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
     if len(columnHeaders.split(" Number "))>2:
         columnHeaders=columnHeaders.replace(" Number ", " Whole ", 1) # If Number appears twice, replace the first with Whole
 
-    # Create the named tuple
-    FanzineTable=collections.namedtuple("FanzineTable", columnHeaders)
+    columnHeaders=columnHeaders.split("\n") # Change it into a list
 
     # The rest of the table is one or more rows, each corresponding to an issue of that fanzine.
     # We build up a list of lists.  Each list in the list of lists is a row
     # We have to treat the Title column specially, since it contains the critical href we need.
-    fanzineTable=[]
+    rows=[]
     for i in range(1, len(tab)):
         tableRow=Helpers.RemoveNewlineRows(tab.contents[i])
         r=[]
         for j in range(0, len(tableRow)):
-            try:        # If the tag contains an href, we save the tag.  Otherwise, just the text
-                tableRow[j].contents[0].attrs.get("href", None)
-                r.append(tableRow[j])
-            except:
-                r.append(tableRow[j].text)
+            r.append(tableRow[j].text)
         print("   row=" + str(r))
-        fanzineTable.append(FanzineTable(*r))
 
-    # Now we have the entire fanzine table stored in fanzineTable
-    # We need to extract the name, url, year, and vol/issue info for each fanzine
-    FanzineInfo=collections.namedtuple("FanzineInfo", "Name, URL, Year, Mon, Vol, Num")  # Define a named tuple to hold the info
-
-    # We have to treat the Title column specially, since it contains the critical href we need.
-    rows=[]
-    for row in fanzineTable:
+        # We need to extract the name, url, year, and vol/issue info for each fanzine
+        # We have to treat the Title column specially, since it contains the critical href we need.
 
         # Figure out how to get a year
         # There may be a year column or there may be a date column
-        year=0
-        try:
-            if "Year" in row._fields:
-                year=int(row.Year)
-            elif "Date" in row._fields:
-                date=Helpers.InterpretDateString(row.Date)
-                if date != None:
-                    year=date.year
-        except:
-            year=0  # Gotta have *some* code in the except clause
-
-        if year==0:
-            print("   ***Can't find year")
-            continue
+        year=GetCellValueByColHeader(columnHeaders, r, "Year")
+        if year == None:
+            year=0
+        yearInt=Helpers.InterpretYear(year)
 
         # Now month
-        month=0
-        try:
-            if "Month" in row._fields:
-                month=Helpers.InterpretMonth(row.Month)
-            elif "Date" in row._fields:
-                date=Helpers.InterpretDateString(row.Date)
-                if date != None:
-                    month=date.month
-        except:
-            month=0  # Gotta have *some* code in the except clause
-
-        if month == 0:
-            print("   ***Can't find month")
+        month=GetCellValueByColHeader(columnHeaders, r, "Month")
+        monthInt=Helpers.InterpretMonth(month)
 
         # Now find the column containing the issue designation. It could be "Issue" or "Title"
-        issueCol=None
-        for i in range(0, len(row._fields)):
-            if row._fields[i]=="Issue":
-                issueCol=i
-                break
-        if issueCol==None:
-            for i in range(0, len(row._fields)):
-                if row._fields[i] == "Title":
-                    issueCol=i
-                    break
-        if issueCol == None:
-            print("  ***No IssueCol")
-            continue
+        issueCell=GetCellValueByColHeader(columnHeaders, r, "Issue")
+        if issueCell == None:
+            issueCell=GetCellValueByColHeader(columnHeaders, r, "Title")
+        if issueCell == None:
+            issueCell="<not found>"
 
         # Now for code which depends on the index,html file format
         if format[0] == 1 and format[1] == 1:  # The default case
 
             # Get the num from the name
-            name, href=Helpers.GetHrefAndTextFromTag(row[issueCol])
+            name, href=Helpers.GetHrefAndTextFromTag(issueCell)
             if href==None:
-                print("    skipping: "+name)
-                continue
+                href="<no href>"
+            if name == None:
+                name="<no name>"
 
             p=re.compile("^.*\D([0-9]+)\s*$")
             m=p.match(name)
@@ -195,14 +165,14 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
             if m != None and len(m.groups()) == 1:
                 num=int(m.groups()[0])
 
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, Month=month, Vol=0, Number=num)  # (We ignore the Vol and Num for now.)
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, YearInt=yearInt, Month=month, MonthInt=monthInt, Vol=0, Number=num)  # (We ignore the Vol and Num for now.)
             print("   (0,0): "+str(fi))
-            rows.append(fi)
+            fanzineIssueList.append(fi)
 
         elif format[0] == 1 and format[1] == 6:  # The name in the title column ends in V<n>, #<n>
 
             # We need two things: The contents of the first (linking) column and the year.
-            name, href=Helpers.GetHrefAndTextFromTag(row[issueCol])
+            name, href=Helpers.GetHrefAndTextFromTag(issueCell)
             if href == None:
                 print("    skipping: "+name)
                 continue
@@ -210,15 +180,16 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
             p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
             m=p.match(name)
             if m != None and len(m.groups()) == 3:
-                fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, Month=0, Vol=int(m.groups()[1]), Number=int(m.groups()[2]))
+                fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, YearInt=yearInt, Month=0, MonthInt=monthInt, Vol=int(m.groups()[1]), Number=int(m.groups()[2]))
                 print("   (1,6): "+str(fi))
-                rows.append(fi)
+                fanzineIssueList.append(fi)
         elif format[0] == 5 and format[1] == 10:  # One-page zines where the Headline column provides the links
-            i=0
-
-    # Append them to the fanzineIssueList
-    for row in rows:
-        fanzineIssueList.append(row)
+            headline=GetCellValueByColHeader(columnHeaders, r, "Headline")
+            name, href=Helpers.GetHrefAndTextFromTag(headline)
+            if href == None:
+                href="<no href>"
+            name=issueCell
+        i=0
 
     return fanzineIssueList
 
