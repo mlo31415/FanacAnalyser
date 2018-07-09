@@ -117,7 +117,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
         tableRow=Helpers.RemoveNewlineRows(tab.contents[i])
         r=[]
         for j in range(0, len(tableRow)):
-            try:        # If the tag contains an href, we save the tag/.  Otherwise, just the text
+            try:        # If the tag contains an href, we save the tag.  Otherwise, just the text
                 tableRow[j].contents[0].attrs.get("href", None)
                 r.append(tableRow[j])
             except:
@@ -129,20 +129,6 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
     # We need to extract the name, url, year, and vol/issue info for each fanzine
     FanzineInfo=collections.namedtuple("FanzineInfo", "Name, URL, Year, Mon, Vol, Num")  # Define a named tuple to hold the info
 
-    rows=InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format)
-
-    # Now select just the issues for 1942 and append them to the fanzineIssueList
-    for row in rows:
-        # if row.Year == 1942:
-        #     print("      1942: ReadAndAppendFanacFanzineIndexPage: appending "+str(row))
-            fanzineIssueList.append(row)
-
-    return fanzineIssueList
-
-
-# ---------------------------------------------------------
-# Given a fanzine table that has been read in, go through it and generate a list of FanzineInfo rows
-def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
     # We have to treat the Title column specially, since it contains the critical href we need.
     rows=[]
     for row in fanzineTable:
@@ -213,7 +199,7 @@ def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
             print("   (0,0): "+str(fi))
             rows.append(fi)
 
-        elif format[0]==1 and format[1]==6:  # The name in the title column ends in V<n>, #<n>
+        elif format[0] == 1 and format[1] == 6:  # The name in the title column ends in V<n>, #<n>
 
             # We need two things: The contents of the first (linking) column and the year.
             name, href=Helpers.GetHrefAndTextFromTag(row[issueCol])
@@ -227,6 +213,17 @@ def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
                 fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, Month=0, Vol=int(m.groups()[1]), Number=int(m.groups()[2]))
                 print("   (1,6): "+str(fi))
                 rows.append(fi)
-    return rows
+        elif format[0] == 5 and format[1] == 10:  # One-page zines where the Headline column provides the links
+            i=0
 
+    # Append them to the fanzineIssueList
+    for row in rows:
+        fanzineIssueList.append(row)
+
+    return fanzineIssueList
+
+# Given a row in a fanzine table, find the column containing a hyperlink (if any)
+# Return the column header text, the hyperlink, and the hyperlink text
+def FindHyperlink(row):
+    i=0
 
