@@ -5,6 +5,8 @@ import Helpers
 
 # ===============================================================================
 # This is a class to manage the list of fanzine directories in fanac.org
+# It creates a list of all the directors listed under classic or modern fanzines
+# It reads it from the website, not from a local copy.
 
 global g_FanacDirectories   # This is global to share a single instance of the data among all instances of the class, *not* to allow access except through class members
 g_FanacDirectories={}
