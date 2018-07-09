@@ -149,7 +149,7 @@ def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
 
         # Figure out how to get a year
         # There may be a year column or there may be a date column
-        year=None
+        year=0
         try:
             if "Year" in row._fields:
                 year=int(row.Year)
@@ -158,11 +158,26 @@ def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
                 if date != None:
                     year=date.year
         except:
-            year=None  # Gotta have *some* code in the except clause
+            year=0  # Gotta have *some* code in the except clause
 
-        if year==None:
+        if year==0:
             print("   ***Can't find year")
             continue
+
+        # Now month
+        month=0
+        try:
+            if "Month" in row._fields:
+                month=Helpers.InterpretMonth(row.Month)
+            elif "Date" in row._fields:
+                date=Helpers.InterpretDateString(row.Date)
+                if date != None:
+                    month=date.month
+        except:
+            month=0  # Gotta have *some* code in the except clause
+
+        if month == 0:
+            print("   ***Can't find month")
 
         # Now find the column containing the issue designation. It could be "Issue" or "Title"
         issueCol=None
@@ -172,10 +187,10 @@ def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
                 break
         if issueCol==None:
             for i in range(0, len(row._fields)):
-                if row._fields[i]=="Title":
+                if row._fields[i] == "Title":
                     issueCol=i
                     break
-        if issueCol==None:
+        if issueCol == None:
             print("  ***No IssueCol")
             continue
 
@@ -191,12 +206,10 @@ def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
             p=re.compile("^.*\D([0-9]+)\s*$")
             m=p.match(name)
             num=None
-            if m!=None and len(m.groups()) == 1:
+            if m != None and len(m.groups()) == 1:
                 num=int(m.groups()[0])
 
-            if year == None:
-                year=0
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, Month=0, Vol=0, Number=num)  # (We ignore the Vol and Num for now.)
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, Month=month, Vol=0, Number=num)  # (We ignore the Vol and Num for now.)
             print("   (0,0): "+str(fi))
             rows.append(fi)
 
@@ -204,15 +217,13 @@ def InterpretFanzineTable(fanzineName, FanacIssueInfo, fanzineTable, format):
 
             # We need two things: The contents of the first (linking) column and the year.
             name, href=Helpers.GetHrefAndTextFromTag(row[issueCol])
-            if href==None:
+            if href == None:
                 print("    skipping: "+name)
                 continue
 
             p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
             m=p.match(name)
-            if m!=None and len(m.groups())==3:
-                if year==None:
-                    year=0
+            if m != None and len(m.groups()) == 3:
                 fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, Month=0, Vol=int(m.groups()[1]), Number=int(m.groups()[2]))
                 print("   (1,6): "+str(fi))
                 rows.append(fi)
