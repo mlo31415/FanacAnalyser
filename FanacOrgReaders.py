@@ -63,13 +63,13 @@ def GetCellValueByColHeader(columnHeaders, row, name):
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzineIssueList):
     skippers=["Emu Tracks Over America", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The"]
     if fanzineName in skippers:
-        print("   Skipping: "+fanzineName)
+        print("   Skipping: "+fanzineName +" Because it is in slippers")
         return fanzineIssueList
 
     FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt")
 
     # We're only prepared to read a few formats.  Skip over the others right now.
-    OKFormats=((1,1), (1,6))
+    OKFormats=((1,1), (1,6), (5, 10))
     codes=(format[0], format[1])
     if not codes in OKFormats:
         print("      Can't handle format:"+str(format) +" from "+directoryUrl)
@@ -124,8 +124,12 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
     for i in range(1, len(tab)):
         tableRow=Helpers.RemoveNewlineRows(tab.contents[i])
         r=[]
-        for j in range(0, len(tableRow)):
-            r.append(tableRow[j].text)
+        for k in range(0, len(tableRow)):
+            t, h=Helpers.GetHrefAndTextFromTag(tableRow[k])
+            if h is not None:
+                r.append((t, h))
+            else:
+                r.append(tableRow[k].text)
         print("   row=" + str(r))
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
@@ -152,13 +156,18 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
         # Now for code which depends on the index,html file format
         if format[0] == 1 and format[1] == 1:  # The default case
 
-            # Get the num from the name
-            name, href=Helpers.GetHrefAndTextFromTag(issueCell)
-            if href==None:
+            # First, extract the href, if any, leaving the name
+            if type(issueCell) is tuple:
+                name, href=issueCell
+                if href==None:
+                    href="<no href>"
+                if name == None:
+                    name="<no name>"
+            else:
+                name=issueCell
                 href="<no href>"
-            if name == None:
-                name="<no name>"
 
+            # Get the num from the name
             p=re.compile("^.*\D([0-9]+)\s*$")
             m=p.match(name)
             num=None
@@ -172,23 +181,40 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
         elif format[0] == 1 and format[1] == 6:  # The name in the title column ends in V<n>, #<n>
 
             # We need two things: The contents of the first (linking) column and the year.
-            name, href=Helpers.GetHrefAndTextFromTag(issueCell)
-            if href == None:
-                print("    skipping: "+name)
-                continue
+            # First, extract the href, if any, leaving the name
+            if type(issueCell) is tuple:
+                name, href=issueCell
+            else:
+                name=issueCell
+                href="<no href>"
 
             p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
             m=p.match(name)
             if m != None and len(m.groups()) == 3:
-                fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, YearInt=yearInt, Month=0, MonthInt=monthInt, Vol=int(m.groups()[1]), Number=int(m.groups()[2]))
+                fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, YearInt=yearInt, Month=month, MonthInt=monthInt, Vol=int(m.groups()[1]), Number=int(m.groups()[2]))
                 print("   (1,6): "+str(fi))
                 fanzineIssueList.append(fi)
+
         elif format[0] == 5 and format[1] == 10:  # One-page zines where the Headline column provides the links
             headline=GetCellValueByColHeader(columnHeaders, r, "Headline")
             name, href=Helpers.GetHrefAndTextFromTag(headline)
             if href == None:
                 href="<no href>"
-            name=issueCell
+            if type(issueCell) is tuple:
+                name=issueCell[0]
+            else:
+                name=issueCell
+
+
+            p=re.compile("^.*\D([0-9]+)\s*$")
+            m=p.match(name)
+            num=None
+            if m != None and len(m.groups()) == 1:
+                num=int(m.groups()[0])
+
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=year, YearInt=yearInt, Month=month, MonthInt=monthInt, Vol=0, Number=num)
+            print("   (1,6): "+str(fi))
+            fanzineIssueList.append(fi)
         i=0
 
     return fanzineIssueList

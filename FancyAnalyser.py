@@ -42,7 +42,7 @@ FanacOrgReaders.ReadFanacFanzineIssues()
 from operator import itemgetter
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
-FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.FanzineName)  # Sorts in place on fanzine name
+FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
 for fz in FanacOrgReaders.g_fanacIssueInfo:
     if fz.Year == 1943:
         print(str(fz))
