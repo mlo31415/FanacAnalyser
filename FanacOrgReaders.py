@@ -57,13 +57,13 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
         for i in range(0, len(columnHeaders)):
             for cn in cellnames:
                 if columnHeaders[i].lower() == cn.lower():
-                    return row[i]
+                    return row[i], row[i].text
     else:
         for i in range(0, len(columnHeaders)):
             if columnHeaders[i].lower() == cellnames.lower():
-                return row[i]
+                return row[i], row[i].text
 
-    return None
+    return None, None
 
 
 #=============================================================================================
@@ -72,7 +72,7 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
 def ExtractDate(columnHeaders, row):
 
     # Does this have a Date column?
-    dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
+    dateTag, dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
     if dateText is not None:
         # Get the date
         date=None
@@ -84,15 +84,15 @@ def ExtractDate(columnHeaders, row):
         return (date.year, str(date.year), date.month, str(date.month), date.day, str(date.day))
     else:
         # Figure out how to get a year
-        yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
+        yearTag, yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
         yearInt=Helpers.InterpretYear(yearText)
 
         # Now month
-        monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
+        monthTag, monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
         monthInt=Helpers.InterpretMonth(monthText)
 
         # And day
-        dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
+        dayTag, dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
         dayInt=Helpers.InterpretDay(dayText)
 
     return (yearInt, yearText, monthInt, monthText, dayInt, dayText)
@@ -106,10 +106,10 @@ def ExtractDate(columnHeaders, row):
 # Sometimes the number is composite V2#3 and stored who-knows-where.
 def ExtractSerial(columnHeaders, row):
 
-    wholeText=GetCellValueByColHeader(columnHeaders, row, ["WholeNum", "Whole"])
-    maybeWholeText=GetCellValueByColHeader(columnHeaders, row, ["Number", "Num"])
-    volText=GetCellValueByColHeader(columnHeaders, row, ["Vol", "Volume"])
-    numText=GetCellValueByColHeader(columnHeaders, row, ["Number", "No", "Num"])
+    wholeTag, wholeText=GetCellValueByColHeader(columnHeaders, row, ["WholeNum", "Whole"])
+    maybeWholeTag, maybeWholeText=GetCellValueByColHeader(columnHeaders, row, ["Number", "Num"])
+    volTag, volText=GetCellValueByColHeader(columnHeaders, row, ["Vol", "Volume"])
+    numTag, numText=GetCellValueByColHeader(columnHeaders, row, ["Number", "No", "Num"])
 
     wholeInt=None
     volInt=None
@@ -149,7 +149,7 @@ def ExtractSerial(columnHeaders, row):
         numInt=maybeWholeInt
 
     # Next, look at the title -- titles often have a serial designation at their end.
-    titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
+    titleTag, titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
     if titleText is not None:
         # Possible formats:
         #   n   -- a whole number
@@ -157,7 +157,7 @@ def ExtractSerial(columnHeaders, row):
         #   Vn[,] #m  -- a volume and number-within-volume
         #   Vn.m -- ditto
         p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
-        m=p.match(titleText[0])
+        m=p.match(titleText)
         if m is not None and len(m.groups()) == 2:
             v=int(m.groups()[0])
             n=int(m.groups()[1])
@@ -169,7 +169,7 @@ def ExtractSerial(columnHeaders, row):
                 print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(n))
         else:
             p=re.compile("^.*\D([0-9]+)\s*$")
-            m=p.match(titleText[0])
+            m=p.match(titleText)
             if m is not None and len(m.groups()) == 1:
                 w=int(m.groups()[0])
                 if wholeInt is None:
@@ -184,9 +184,9 @@ def ExtractSerial(columnHeaders, row):
 # Fine the cell containg the issue name
 def FindIssueCell(columnHeaders, row):
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
-    issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
+    issueCellTag, issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
     if issueCell == None:
-        issueCell=GetCellValueByColHeader(columnHeaders, row, "Title")
+        issueCellTag, issueCell=GetCellValueByColHeader(columnHeaders, row, "Title")
     if issueCell == None:
         issueCell="<not found>"
 
@@ -211,7 +211,7 @@ def ExtractHrefAndTitle(columnHeaders, row):
         href="<no href>"
 
     # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
-    # If we don't find a hyperlink int he title, scan the other cells of the row for a hyperlink
+    # If we don't find a hyperlink in the title, scan the other cells of the row for a hyperlink
     if href == "<no href>" and name != "<no name>":
         for i in range(0, len(columnHeaders)):
             if row[i] is tuple:
@@ -286,51 +286,43 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
     rows=[]
     for i in range(1, len(tab)):
         tableRow=Helpers.RemoveNewlineRows(tab.contents[i])
-
-        r=[]
-        for k in range(0, len(tableRow)):
-            t, h=Helpers.GetHrefAndTextFromTag(tableRow[k])
-            if h is not None:
-                r.append((t, h))
-            else:
-                r.append(tableRow[k].text)
-        print("   row=" + str(r))
+        print("   row=" + str(tableRow))
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
 
         # Extract the date and serial numbers
-        yearInt, yearText, monthInt, monthText, dayInt, dayText=ExtractDate(columnHeaders, r)
-        volInt, numInt, wholeInt=ExtractSerial(columnHeaders, r)
+        yearInt, yearText, monthInt, monthText, dayInt, dayText=ExtractDate(columnHeaders, tableRow)
+        volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
 
         # Now for code which depends on the index,html file format
         if formatCodes == (1, 1):  # The default case
 
-            name, href=ExtractHrefAndTitle(columnHeaders, r)
+            name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
             fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=0, Number=wholeInt)  # (We ignore the Vol and Num for now.)
             print("   (0,0): "+str(fi))
             fanzineIssueList.append(fi)
 
         elif formatCodes == (1, 4):
 
-            name, href=ExtractHrefAndTitle(columnHeaders, r)
+            name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
             fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=0, Number=wholeInt)  # (We ignore the Vol and Num for now.)
             print("   (0,0): "+str(fi))
             fanzineIssueList.append(fi)
 
         elif formatCodes == (1, 6):  # The name in the title column ends in V<n>, #<n>
 
-            name, href=ExtractHrefAndTitle(columnHeaders, r)
+            name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
 
         elif formatCodes == (5, 10):  # One-page zines where the Headline column provides the links
 
-            headline=GetCellValueByColHeader(columnHeaders, r, "Headline")
+            headlineTag, headline=GetCellValueByColHeader(columnHeaders, tableRow, "Headline")
             name, href=Helpers.GetHrefAndTextFromTag(headline)
             if href == None:
                 href="<no href>"
 
             # Now find the column containing the issue designation. It could be "Issue" or "Title"
-            issueCell=FindIssueCell(columnHeaders, r)
+            issueCell=FindIssueCell(columnHeaders, tableRow)
             if type(issueCell) is tuple:
                 name=issueCell[0]
             else:
