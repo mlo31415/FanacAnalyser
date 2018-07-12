@@ -116,33 +116,41 @@ def ExtractSerial(columnHeaders, row):
     numInt=None
     maybeWholeInt=None
 
+    #TODO: Need to deal with roman numerals
+    #TODO: Need to deal with hyphenated numbers, e.g.,  3-4
+    #TODO: Need to deal with things like 25A
+    #TODO: Need to deal with decimal numbers, e.g., 16.5
     if wholeText is not None:
         try:
             wholeInt=int(wholeText)
         except:
-            print("*** Uninterpretable Whole number: '"+str(wholeText)+"'")
+            if wholeText is not None and len(wholeText) > 0:
+                print("*** Uninterpretable Whole number: '"+str(wholeText)+"'")
             wholeInt=None
 
     if volText is not None:
         try:
             volInt=int(volText)
         except:
-            print("*** Uninterpretable Whole number: '"+str(volText)+"'")
-            volTextInt=None
+            if volText is not None and len(volText) > 0:
+                print("*** Uninterpretable Vol number: '"+str(volText)+"'")
+            volInt=None
 
     # If there's no vol, anything under "Num", etc., must be a whole number
     if volText is None and maybeWholeText is not None:
         try:
             maybeWholeInt=int(maybeWholeText)
         except:
-            print("*** Uninterpretable Whole number: '"+str(maybeWholeText)+"'")
+            if maybeWholeText is not None and len(maybeWholeText) > 0:
+                print("*** Uninterpretable Maybe Whole number: '"+str(maybeWholeText)+"'")
             maybeWholeInt=None
 
     if volInt is not None:
         try:
             numInt=int(numText)
         except:
-            print("*** Uninterpretable Whole number: '"+str(numText)+"'")
+            if numText is not None and len(numText) > 0:
+                print("*** Uninterpretable Num number: '"+str(numText)+"'")
             numInt=None
 
     if numInt is None and volInt is not None and maybeWholeInt is not None:
@@ -214,8 +222,9 @@ def ExtractHrefAndTitle(columnHeaders, row):
     # If we don't find a hyperlink in the title, scan the other cells of the row for a hyperlink
     if href == "<no href>" and name != "<no name>":
         for i in range(0, len(columnHeaders)):
-            if row[i] is tuple:
-                href=row[i][1]
+            n, h=Helpers.GetHrefAndTextFromTag(row[i])
+            if h is not None:
+                href=h
                 break
 
     return name, href
