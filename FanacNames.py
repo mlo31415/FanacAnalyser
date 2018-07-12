@@ -1,7 +1,6 @@
 import collections
 import Helpers
 import re
-import IssueSpec
 
 # This is a tuple which associates all the different forms of a fanzine's name on fanac.org.
 # It does *not* try to deal with namechanges!
