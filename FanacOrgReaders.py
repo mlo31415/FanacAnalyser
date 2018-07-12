@@ -9,7 +9,7 @@ import timestring
 import FanacDirectories
 
 # ============================================================================================
-def ReadFanacFanzineIssues():
+def ReadFanacFanzineIssues(logfile):
     # Read index.html files on fanac.org
     # We have a dictionary containing the names and URLs of the 1942 fanzines.
     # The next step is to figure out what 1942 issues of each we have on the website
@@ -24,6 +24,7 @@ def ReadFanacFanzineIssues():
         print("'"+key+"', "+title+"', "+dirname+"'")
         if '/' in dirname:
             print("   skipped because of '/' in name:"+dirname)
+            logfile.write(dirname+"      ***skipped because of '/' in name\n")
             continue
 
         # Get the index file format for this directory
@@ -32,6 +33,7 @@ def ReadFanacFanzineIssues():
 
         if dirFormat == (8, 0):
             print("   Skipped because no index.html file: "+ dirname)
+            logfile.write(dirname+"   ***skipped because no index file\n")
             continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
@@ -40,8 +42,15 @@ def ReadFanacFanzineIssues():
         print("   '"+title+"', "+url+"'")
         if url is None:
             continue
-        if url.startswith("http://www.fanac.org") and not url.startswith("http://www.fanac.org//fan_funds") and not url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-            g_fanacIssueInfo=ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo)
+        if not url.startswith("http://www.fanac.org"):
+            logfile.write(url+"    ***skipped because not a fanac.org url\n")
+            continue
+
+        if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
+            logfile.write(url+"    ***skipped because in the fan_funds or fanzines/Miscellaneous directories\n")
+            continue
+
+        g_fanacIssueInfo=ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo, logfile)
 
     # Now g_fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
@@ -98,6 +107,26 @@ def ExtractDate(columnHeaders, row):
 
 
 #=============================================================================================
+# If there's a trailing Vol+Num designation at the end of a string, interpret it.
+# We accept:
+#       ...Vnn[,][ ]#nnn[ ]
+def InterpretSerial(s):
+    # First look for a Vol+Num designation
+    p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
+    m=p.match(s)
+    if m is not None and len(m.groups())==2:
+        return int(m.groups()[0]), int(m.groups()[1])
+
+    # Now look for a single number
+    p=re.compile("^.*\D([0-9]+)\s*$")
+    m=p.match(s)
+    if m is not None and len(m.groups())==1:
+        return None, int(m.groups()[0])
+
+    # No good, return failure
+    return None, None
+
+#=============================================================================================
 # Extract a serial number (vol, num, whole_num) from a table row
 # We return a tuple: (vol, num, whole_num)
 # Some fanzines have a whole number (sometimes called "Num"
@@ -109,6 +138,7 @@ def ExtractSerial(columnHeaders, row):
     maybeWholeTag, maybeWholeText=GetCellValueByColHeader(columnHeaders, row, ["Number", "Num"])
     volTag, volText=GetCellValueByColHeader(columnHeaders, row, ["Vol", "Volume"])
     numTag, numText=GetCellValueByColHeader(columnHeaders, row, ["Number", "No", "Num"])
+    volNumTag, volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")
 
     wholeInt=None
     volInt=None
@@ -126,6 +156,12 @@ def ExtractSerial(columnHeaders, row):
             if wholeText is not None and len(wholeText) > 0:
                 print("*** Uninterpretable Whole number: '"+str(wholeText)+"'")
             wholeInt=None
+
+    if volNumText is not None:
+        v, n=InterpretSerial(volNumText)
+        if v is not None and n is not None:
+            volInt=v
+            numInt=n
 
     if volText is not None:
         try:
@@ -163,26 +199,19 @@ def ExtractSerial(columnHeaders, row):
         #   Vn  -- a volume number, but where's the issue?
         #   Vn[,] #m  -- a volume and number-within-volume
         #   Vn.m -- ditto
-        p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
-        m=p.match(titleText)
-        if m is not None and len(m.groups()) == 2:
-            v=int(m.groups()[0])
-            n=int(m.groups()[1])
+        v, n=InterpretSerial(titleText)
+        if v is not None and n is not None:
             if volInt is None:
                 volInt=v
             if numInt is None:
                 numInt=n
             if volInt != v or numInt != n:
                 print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(n))
-        else:
-            p=re.compile("^.*\D([0-9]+)\s*$")
-            m=p.match(titleText)
-            if m is not None and len(m.groups()) == 1:
-                w=int(m.groups()[0])
-                if wholeInt is None:
-                    wholeInt=w
-                if wholeInt != w:
-                    print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(w))
+        elif n is not None:
+            if wholeInt is None:
+                wholeInt=n
+            if wholeInt != n:
+                print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(n))
 
     return volInt, numInt, wholeInt
 
@@ -231,11 +260,12 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList):
+def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList, logfile):
 
     skippers=["Emu Tracks Over America", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The"]
     if fanzineName in skippers:
-        print("   Skipping: "+fanzineName +" Because it is in slippers")
+        print("   Skipping: "+fanzineName +" Because it is in skippers")
+        logfile.write(fanzineName+"      ***Skipping because it is in skippers\n")
         return fanzineIssueList
 
     FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt")
@@ -245,6 +275,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     formatCodes=(dirFormat[0], dirFormat[1])
     if not formatCodes in OKFormats:
         print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
+        logfile.write(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat)+"\n")
         return fanzineIssueList
 
     # Download the index.html which lists all of the issues of the specified fanzine currently on the site
@@ -255,6 +286,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             h=requests.get(directoryUrl)
         except:
             print("***Request failed for: "+directoryUrl)
+            logfile.write(directoryUrl+"      ***failed because didn't load\n")
             return fanzineIssueList
 
     s = BeautifulSoup(h.content, "html.parser")
@@ -265,11 +297,14 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     tab=Helpers.LookForTable(b)
     if tab is None:
         print("*** No Table found!")
+        logfile.write(directoryUrl+"      ***failed because no Table found in index.html\n")
         return fanzineIssueList
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
     # Subsequent rows are fanzine issue rows
+
+    logfile.write(directoryUrl+"\n")
 
     # Some of the rows showing up in tab.contents will be tags containing only a newline -- start by compressing them out.
     tab.contents=Helpers.RemoveNewlineRows(tab.contents)
@@ -304,6 +339,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
 
         # Now for code which depends on the index,html file format
+        fi=None
         if formatCodes == (1, 1):  # The default case
 
             name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
@@ -321,6 +357,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         elif formatCodes == (1, 6):  # The name in the title column ends in V<n>, #<n>
 
             name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
+            logfile.write("      Row "+str(i)+" Not yet handeled\n")
 
         elif formatCodes == (5, 10):  # One-page zines where the Headline column provides the links
 
@@ -339,6 +376,10 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=0, Number=wholeInt)
             print("   (1,6): "+str(fi))
             fanzineIssueList.append(fi)
+
+        if fi is not None:
+            logfile.write("      Row "+str(i)+"  " + str(fi.FanzineIssueName) +"  V"+str(fi.Vol)+"#"+str(fi.Number)+"  "+str(fi.Month)+" "+str(fi.Year)+"\n")
+
 
     return fanzineIssueList
 
