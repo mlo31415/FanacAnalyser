@@ -27,10 +27,10 @@ def ReadFanacFanzineIssues():
             continue
 
         # Get the index file format for this directory
-        format=FanacDirectoryFormats.FanacDirectoryFormats().GetFormat(dirname.lower())
-        print("   Format: "+title+" --> "+FanacNames.FanacNames().StandardizeName(title.lower())+" --> "+str(format))
+        dirFormat=FanacDirectoryFormats.FanacDirectoryFormats().GetFormat(dirname.lower())
+        print("   Format: "+title+" --> "+FanacNames.FanacNames().StandardizeName(title.lower())+" --> "+str(dirFormat))
 
-        if format == (8, 0):
+        if dirFormat == (8, 0):
             print("   Skipped because no index.html file: "+ dirname)
             continue
 
@@ -38,10 +38,10 @@ def ReadFanacFanzineIssues():
         # We need to turn relPath into a URL
         url=Helpers.RelPathToURL(dirname)
         print("   '"+title+"', "+url+"'")
-        if url == None:
+        if url is None:
             continue
         if url.startswith("http://www.fanac.org") and not url.startswith("http://www.fanac.org//fan_funds") and not url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-            g_fanacIssueInfo=ReadAndAppendFanacFanzineIndexPage(title, url, format, g_fanacIssueInfo)
+            g_fanacIssueInfo=ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo)
 
     # Now g_fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
@@ -75,7 +75,6 @@ def ExtractDate(columnHeaders, row):
     dateTag, dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
     if dateText is not None:
         # Get the date
-        date=None
         try:
             date=timestring.Date(dateText)
         except:
@@ -169,9 +168,9 @@ def ExtractSerial(columnHeaders, row):
         if m is not None and len(m.groups()) == 2:
             v=int(m.groups()[0])
             n=int(m.groups()[1])
-            if volInt == None:
+            if volInt is None:
                 volInt=v
-            if numInt == None:
+            if numInt is None:
                 numInt=n
             if volInt != v or numInt != n:
                 print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(n))
@@ -193,9 +192,9 @@ def ExtractSerial(columnHeaders, row):
 def FindIssueCell(columnHeaders, row):
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
     issueCellTag, issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
-    if issueCell == None:
+    if issueCell is None:
         issueCellTag, issueCell=GetCellValueByColHeader(columnHeaders, row, "Title")
-    if issueCell == None:
+    if issueCell is None:
         issueCell="<not found>"
 
     return issueCell
@@ -210,9 +209,9 @@ def ExtractHrefAndTitle(columnHeaders, row):
     # First, extract the href, if any, leaving the name
     if type(issueCell) is tuple:
         name, href=issueCell
-        if href==None:
+        if href is None:
             href="<no href>"
-        if name==None:
+        if name is None:
             name="<no name>"
     else:
         name=issueCell
@@ -232,7 +231,8 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzineIssueList):
+def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList):
+
     skippers=["Emu Tracks Over America", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The"]
     if fanzineName in skippers:
         print("   Skipping: "+fanzineName +" Because it is in slippers")
@@ -242,9 +242,9 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
 
     # We're only prepared to read a few formats.  Skip over the others right now.
     OKFormats=((1,1), (1,4), (1,6), (5, 10))
-    formatCodes=(format[0], format[1])
+    formatCodes=(dirFormat[0], dirFormat[1])
     if not formatCodes in OKFormats:
-        print("      Can't handle format:"+str(format) +" from "+directoryUrl)
+        print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
         return fanzineIssueList
 
     # Download the index.html which lists all of the issues of the specified fanzine currently on the site
@@ -292,7 +292,6 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
     # The rest of the table is one or more rows, each corresponding to an issue of that fanzine.
     # We build up a list of lists.  Each list in the list of lists is a row
     # We have to treat the Title column specially, since it contains the critical href we need.
-    rows=[]
     for i in range(1, len(tab)):
         tableRow=Helpers.RemoveNewlineRows(tab.contents[i])
         print("   row=" + str(tableRow))
@@ -327,7 +326,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
 
             headlineTag, headline=GetCellValueByColHeader(columnHeaders, tableRow, "Headline")
             name, href=Helpers.GetHrefAndTextFromTag(headline)
-            if href == None:
+            if href is None:
                 href="<no href>"
 
             # Now find the column containing the issue designation. It could be "Issue" or "Title"
@@ -340,7 +339,6 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, format, fanzin
             fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=0, Number=wholeInt)
             print("   (1,6): "+str(fi))
             fanzineIssueList.append(fi)
-        i=0
 
     return fanzineIssueList
 
