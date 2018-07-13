@@ -180,7 +180,7 @@ def ExtractSerial(columnHeaders, row):
             volInt=None
 
     # If there's no vol, anything under "Num", etc., must actually be a whole number
-    if volText is None and maybeWholeText is not None:
+    if maybeWholeText is not None:
         try:
             maybeWholeInt=int(maybeWholeText)
         except:
@@ -189,7 +189,7 @@ def ExtractSerial(columnHeaders, row):
             maybeWholeInt=None
 
     # But if the *is* a volume specified, than any number not labelled "whole" must be a number within the volume
-    if volInt is not None:
+    if numText is not None:
         try:
             numInt=int(numText)
         except:
@@ -197,8 +197,16 @@ def ExtractSerial(columnHeaders, row):
                 print("*** Uninterpretable Num number: '"+str(numText)+"'")
             numInt=None
 
-    if numInt is None and maybeWholeInt is not None:
+    # OK, now figure out the vol, num and whole.
+    # First, if a Vol is present, and an unambigious num is absent, the an ambigious Num must be the Vol's num
+    if volInt is not None and numInt is None and maybeWholeInt is not None:
         numInt=maybeWholeInt
+        maybeWholeInt=None
+
+    # If the wholeInt is missing and maybeWholeInt hasn't been used up, make it the wholeInt
+    if wholeInt is None and maybeWholeInt is not None:
+        wholeInt=maybeWholeInt
+        maybeWholeInt=None
 
     # Next, look at the title -- titles often have a serial designation at their end.
     titleTag, titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
@@ -222,11 +230,7 @@ def ExtractSerial(columnHeaders, row):
             if wholeInt != n:
                 print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(n))
 
-    # If no volume number is found, then we want to return (None,whole)
-    if volInt is None and numInt is None:
-        numInt=wholeInt
-
-    return volInt, numInt
+    return volInt, numInt, wholeInt
 
 
 # ============================================================================================
@@ -281,7 +285,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         logfile.write(fanzineName+"      ***Skipping because it is in skippers\n")
         return fanzineIssueList
 
-    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt")
+    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Whole")
 
     # Download the index.html which lists all of the issues of the specified fanzine currently on the site
     try:
@@ -341,7 +345,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
         # Extract the date and serial numbers
         yearInt, yearText, monthInt, monthText, dayInt, dayText=ExtractDate(columnHeaders, tableRow)
-        volInt, numInt=ExtractSerial(columnHeaders, tableRow)
+        volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
 
         # Now for code which depends on the index,html file format
@@ -356,7 +360,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             # 1 -- Directory includes a table with the first column containing links
             # 1 -- The issue number is at the end of the link text and there is a Year column
 
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt)
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Whole=wholeInt)
             print("   ("+str(formatCodes[0])+","+str(formatCodes[1])+"): "+str(fi))
             fanzineIssueList.append(fi)
 
@@ -364,7 +368,10 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             i=0 # Placeholder
 
         if fi is not None:
-            logfile.write("      Row "+str(i)+"  '" + str(fi.FanzineIssueName) +"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]\n")
+            urlT=""
+            if fi.URL == "<no href>":
+                urlT="*No URL*"
+            logfile.write("      Row "+str(i)+"  '" + str(fi.FanzineIssueName) +"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT+"\n")
         else:
             print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
             logfile.write(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat)+"\n")
