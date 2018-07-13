@@ -232,6 +232,17 @@ def ExtractSerial(columnHeaders, row):
 
     return volInt, numInt, wholeInt
 
+def ExtractPageCount(columnHeaders, row):
+
+    pageTag, pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp."])
+    if pageText is None:
+        return 0
+
+    try:
+        return int(pageText)
+    except:
+        return 0
+
 
 # ============================================================================================
 # Fine the cell containg the issue name
@@ -256,16 +267,16 @@ def ExtractHrefAndTitle(columnHeaders, row):
     if type(issueCell) is tuple:
         name, href=issueCell
         if href is None:
-            href="<no href>"
+            href=None
         if name is None:
-            name="<no name>"
+            name=None
     else:
         name=issueCell
-        href="<no href>"
+        href=None
 
     # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
     # If we don't find a hyperlink in the title, scan the other cells of the row for a hyperlink
-    if href == "<no href>" and name != "<no name>":
+    if href is None and name is not None:
         for i in range(0, len(columnHeaders)):
             n, h=Helpers.GetHrefAndTextFromTag(row[i])
             if h is not None:
@@ -285,7 +296,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         logfile.write(fanzineName+"      ***Skipping because it is in skippers\n")
         return fanzineIssueList
 
-    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Whole")
+    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Whole Pages")
 
     # Download the index.html which lists all of the issues of the specified fanzine currently on the site
     try:
@@ -347,6 +358,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         yearInt, yearText, monthInt, monthText, dayInt, dayText=ExtractDate(columnHeaders, tableRow)
         volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
+        pages=ExtractPageCount(columnHeaders, tableRow)
 
         # Now for code which depends on the index,html file format
         # Most formats are handled generically, but some aren't.
@@ -360,7 +372,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             # 1 -- Directory includes a table with the first column containing links
             # 1 -- The issue number is at the end of the link text and there is a Year column
 
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Whole=wholeInt)
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Whole=wholeInt, Pages=pages)
             print("   ("+str(formatCodes[0])+","+str(formatCodes[1])+"): "+str(fi))
             fanzineIssueList.append(fi)
 
@@ -369,7 +381,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
         if fi is not None:
             urlT=""
-            if fi.URL == "<no href>":
+            if fi.URL == None:
                 urlT="*No URL*"
             logfile.write("      Row "+str(i)+"  '" + str(fi.FanzineIssueName) +"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT+"\n")
         else:
