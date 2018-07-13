@@ -110,17 +110,25 @@ def ExtractDate(columnHeaders, row):
 # If there's a trailing Vol+Num designation at the end of a string, interpret it.
 # We accept:
 #       ...Vnn[,][ ]#nnn[ ]
+#       ...nn[ ]
+#       ...nnn/nnn[  ]
 def InterpretSerial(s):
     # First look for a Vol+Num designation
     p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
     m=p.match(s)
-    if m is not None and len(m.groups())==2:
+    if m is not None and len(m.groups()) == 2:
         return int(m.groups()[0]), int(m.groups()[1])
 
-    # Now look for a single number
-    p=re.compile("^.*\D([0-9]+)\s*$")
+    # Now look for nnn/nnn
+    p=re.compile("^.*([0-9]+)/([0-9]+)\s*$")
     m=p.match(s)
-    if m is not None and len(m.groups())==1:
+    if m is not None and len(m.groups()) == 2:
+        return int(m.groups()[0]), int(m.groups()[1])
+
+    # Now look for a single trailing number
+    p=re.compile("^.*\D([0-9]+)\s*$")       #TODO: Why is /D here?
+    m=p.match(s)
+    if m is not None and len(m.groups()) == 1:
         return None, int(m.groups()[0])
 
     # No good, return failure
@@ -128,10 +136,10 @@ def InterpretSerial(s):
 
 #=============================================================================================
 # Extract a serial number (vol, num, whole_num) from a table row
-# We return a tuple: (vol, num, whole_num)
-# Some fanzines have a whole number (sometimes called "Num"
-# Others have a Volum and a number (the latter also sometimes called "Num"
-# Sometimes the number is composite V2#3 and stored who-knows-where.
+# We return a tuple: (vol, num)
+# Some fanzines have a whole number --> returned as VolNone, Num=nnn
+# Others have a Volum and a number --> returned as Vol=nn, Num=nn
+# Sometimes the number is composite V2#3 and stored who-knows-where and we gotta find it.
 def ExtractSerial(columnHeaders, row):
 
     wholeTag, wholeText=GetCellValueByColHeader(columnHeaders, row, ["WholeNum", "Whole"])
@@ -159,7 +167,7 @@ def ExtractSerial(columnHeaders, row):
 
     if volNumText is not None:
         v, n=InterpretSerial(volNumText)
-        if v is not None and n is not None:
+        if v is not None and n is not None: # Otherwise, we don't actually have a volume+number
             volInt=v
             numInt=n
 
@@ -171,7 +179,7 @@ def ExtractSerial(columnHeaders, row):
                 print("*** Uninterpretable Vol number: '"+str(volText)+"'")
             volInt=None
 
-    # If there's no vol, anything under "Num", etc., must be a whole number
+    # If there's no vol, anything under "Num", etc., must actually be a whole number
     if volText is None and maybeWholeText is not None:
         try:
             maybeWholeInt=int(maybeWholeText)
@@ -180,6 +188,7 @@ def ExtractSerial(columnHeaders, row):
                 print("*** Uninterpretable Maybe Whole number: '"+str(maybeWholeText)+"'")
             maybeWholeInt=None
 
+    # But if the *is* a volume specified, than any number not labelled "whole" must be a number within the volume
     if volInt is not None:
         try:
             numInt=int(numText)
@@ -188,7 +197,7 @@ def ExtractSerial(columnHeaders, row):
                 print("*** Uninterpretable Num number: '"+str(numText)+"'")
             numInt=None
 
-    if numInt is None and volInt is not None and maybeWholeInt is not None:
+    if numInt is None and maybeWholeInt is not None:
         numInt=maybeWholeInt
 
     # Next, look at the title -- titles often have a serial designation at their end.
@@ -213,7 +222,11 @@ def ExtractSerial(columnHeaders, row):
             if wholeInt != n:
                 print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(n))
 
-    return volInt, numInt, wholeInt
+    # If no volume number is found, then we want to return (None,whole)
+    if volInt is None and numInt is None:
+        numInt=wholeInt
+
+    return volInt, numInt
 
 
 # ============================================================================================
@@ -262,21 +275,13 @@ def ExtractHrefAndTitle(columnHeaders, row):
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList, logfile):
 
-    skippers=["Emu Tracks Over America", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The"]
+    skippers=["Emu Tracks Over America", "IGOTS", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The"]
     if fanzineName in skippers:
         print("   Skipping: "+fanzineName +" Because it is in skippers")
         logfile.write(fanzineName+"      ***Skipping because it is in skippers\n")
         return fanzineIssueList
 
     FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt")
-
-    # We're only prepared to read a few formats.  Skip over the others right now.
-    OKFormats=((1,1), (1,4), (1,6), (5, 10))
-    formatCodes=(dirFormat[0], dirFormat[1])
-    if not formatCodes in OKFormats:
-        print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
-        logfile.write(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat)+"\n")
-        return fanzineIssueList
 
     # Download the index.html which lists all of the issues of the specified fanzine currently on the site
     try:
@@ -336,50 +341,33 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
         # Extract the date and serial numbers
         yearInt, yearText, monthInt, monthText, dayInt, dayText=ExtractDate(columnHeaders, tableRow)
-        volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
+        volInt, numInt=ExtractSerial(columnHeaders, tableRow)
+        name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
 
         # Now for code which depends on the index,html file format
+        # Most formats are handled generically, but some aren't.
+        # First deal with the generic formats
         fi=None
-        if formatCodes == (1, 1):  # The default case
 
-            name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=0, Number=wholeInt)  # (We ignore the Vol and Num for now.)
-            print("   (0,0): "+str(fi))
+        # We're only prepared to read a few formats.  Skip over the others right now.
+        specialFormats=()
+        formatCodes=(dirFormat[0], dirFormat[1])    # dirFormat has an unwanted third member
+        if formatCodes not in specialFormats:  # The default case
+            # 1 -- Directory includes a table with the first column containing links
+            # 1 -- The issue number is at the end of the link text and there is a Year column
+
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt)
+            print("   ("+str(formatCodes[0])+","+str(formatCodes[1])+"): "+str(fi))
             fanzineIssueList.append(fi)
 
-        elif formatCodes == (1, 4):
-
-            name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=0, Number=wholeInt)  # (We ignore the Vol and Num for now.)
-            print("   (0,0): "+str(fi))
-            fanzineIssueList.append(fi)
-
-        elif formatCodes == (1, 6):  # The name in the title column ends in V<n>, #<n>
-
-            name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
-            logfile.write("      Row "+str(i)+" Not yet handeled\n")
-
-        elif formatCodes == (5, 10):  # One-page zines where the Headline column provides the links
-
-            headlineTag, headline=GetCellValueByColHeader(columnHeaders, tableRow, "Headline")
-            name, href=Helpers.GetHrefAndTextFromTag(headline)
-            if href is None:
-                href="<no href>"
-
-            # Now find the column containing the issue designation. It could be "Issue" or "Title"
-            issueCell=FindIssueCell(columnHeaders, tableRow)
-            if type(issueCell) is tuple:
-                name=issueCell[0]
-            else:
-                name=issueCell
-
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=0, Number=wholeInt)
-            print("   (1,6): "+str(fi))
-            fanzineIssueList.append(fi)
+        elif False:     # Placeholder
+            i=0 # Placeholder
 
         if fi is not None:
-            logfile.write("      Row "+str(i)+"  " + str(fi.FanzineIssueName) +"  V"+str(fi.Vol)+"#"+str(fi.Number)+"  "+str(fi.Month)+" "+str(fi.Year)+"\n")
-
+            logfile.write("      Row "+str(i)+"  '" + str(fi.FanzineIssueName) +"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]\n")
+        else:
+            print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
+            logfile.write(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat)+"\n")
 
     return fanzineIssueList
 
