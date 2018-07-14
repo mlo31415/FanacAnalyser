@@ -8,7 +8,7 @@ logFile=open("FanacAnalysisLog.txt", "w+")
 # Trigger the reading of the fanac fanzine directories
 FanacDirectories.FanacDirectories()
 
-# Read the fanac.org fanzine direcgtory and produce a lost of all issues present
+# Read the fanac.org fanzine direcgtory and produce a list of all issues present
 FanacOrgReaders.ReadFanacFanzineIssues(logFile)
 
 logFile.close()
