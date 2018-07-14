@@ -20,7 +20,9 @@ def ReadFanacFanzineIssues(logfile):
 
     global g_fanacIssueInfo
     g_fanacIssueInfo=[]
-    for key, (title, dirname) in FanacDirectories.FanacDirectories().Dict().items():
+    keys=sorted(list(FanacDirectories.FanacDirectories().Dict().keys()))
+    for key in keys:
+        title, dirname=FanacDirectories.FanacDirectories().Dict()[key]
         print("'"+key+"', "+title+"', "+dirname+"'")
         if '/' in dirname:
             print("   skipped because of '/' in name:"+dirname)
