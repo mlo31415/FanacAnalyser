@@ -87,9 +87,9 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
         for i in range(0, len(columnHeaders)):
             if columnHeaders[i].lower() == cellnames.lower():
                 if type(row[i]) is tuple:
-                    return row[i]
-                else:
                     return row[i][0]
+                else:
+                    return row[i]
 
     return None
 
@@ -430,7 +430,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             tableRows.append(newRow)
 
     # Now we process the table rows, extracting the information for each fanzine issue.
-    for i in range(1, len(tableRows)):  #TODO: Got to getrange right
+    for i in range(0, len(tableRows)):
         # We need to skip the column headers
         tableRow=tableRows[i]
         if len(tableRow) == 1 and tableRow[0] == "\n":    # Skip empty rows
