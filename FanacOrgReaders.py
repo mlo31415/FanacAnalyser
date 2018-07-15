@@ -7,6 +7,13 @@ import re
 import FanacDirectoryFormats
 import timestring
 import FanacDirectories
+import time
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common import exceptions as SeEx
 
 # ============================================================================================
 def ReadFanacFanzineIssues(logfile):
@@ -18,8 +25,11 @@ def ReadFanacFanzineIssues(logfile):
     # Loop over the list of all 1942 fanzines, building up a list of those on fanac.org
     print("----Begin reading index.html files on fanac.org")
 
+    global g_browser
+    g_browser=None
     global g_fanacIssueInfo
     g_fanacIssueInfo=[]
+
     keys=sorted(list(FanacDirectories.FanacDirectories().Dict().keys()))
     for key in keys:
         title, dirname=FanacDirectories.FanacDirectories().Dict()[key]
@@ -52,7 +62,7 @@ def ReadFanacFanzineIssues(logfile):
             logfile.write(url+"    ***skipped because in the fan_funds or fanzines/Miscellaneous directories\n")
             continue
 
-        g_fanacIssueInfo=ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo, logfile)
+        ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo, logfile)
 
     # Now g_fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
@@ -68,13 +78,19 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
         for i in range(0, len(columnHeaders)):
             for cn in cellnames:
                 if columnHeaders[i].lower() == cn.lower():
-                    return row[i], row[i].text
+                    if type(row[i]) is tuple:
+                        return row[i][0]
+                    else:
+                        return row[i]
     else:
         for i in range(0, len(columnHeaders)):
             if columnHeaders[i].lower() == cellnames.lower():
-                return row[i], row[i].text
+                if type(row[i]) is tuple:
+                    return row[i][0]
+                else:
+                    return row[i]
 
-    return None, None
+    return None
 
 
 #=============================================================================================
@@ -83,7 +99,7 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
 def ExtractDate(columnHeaders, row):
 
     # Does this have a Date column?
-    dateTag, dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
+    dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
     if dateText is not None:
         # Get the date
         try:
@@ -94,15 +110,15 @@ def ExtractDate(columnHeaders, row):
         return (date.year, str(date.year), date.month, str(date.month), date.day, str(date.day))
     else:
         # Figure out how to get a year
-        yearTag, yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
+        yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
         yearInt=Helpers.InterpretYear(yearText)
 
         # Now month
-        monthTag, monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
+        monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
         monthInt=Helpers.InterpretMonth(monthText)
 
         # And day
-        dayTag, dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
+        dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
         dayInt=Helpers.InterpretDay(dayText)
 
     return (yearInt, yearText, monthInt, monthText, dayInt, dayText)
@@ -144,11 +160,11 @@ def InterpretSerial(s):
 # Sometimes the number is composite V2#3 and stored who-knows-where and we gotta find it.
 def ExtractSerial(columnHeaders, row):
 
-    wholeTag, wholeText=GetCellValueByColHeader(columnHeaders, row, ["WholeNum", "Whole"])
-    maybeWholeTag, maybeWholeText=GetCellValueByColHeader(columnHeaders, row, ["Number", "Num"])
-    volTag, volText=GetCellValueByColHeader(columnHeaders, row, ["Vol", "Volume"])
-    numTag, numText=GetCellValueByColHeader(columnHeaders, row, ["Number", "No", "Num"])
-    volNumTag, volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")
+    wholeText=GetCellValueByColHeader(columnHeaders, row, ["WholeNum", "Whole"])
+    maybeWholeText=GetCellValueByColHeader(columnHeaders, row, ["Number", "Num"])
+    volText=GetCellValueByColHeader(columnHeaders, row, ["Vol", "Volume"])
+    numText=GetCellValueByColHeader(columnHeaders, row, ["Number", "No", "Num"])
+    volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")
 
     wholeInt=None
     volInt=None
@@ -211,14 +227,18 @@ def ExtractSerial(columnHeaders, row):
         maybeWholeInt=None
 
     # Next, look at the title -- titles often have a serial designation at their end.
-    titleTag, titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
+    titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
     if titleText is not None:
         # Possible formats:
         #   n   -- a whole number
         #   Vn  -- a volume number, but where's the issue?
         #   Vn[,] #m  -- a volume and number-within-volume
         #   Vn.m -- ditto
-        v, n=InterpretSerial(titleText)
+        if type(titleText) is tuple:
+            v, n=InterpretSerial(titleText[0])
+        else:
+            v, n=InterpretSerial(titleText)
+
         if v is not None and n is not None:
             if volInt is None:
                 volInt=v
@@ -234,9 +254,11 @@ def ExtractSerial(columnHeaders, row):
 
     return volInt, numInt, wholeInt
 
+
+#============================================================================================
 def ExtractPageCount(columnHeaders, row):
 
-    pageTag, pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp."])
+    pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp."])
     if pageText is None:
         return 0
 
@@ -250,9 +272,9 @@ def ExtractPageCount(columnHeaders, row):
 # Fine the cell containg the issue name
 def FindIssueCell(columnHeaders, row):
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
-    issueCellTag, issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
+    issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
     if issueCell is None:
-        issueCellTag, issueCell=GetCellValueByColHeader(columnHeaders, row, "Title")
+        issueCell=GetCellValueByColHeader(columnHeaders, row, "Title")
     if issueCell is None:
         issueCell="<not found>"
 
@@ -291,14 +313,20 @@ def ExtractHrefAndTitle(columnHeaders, row):
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList, logfile):
+    global g_browser
 
-    skippers=["Emu Tracks Over America", "IGOTS", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The"]
+    skippers=["Emu Tracks Over America", "IGOTS", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The",
+              "Australian Science Fiction Bullsheet, The", "Plokta", "Vapourware", "Wastebasket"]
     if fanzineName in skippers:
         print("   Skipping: "+fanzineName +" Because it is in skippers")
         logfile.write(fanzineName+"      ***Skipping because it is in skippers\n")
-        return fanzineIssueList
+        return
 
     FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Whole Pages")
+
+    # There are two ways to access and analyze the web pages: BeautifulSoup and Selenium
+    # We prefer to use BeautifulSoup because it's faster, but it seems to fail some times.  When it fails, we use Selenium.
+    usingBeautifulSoup=True
 
     # Download the index.html which lists all of the issues of the specified fanzine currently on the site
     try:
@@ -308,50 +336,101 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             h=requests.get(directoryUrl)
         except:
             print("***Request failed for: "+directoryUrl)
-            logfile.write(directoryUrl+"      ***failed because didn't load\n")
-            return fanzineIssueList
+            logfile.write(directoryUrl+"      ***failed because it didn't load\n")
+            return
 
-    s = BeautifulSoup(h.content, "html.parser")
-    b = s.body.contents
+    # Parse the page looking for the body
+    soup = BeautifulSoup(h.content, "html.parser")
+    soupBody = soup.body.contents
+
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
+    soupTable=Helpers.LookForTable(soupBody)
+    if soupTable is None:
+        print("*** No index Table found!")
+        logfile.write(directoryUrl+"      ***failed because no index Table found in index.html\n")
 
-    tab=Helpers.LookForTable(b)
-    if tab is None:
-        print("*** No Table found!")
-        logfile.write(directoryUrl+"      ***failed because no Table found in index.html\n")
-        return fanzineIssueList
+        # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
+        print("    Trying Selenium")
+        usingBeautifulSoup=False
+        # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
+        if g_browser is None:
+            g_browser=webdriver.Firefox()
+
+        # Open the index page in the browser
+        g_browser.get(directoryUrl)
+
+        # Find the index table's column header row and extract the column headers
+        try:
+            seTable=g_browser.find_elements_by_xpath('/html/body/table[2]/tbody/tr')
+            time.sleep(0.3)  # Just-in-case
+
+        except:
+            print("*** Selenium failed also!")
+            logfile.write(directoryUrl+"      ***Selenium failed also\n")
+            return
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
     # Subsequent rows are fanzine issue rows
-
     logfile.write(directoryUrl+"\n")
 
-    # Some of the rows showing up in tab.contents will be tags containing only a newline -- start by compressing them out.
-    tab.contents=Helpers.RemoveNewlineRows(tab.contents)
+    # Start by getting a list of column headers
+    columnHeaders=[]
+    if usingBeautifulSoup:
+        # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
+        # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
+        if len(soupTable.contents[0]) > 1:
+            columnHeaders=soupTable.contents[0].text.strip()
+    else:
+        # Selenium is our tool for this one.
+        colhead=seTable[0].find_elements_by_xpath("th")
+        columnHeaders=[e.text for e in colhead]
 
-    # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
-    # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
-    # We wind up with a string just right to be the element designator of a named tuple.
-    columnHeaders=tab.contents[0].text.strip()
+    columnHeaders="\n".join(columnHeaders)  # It's easier to do the substitutions if the headers are all one long string
 
-    # Remove some sloppy column header stuff and characters that are OK, but which can't be in Namedtuple field names
+    # Some of the pages have different headers for columns.  Convert them here to the standard form.
     columnHeaders=columnHeaders.replace("Vol/#", "VolNum").replace("Vol./#", "VolNum")
     columnHeaders=columnHeaders.replace("#", "Num")
     columnHeaders=columnHeaders.replace("/", "").replace("Mo.", "Month").replace("Pp.", "Pages")
     # And can you believe duplicate column headers?
     if len(columnHeaders.split(" Number "))>2:
-        columnHeaders=columnHeaders.replace(" Number ", " Whole ", 1) # If Number appears twice, replace the first with Whole
+        columnHeaders=columnHeaders.replace(" Number ", " Whole ", 1)  # If Number appears twice, replace the first with Whole
+    columnHeaders=columnHeaders.split("\n")  # Split the header string back into a list of headers for later use
 
-    columnHeaders=columnHeaders.split("\n") # Change it into a list
+    # We need to pull the fanzine rows in from either BeautifulSoup or Selenium and save them in the same format for later analysis.
+    # The format will be a list of rows
+    # Each row will be a list of cells
+    # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
+    tableRows=[]
+    if usingBeautifulSoup:
+        for i in range(1, len(soupTable)):
+            tableRow=Helpers.RemoveNewlineRows(soupTable.contents[i])
+            newRow=[]
+            for cell in tableRow:
+                cellval=Helpers.GetHrefAndTextFromTag(cell)
+                if cellval[1] is None:
+                    newRow.append(cellval[0])
+                else:
+                    newRow.append(cellval)
+            tableRows.append(newRow)
+    else:
+        for i in range(1, len(seTable)):
+           #tableRow=Helpers.RemoveNewlineRows(soupTable.contents[i])
+           #seTable[1].find_elements_by_xpath("td/a")[0].get_attribute("href")
+            newRow=[]
+            for cell in seTable[1].find_elements_by_xpath("td"):
+                try:
+                    link=cell.find_element_by_xpath("a").get_attribute("href")
+                    cellval=(cell.text, link)
+                except:
+                    cellval=cell.text
+                newRow.append(cellval)
+            tableRows.append(newRow)
 
-    # The rest of the table is one or more rows, each corresponding to an issue of that fanzine.
-    # We build up a list of lists.  Each list in the list of lists is a row
-    # We have to treat the Title column specially, since it contains the critical href we need.
-    for i in range(1, len(tab)):
-        tableRow=Helpers.RemoveNewlineRows(tab.contents[i])
-        print("   row=" + str(tableRow))
+    # Now we process the table rows, extracting the information for each fanzine issue.
+    for tableRow in tableRows:
+        print("   row="+str(tableRow))
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
@@ -369,31 +448,28 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
         # We're only prepared to read a few formats.  Skip over the others right now.
         specialFormats=()
-        formatCodes=(dirFormat[0], dirFormat[1])    # dirFormat has an unwanted third member
+        formatCodes=(dirFormat[0], dirFormat[1])  # dirFormat has an unwanted third member
         if formatCodes not in specialFormats:  # The default case
             # 1 -- Directory includes a table with the first column containing links
             # 1 -- The issue number is at the end of the link text and there is a Year column
 
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Whole=wholeInt, Pages=pages)
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Whole=wholeInt,
+                              Pages=pages)
             print("   ("+str(formatCodes[0])+","+str(formatCodes[1])+"): "+str(fi))
             fanzineIssueList.append(fi)
 
-        elif False:     # Placeholder
-            i=0 # Placeholder
+        elif False:  # Placeholder
+            i=0  # Placeholder
 
         if fi is not None:
             urlT=""
-            if fi.URL == None:
+            if fi.URL==None:
                 urlT="*No URL*"
-            logfile.write("      Row "+str(i)+"  '" + str(fi.FanzineIssueName) +"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT+"\n")
+            logfile.write("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT+"\n")
         else:
             print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
             logfile.write(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat)+"\n")
+    return
 
-    return fanzineIssueList
 
-# Given a row in a fanzine table, find the column containing a hyperlink (if any)
-# Return the column header text, the hyperlink, and the hyperlink text
-def FindHyperlink(row):
-    i=0
 
