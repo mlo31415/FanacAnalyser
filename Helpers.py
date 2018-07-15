@@ -236,6 +236,8 @@ def InterpretYear(yearData):
         return 0
     if isinstance(yearData, int):   # If it's already an int, not to worry
         return yearData
+    if len(yearData.strip()) == 0:   # If it's blank, return 0
+        return 0
 
     # Convert to int
     # Note that there are some oddities like "1949-50" which ought to be handeled
@@ -258,6 +260,8 @@ def InterpretDay(dayData):
         return 0
     if isinstance(dayData, int):   # If it's already an int, not to worry
         return dayData
+    if len(dayData.strip()) == 0:   # If it's blank, return 0
+        return 0
 
     # Convert to int
     dayData=RemoveDebris(dayData)
@@ -279,6 +283,8 @@ def InterpretMonth(monthData):
         return 0
     if isinstance(monthData, int):
         return monthData
+    if len(monthData.strip()) == 0:   # If it's blank, return 0
+        return 0
 
     monthData=RemoveDebris(monthData)
     if len(monthData) == 0:
