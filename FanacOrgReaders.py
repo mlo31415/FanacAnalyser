@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from bs4 import NavigableString
 import requests
 import collections
 import Helpers
@@ -86,9 +87,9 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
         for i in range(0, len(columnHeaders)):
             if columnHeaders[i].lower() == cellnames.lower():
                 if type(row[i]) is tuple:
-                    return row[i][0]
-                else:
                     return row[i]
+                else:
+                    return row[i][0]
 
     return None
 
@@ -380,14 +381,14 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     if usingBeautifulSoup:
         # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
         # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
+        soupTable.contents=[t for t in soupTable.contents if not isinstance(t, NavigableString)]
         if len(soupTable.contents[0]) > 1:
             columnHeaders=soupTable.contents[0].text.strip()
     else:
         # Selenium is our tool for this one.
         colhead=seTable[0].find_elements_by_xpath("th")
         columnHeaders=[e.text for e in colhead]
-
-    columnHeaders="\n".join(columnHeaders)  # It's easier to do the substitutions if the headers are all one long string
+        columnHeaders="\n".join(columnHeaders)  # It's easier to do the substitutions if the headers are all one long string
 
     # Some of the pages have different headers for columns.  Convert them here to the standard form.
     columnHeaders=columnHeaders.replace("Vol/#", "VolNum").replace("Vol./#", "VolNum")
@@ -429,7 +430,11 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             tableRows.append(newRow)
 
     # Now we process the table rows, extracting the information for each fanzine issue.
-    for tableRow in tableRows:
+    for i in range(1, len(tableRows)):  #TODO: Got to getrange right
+        # We need to skip the column headers
+        tableRow=tableRows[i]
+        if len(tableRow) == 1 and tableRow[0] == "\n":    # Skip empty rows
+            continue
         print("   row="+str(tableRow))
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
