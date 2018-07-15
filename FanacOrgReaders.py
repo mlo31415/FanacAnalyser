@@ -79,17 +79,11 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
         for i in range(0, len(columnHeaders)):
             for cn in cellnames:
                 if columnHeaders[i].lower() == cn.lower():
-                    if type(row[i]) is tuple:
-                        return row[i][0]
-                    else:
-                        return row[i]
+                    return row[i]
     else:
         for i in range(0, len(columnHeaders)):
             if columnHeaders[i].lower() == cellnames.lower():
-                if type(row[i]) is tuple:
-                    return row[i][0]
-                else:
-                    return row[i]
+                return row[i]
 
     return None
 
