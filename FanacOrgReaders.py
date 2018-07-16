@@ -334,7 +334,8 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         return
 
     # Fanzines with only a single page rather than an index.
-    singletons=["Ah_Sweet_Idiocy", "Leaflet", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine"]
+    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Leaflet", "Sense_FAPA", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
+                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo"]
     if directoryUrl.split("/")[-1:][0] in singletons:
         print("   Skipping: "+fanzineName +" Because it is in singletons")
         logfile.write(fanzineName+"      ***Skipping because it is in singletons\n")
@@ -410,7 +411,9 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # Some of the pages have different headers for columns.  Convert them here to the standard form.
     columnHeaders=columnHeaders.replace("Vol/#", "VolNum").replace("Vol./#", "VolNum")
     columnHeaders=columnHeaders.replace("#", "Num")
-    columnHeaders=columnHeaders.replace("/", "").replace("Mo.", "Month").replace("Pp.", "Pages")
+    columnHeaders=columnHeaders.replace("Mo.", "Month").replace("Quarter/Month", "Month").replace("Quarter", "Month")
+    columnHeaders=columnHeaders.replace("Pp.", "Pages")
+    columnHeaders=columnHeaders.replace("/", "")
     # And can you believe duplicate column headers?
     if len(columnHeaders.split(" Number "))>2:
         columnHeaders=columnHeaders.replace(" Number ", " Whole ", 1)  # If Number appears twice, replace the first with Whole
