@@ -9,6 +9,7 @@ import FanacDirectoryFormats
 import timestring
 import FanacDirectories
 import time
+import roman
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -126,6 +127,9 @@ def ExtractDate(columnHeaders, row):
 #       ...nn[ ]
 #       ...nnn/nnn[  ]
 def InterpretSerial(s):
+
+    s=s.upper()
+
     # First look for a Vol+Num designation
     p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
     m=p.match(s)
@@ -137,6 +141,12 @@ def InterpretSerial(s):
     m=p.match(s)
     if m is not None and len(m.groups()) == 2:
         return int(m.groups()[0]), int(m.groups()[1])
+
+    # Now look for xxx/nnn, where xxx is in Roman numerals
+    p=re.compile("^\s*([IVXLC]+)/([0-9]+)\s*$")
+    m=p.match(s)
+    if m is not None and len(m.groups()) == 2:
+        return roman.fromRoman(m.groups()[0]), int(m.groups()[1])
 
     # Now look for a single trailing number
     p=re.compile("^.*\D([0-9]+)\s*$")       #TODO: Why is /D here?
@@ -159,7 +169,9 @@ def ExtractSerial(columnHeaders, row):
     maybeWholeText=GetCellValueByColHeader(columnHeaders, row, ["Number", "Num"])
     volText=GetCellValueByColHeader(columnHeaders, row, ["Vol", "Volume"])
     numText=GetCellValueByColHeader(columnHeaders, row, ["Number", "No", "Num"])
-    volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")
+    volNumText=GetCellValueByColHeader(columnHeaders, row, ["VolNum", "VolumeNumber"])
+    if type(volNumText) is tuple:
+        volNumText=volNumText[0]
 
     wholeInt=None
     volInt=None
@@ -188,9 +200,13 @@ def ExtractSerial(columnHeaders, row):
         try:
             volInt=int(volText)
         except:
-            if volText is not None and len(volText) > 0:
-                print("*** Uninterpretable Vol number: '"+str(volText)+"'")
-            volInt=None
+            # Maybe it's in Roman numerals?
+            try:
+                volInt=roman.fromRoman(volText.upper())
+            except:
+                if volText is not None and len(volText) > 0:
+                    print("*** Uninterpretable Vol number: '"+str(volText)+"'")
+                volInt=None
 
     # If there's no vol, anything under "Num", etc., must actually be a whole number
     if maybeWholeText is not None:
@@ -264,7 +280,7 @@ def ExtractPageCount(columnHeaders, row):
 
 
 # ============================================================================================
-# Fine the cell containg the issue name
+# Fine the cell contaning the issue name
 def FindIssueCell(columnHeaders, row):
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
     issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
@@ -315,6 +331,13 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     if fanzineName in skippers:
         print("   Skipping: "+fanzineName +" Because it is in skippers")
         logfile.write(fanzineName+"      ***Skipping because it is in skippers\n")
+        return
+
+    # Fanzines with only a single page rather than an index.
+    singletons=["Ah_Sweet_Idiocy", "Leaflet", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine"]
+    if directoryUrl.split("/")[-1:][0] in singletons:
+        print("   Skipping: "+fanzineName +" Because it is in singletons")
+        logfile.write(fanzineName+"      ***Skipping because it is in singletons\n")
         return
 
     FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Whole Pages")
@@ -411,10 +434,8 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             tableRows.append(newRow)
     else:
         for i in range(1, len(seTable)):
-           #tableRow=Helpers.RemoveNewlineRows(soupTable.contents[i])
-           #seTable[1].find_elements_by_xpath("td/a")[0].get_attribute("href")
             newRow=[]
-            for cell in seTable[1].find_elements_by_xpath("td"):
+            for cell in seTable[i].find_elements_by_xpath("td"):
                 try:
                     link=cell.find_element_by_xpath("a").get_attribute("href")
                     cellval=(cell.text, link)
