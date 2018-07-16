@@ -39,7 +39,7 @@ def ReadFanacFanzineIssues(logfile):
         print("'"+key+"', "+title+"', "+dirname+"'")
         if '/' in dirname:
             print("   skipped because of '/' in name:"+dirname)
-            logfile.write(dirname+"      ***skipped because of '/' in name\n")
+            logfile.write(dirname+"      ***skipped because the index page pointed to is not on fanac.org\n")
             continue
 
         # Get the index file format for this directory
@@ -345,7 +345,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # Fanzines with only a single page rather than an index.
     singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Fan-Dare", "FanToSee", "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "NOSFAn", "Planeteer",
                 "Sense_FAPA", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
-                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "Yandro"]
+                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "Willis_Papers", "Yandro"]
     if directoryUrl.split("/")[-1:][0] in singletons:
         print("   Skipping: "+fanzineName +" Because it is in singletons")
         logfile.write(fanzineName+"      ***Skipping because it is in singletons\n")
@@ -423,6 +423,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     columnHeaders=columnHeaders.replace("#", "Num")
     columnHeaders=columnHeaders.replace("Mo.", "Month").replace("Quarter/Month", "Month").replace("Quarter", "Month").replace("Season", "Month")
     columnHeaders=columnHeaders.replace("Pp.", "Pages")
+    columnHeaders=columnHeaders.replace("Zine", "Issue").replace("Fanzine", "Issue")
     columnHeaders=columnHeaders.replace("/", "")
     # And can you believe duplicate column headers?
     if len(columnHeaders.split(" Number "))>2:
@@ -480,7 +481,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         fi=None
 
         # We're only prepared to read a few formats.  Skip over the others right now.
-        specialFormats=()
+        specialFormats=[]       # List of formats that need to be handled specially
         formatCodes=(dirFormat[0], dirFormat[1])  # dirFormat has an unwanted third member
         if formatCodes not in specialFormats:  # The default case
             # 1 -- Directory includes a table with the first column containing links
