@@ -9,6 +9,7 @@ import FanacDirectoryFormats
 import timestring
 import FanacDirectories
 import time
+import dateutil.parser
 import roman
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -90,6 +91,13 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
 
 
 #=============================================================================================
+def ParseDate(dateText):
+    dateText=dateText.replace("Summer", "July").replace("Spring", "April").replace("Fall", "October").replace("Autumn", "October").replace("Winter", "January")
+    dateText=dateText.replace("Q1", "February").replace("Q2", "May").replace("Q1", "August").replace("Q1", "November")
+    return dateutil.parser.parse(dateText)
+
+
+#=============================================================================================
 # Extract a date from a table row
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
 def ExtractDate(columnHeaders, row):
@@ -99,7 +107,8 @@ def ExtractDate(columnHeaders, row):
     if dateText is not None:
         # Get the date
         try:
-            date=timestring.Date(dateText)
+            date=ParseDate(dateText)
+
         except:
             print("***Date failure, date='"+dateText+"'")
             return (0, "<no year>", 0, "<no month>", 0, "<no day>")
@@ -334,8 +343,8 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         return
 
     # Fanzines with only a single page rather than an index.
-    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Leaflet", "Sense_FAPA", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
-                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo"]
+    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Leaflet", "Planeteer", "Sense_FAPA", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
+                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "Yandro"]
     if directoryUrl.split("/")[-1:][0] in singletons:
         print("   Skipping: "+fanzineName +" Because it is in singletons")
         logfile.write(fanzineName+"      ***Skipping because it is in singletons\n")
@@ -411,7 +420,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # Some of the pages have different headers for columns.  Convert them here to the standard form.
     columnHeaders=columnHeaders.replace("Vol/#", "VolNum").replace("Vol./#", "VolNum")
     columnHeaders=columnHeaders.replace("#", "Num")
-    columnHeaders=columnHeaders.replace("Mo.", "Month").replace("Quarter/Month", "Month").replace("Quarter", "Month")
+    columnHeaders=columnHeaders.replace("Mo.", "Month").replace("Quarter/Month", "Month").replace("Quarter", "Month").replace("Season", "Month")
     columnHeaders=columnHeaders.replace("Pp.", "Pages")
     columnHeaders=columnHeaders.replace("/", "")
     # And can you believe duplicate column headers?
