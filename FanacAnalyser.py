@@ -19,9 +19,11 @@ FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
 
 file=open("1943 Fanzines.txt", "w+")
+count1943=0
 for fz in FanacOrgReaders.g_fanacIssueInfo:
     if fz.YearInt == 1943:
         file.write(fz.FanzineIssueName+"\n")
+        count1943=count1943+1
 file.close()
 
 # Get a count of issues and pages
@@ -31,8 +33,6 @@ for fz in FanacOrgReaders.g_fanacIssueInfo:
     if fz.URL != None:
         pageCount=pageCount+fz.Pages
         issueCount=issueCount+1
-
-print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
 
 # Produce a list of fanzines by date
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.DayInt)  # Sorts in place on day
@@ -48,3 +48,7 @@ for fz in FanacOrgReaders.g_fanacIssueInfo:
             monthYear=(fz.MonthInt, fz.YearInt)
         file.write("   "+fz.FanzineIssueName+"\n")
 file.close()
+
+print("\n")
+print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
+print("1943 Fanzines: "+str(count1943))
