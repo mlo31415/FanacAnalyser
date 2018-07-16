@@ -13,13 +13,10 @@ FanacOrgReaders.ReadFanacFanzineIssues(logFile)
 
 logFile.close()
 
-# Print list of all fanzines found
+# Print a list of all fanzines found for 1943
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
-for fz in FanacOrgReaders.g_fanacIssueInfo:
-    if fz.YearInt == 1943:
-        print(str(fz))
 
 file=open("1943 Fanzines.txt", "w+")
 for fz in FanacOrgReaders.g_fanacIssueInfo:
@@ -35,4 +32,19 @@ for fz in FanacOrgReaders.g_fanacIssueInfo:
         pageCount=pageCount+fz.Pages
         issueCount=issueCount+1
 
-print("Issue: "+str(issueCount)+"  Pages: "+str(pageCount))
+print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
+
+# Produce a list of fanzines by date
+FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.DayInt)  # Sorts in place on day
+FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
+FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
+
+file=open("Chronological Listing of Fanzines.txt", "w+")
+monthYear=(-1, -1)
+for fz in FanacOrgReaders.g_fanacIssueInfo:
+    if fz.URL is not None:
+        if monthYear != (fz.MonthInt, fz.YearInt):
+            file.write("\n"+ str(fz.YearInt)+" "+str(fz.MonthInt)+"\n")
+            monthYear=(fz.MonthInt, fz.YearInt)
+        file.write("   "+fz.FanzineIssueName+"\n")
+file.close()

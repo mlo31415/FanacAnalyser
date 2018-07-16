@@ -343,14 +343,15 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         return
 
     # Fanzines with only a single page rather than an index.
-    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Leaflet", "Planeteer", "Sense_FAPA", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
+    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Fan-Dare", "FanToSee", "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "NOSFAn", "Planeteer",
+                "Sense_FAPA", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
                 "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "Yandro"]
     if directoryUrl.split("/")[-1:][0] in singletons:
         print("   Skipping: "+fanzineName +" Because it is in singletons")
         logfile.write(fanzineName+"      ***Skipping because it is in singletons\n")
         return
 
-    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Whole Pages")
+    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
 
     # There are two ways to access and analyze the web pages: BeautifulSoup and Selenium
     # We prefer to use BeautifulSoup because it's faster, but it seems to fail some times.  When it fails, we use Selenium.
@@ -485,8 +486,8 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             # 1 -- Directory includes a table with the first column containing links
             # 1 -- The issue number is at the end of the link text and there is a Year column
 
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Whole=wholeInt,
-                              Pages=pages)
+            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Day=dayText,
+                              DayInt=dayInt, Whole=wholeInt, Pages=pages)
             print("   ("+str(formatCodes[0])+","+str(formatCodes[1])+"): "+str(fi))
             fanzineIssueList.append(fi)
 
