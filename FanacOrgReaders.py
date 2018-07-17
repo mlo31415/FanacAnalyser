@@ -69,6 +69,8 @@ def ReadFanacFanzineIssues(logfile):
 
     # Now g_fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
+    if g_browser is not None:
+        g_browser.quit()
     return
 
 
@@ -318,14 +320,18 @@ def ExtractHrefAndTitle(columnHeaders, row):
         name=issueCell
         href=None
 
+    if href is not None:
+        return name, href
+
     # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
     # If we don't find a hyperlink in the title, scan the other cells of the row for a hyperlink
     if href is None and name is not None:
         for i in range(0, len(columnHeaders)):
-            n, h=Helpers.GetHrefAndTextFromTag(row[i])
-            if h is not None:
-                href=h
-                break
+            if type(row[i]) is tuple:
+                n, h=row[i]
+                if h is not None:
+                    href=h
+                    break
 
     return name, href
 
