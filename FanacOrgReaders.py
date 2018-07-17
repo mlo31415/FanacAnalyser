@@ -343,9 +343,9 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         return
 
     # Fanzines with only a single page rather than an index.
-    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Fan-Dare", "FanToSee", "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "NOSFAn", "Planeteer",
-                "Sense_FAPA", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
-                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "Willis_Papers", "Yandro"]
+    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Fan-Fare", "FanToSee", "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster",
+                "NOSFAn", "Planeteer", "Sense_FAPA", "SF_Digest", "SF_Digest_2", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
+                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
     if directoryUrl.split("/")[-1:][0] in singletons:
         print("   Skipping: "+fanzineName +" Because it is in singletons")
         logfile.write(fanzineName+"      ***Skipping because it is in singletons\n")
