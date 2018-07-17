@@ -225,31 +225,53 @@ def CompareCompressedName(n1, n2):
 
 # ----------------------------------------
 # Remove certain strings which amount to whitespace
-def RemoveDebris(str):
+def RemoveHTMLDebris(str):
     return str.replace("<br>", "").replace("<BR>", "")
+
+
+#=========================================
+# Convert 2-digit years to four digit years
+def YearAs4Digits(year):
+    if year>100:
+        return year
+
+    if year < 26:
+        return year+2000
+
+    return year+1900
 
 # ----------------------------------------
 # Turn year into an int
-def InterpretYear(yearData):
+def InterpretYear(yearText):
 
-    if yearData is None:
+    if yearText is None:
         return 0
-    if isinstance(yearData, int):   # If it's already an int, not to worry
-        return yearData
-    if len(yearData.strip()) == 0:   # If it's blank, return 0
+    if isinstance(yearText, int):   # If it's already an int, not to worry
+        return yearText
+    if len(yearText.strip()) == 0:   # If it's blank, return 0
+        return 0
+
+    yearText=RemoveHTMLDebris(yearText)
+    if len(yearText) == 0:
         return 0
 
     # Convert to int
-    # Note that there are some oddities like "1949-50" which ought to be handeled
-    yearData=RemoveDebris(yearData)
-    if len(yearData) == 0:
-        return 0
     try:
-        year=int(yearData)
+        return YearAs4Digits(int(yearText))
     except:
-        print("   ***Year conversion failed: '"+yearData+"'")
-        year=0
-    return year
+        # OK, that failed. Could it be because it's something like '1953-54'?
+        try:
+            if '-' in yearText:
+                years=yearText.split("-")
+                if len(years) == 2:
+                    y1=YearAs4Digits(int(years[0]))
+                    y2=YearAs4Digits(int(years[1]))
+                    return max(y1, y2)
+        except:
+            pass
+
+    print("   ***Year conversion failed: '"+yearText+"'")
+    return 0
 
 
 # ----------------------------------------
@@ -264,7 +286,7 @@ def InterpretDay(dayData):
         return 0
 
     # Convert to int
-    dayData=RemoveDebris(dayData)
+    dayData=RemoveHTMLDebris(dayData)
     if len(dayData) == 0:
         return 0
     try:
@@ -286,7 +308,7 @@ def InterpretMonth(monthData):
     if len(monthData.strip()) == 0:   # If it's blank, return 0
         return 0
 
-    monthData=RemoveDebris(monthData)
+    monthData=RemoveHTMLDebris(monthData)
     if len(monthData) == 0:
         return 0
     monthConversionTable={"jan" : 1, "january" : 1, "1" : 1,
