@@ -3,6 +3,8 @@ from bs4 import NavigableString
 import FanacNames
 from datetime import datetime
 import timestring as timestring
+import dateutil.parser
+
 
 #-----------------------------------------
 # Find text bracketed by <b>...</b>
@@ -321,7 +323,7 @@ def InterpretMonth(monthData):
                           "aug" : 8, "august" : 8, "8" : 8,
                           "sep" : 9, "sept" : 9, "september" : 9, "9" : 9,
                           "oct" : 10, "october" : 10, "10" : 10,
-                          "nov" : 11, "november" : 11, "11" : 11,
+                          "nov" : 11, "november" : 11, "late november" : 11, "11" : 11,
                           "dec" : 12, "december" : 12, "12" : 12,
                           "1q" : 1,
                           "4q" : 4,
@@ -422,3 +424,55 @@ def CannonicizeColumnHeaders(header):
     except:
         print("   ***Column Header conversion failed: '" + header + "'")
         return None
+
+
+#=============================================================================================
+def ParseDate(dateText):
+
+    dateText=dateText.strip()
+    if len(dateText) == 0:
+        return None
+
+    # This uses the dateutil parser which can handle a wide variety of date formats...but not all.
+    # So the first step is to reduce some of the crud used by fanzines to an actual date.
+
+    # Seasons go to months
+    dateText=dateText.replace("Summer", "July").replace("Spring", "April").replace("Fall", "October").replace("Autumn", "October").replace("Winter", "January")
+    dateText=dateText.replace("Q1", "February").replace("Q2", "May").replace("Q1", "August").replace("Q1", "November")
+
+    # Deal with "early," "middle", and "late" in the month
+    day=None
+    if dateText.lower().startswith("early"):
+        day=1
+        dateText=dateText[5:].strip()
+    elif dateText.lower().startswith("mid"):
+        day=15
+        dateText=dateText[3:].strip()
+    elif dateText.lower().startswith("middle"):
+        day=15
+        dateText=dateText[6:].strip()
+    elif dateText.lower().startswith("late"):
+        day=28
+        dateText=dateText[4:].strip()
+
+    if dateText.startswith("-"):    # Just in case it was hyphenated "mid-June"
+        dateText=dateText[1:]
+
+    # Now deal with month ranges, e.g., May-June
+    # We adopt the arbitrary rule that a date range is replaced by the month at the end of the range
+    if "-" in dateText:
+        months=["jan", "january", "feb", "february", "mar", "march", "apr", "april", "may", "jun", "june", "jul", "july", "aug", "august", "sep", "sept", "september",
+                "oct", "october", "nov", "november", "dec", "december"]
+        dateTextLower=dateText.lower()
+        for mon in months:
+            if dateTextLower.startswith(mon+"-"):    # Do we need to worry about spaces around dash?
+                dateText=dateText[len(mon+"-"):]
+                break
+
+    date=dateutil.parser.parse(dateText)
+    if day is not None:
+        m=date.month
+        y=date.year
+        date=datetime(y, m, day)
+
+    return date

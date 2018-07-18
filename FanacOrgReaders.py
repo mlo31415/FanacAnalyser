@@ -9,7 +9,6 @@ import FanacDirectoryFormats
 import timestring
 import FanacDirectories
 import time
-import dateutil.parser
 import roman
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -92,23 +91,16 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
 
 
 #=============================================================================================
-def ParseDate(dateText):
-    dateText=dateText.replace("Summer", "July").replace("Spring", "April").replace("Fall", "October").replace("Autumn", "October").replace("Winter", "January")
-    dateText=dateText.replace("Q1", "February").replace("Q2", "May").replace("Q1", "August").replace("Q1", "November")
-    return dateutil.parser.parse(dateText)
-
-
-#=============================================================================================
 # Extract a date from a table row
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
 def ExtractDate(columnHeaders, row):
 
     # Does this have a Date column?
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
-    if dateText is not None:
+    if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            date=ParseDate(dateText)
+            date=Helpers.ParseDate(dateText)
 
         except:
             print("***Date failure, date='"+dateText+"'")
