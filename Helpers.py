@@ -312,7 +312,7 @@ def InterpretMonth(monthData):
     if len(monthData) == 0:
         return 0
     monthConversionTable={"jan" : 1, "january" : 1, "1" : 1,
-                          "feb" : 2, "february" : 2, "2" : 2,
+                          "feb" : 2, "february" : 2, "feburary" : 2, "2" : 2,
                           "mar" : 3, "march" : 3, "3" : 3,
                           "apr" : 4, "april" : 4, "4" : 4,
                           "may" : 5, "5" : 5,
@@ -362,7 +362,8 @@ def InterpretDateString(datestring):
         pass
 
     try:
-        return int(datestring)  # Just a bare number.  It pretty much has to be a year.
+        y=int(datestring)  # Just a bare number.  It pretty much has to be a year.
+        return datetime(y, 1, 1)
     except:
         pass
 
