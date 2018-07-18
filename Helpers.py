@@ -471,8 +471,6 @@ def ParseDate(dateText):
 
     date=dateutil.parser.parse(dateText)
     if day is not None:
-        m=date.month
-        y=date.year
-        date=datetime(y, m, day)
+        date.replace(day=date)
 
     return date
