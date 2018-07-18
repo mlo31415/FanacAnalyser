@@ -372,7 +372,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     soup = BeautifulSoup(h.content, "html.parser")
     soupBody = soup.body.contents
 
-    # Special handling for singletons
+    # We need to do special handling for singletons
     if directoryUrl.split("/")[-1:][0] in singletons:
         # Usually, a singleton has the information in the first h2 block
         for stuff in soupBody:
@@ -429,7 +429,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # Subsequent rows are fanzine issue rows
     logfile.write(directoryUrl+"\n")
 
-    # Start by getting a list of column headers
+    # Start by creating a list of the column headers.  This will be used to locate information in each row.
     columnHeaders=[]
     if usingBeautifulSoup:
         # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
@@ -450,10 +450,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     columnHeaders=columnHeaders.replace("Pp.", "Pages")
     columnHeaders=columnHeaders.replace("Zine", "Issue").replace("Fanzine", "Issue")
     columnHeaders=columnHeaders.replace("/", "")
-    # And can you believe duplicate column headers?
-    if len(columnHeaders.split(" Number "))>2:
-        columnHeaders=columnHeaders.replace(" Number ", " Whole ", 1)  # If Number appears twice, replace the first with Whole
-    columnHeaders=columnHeaders.split("\n")  # Split the header string back into a list of headers for later use
+    columnHeaders=columnHeaders.split("\n")  # Split the header string into a list of individual header strings for later use
 
     # We need to pull the fanzine rows in from either BeautifulSoup or Selenium and save them in the same format for later analysis.
     # The format will be a list of rows
@@ -493,33 +490,18 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
-
-        # Extract the date and serial numbers
         yearInt, yearText, monthInt, monthText, dayInt, dayText=ExtractDate(columnHeaders, tableRow)
         volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
 
-        # Now for code which depends on the index,html file format
-        # Most formats are handled generically, but some aren't.
-        # First deal with the generic formats
-        fi=None
+        # And save the results
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Day=dayText,
+                          DayInt=dayInt, Whole=wholeInt, Pages=pages)
+        print("   ("+str(dirFormat[0])+","+str(dirFormat[1])+"): "+str(fi))
+        fanzineIssueList.append(fi)
 
-        # We're only prepared to read a few formats.  Skip over the others right now.
-        specialFormats=[]       # List of formats that need to be handled specially
-        formatCodes=(dirFormat[0], dirFormat[1])  # dirFormat has an unwanted third member
-        if formatCodes not in specialFormats:  # The default case
-            # 1 -- Directory includes a table with the first column containing links
-            # 1 -- The issue number is at the end of the link text and there is a Year column
-
-            fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Day=dayText,
-                              DayInt=dayInt, Whole=wholeInt, Pages=pages)
-            print("   ("+str(formatCodes[0])+","+str(formatCodes[1])+"): "+str(fi))
-            fanzineIssueList.append(fi)
-
-        elif False:  # Placeholder
-            i=0  # Placeholder
-
+        # Log it.
         if fi is not None:
             urlT=""
             if fi.URL==None:
