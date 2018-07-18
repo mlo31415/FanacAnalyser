@@ -44,17 +44,16 @@ def ReadFanacFanzineIssues(logfile):
 
         # Get the index file format for this directory
         dirFormat=FanacDirectoryFormats.FanacDirectoryFormats().GetFormat(dirname.lower())
-        print("   Format: "+title+" --> "+FanacNames.FanacNames().StandardizeName(title.lower())+" --> "+str(dirFormat))
 
-        if dirFormat == (8, 0):
-            print("   Skipped because no index.html file: "+ dirname)
-            logfile.write(dirname+"   ***skipped because no index file\n")
-            continue
+        # if dirFormat == (8, 0):
+        #     print("   Skipped because no index.html file: "+ dirname)
+        #     logfile.write(dirname+"   ***skipped because no index file\n")
+        #     continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
         url=Helpers.RelPathToURL(dirname)
-        print("   '"+title+"', "+url+"'")
+        print("   Format: '"+title+"' --> '"+url+"' --> "+str(dirFormat))
         if url is None:
             continue
         if not url.startswith("http://www.fanac.org"):
@@ -189,7 +188,6 @@ def ExtractSerial(columnHeaders, row):
     numInt=None
     maybeWholeInt=None
 
-    #TODO: Need to deal with roman numerals
     #TODO: Need to deal with hyphenated numbers, e.g.,  3-4
     #TODO: Need to deal with things like 25A
     #TODO: Need to deal with decimal numbers, e.g., 16.5
@@ -352,10 +350,6 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Fan-Fare", "FanToSee", "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster",
                 "NOSFAn", "Planeteer", "Sense_FAPA", "SF_Digest", "SF_Digest_2", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
                 "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
-    if directoryUrl.split("/")[-1:][0] in singletons:
-        print("   Skipping: "+fanzineName +" Because it is in singletons")
-        logfile.write(fanzineName+"      ***Skipping because it is in singletons\n")
-        return
 
     FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
 
@@ -377,6 +371,31 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # Parse the page looking for the body
     soup = BeautifulSoup(h.content, "html.parser")
     soupBody = soup.body.contents
+
+    # Special handling for singletons
+    if directoryUrl.split("/")[-1:][0] in singletons:
+        # Usually, a singleton has the information in the first h2 block
+        for stuff in soupBody:
+            if stuff.name == "h2":
+                break
+        content=[str(e) for e in stuff.contents if type(e) is NavigableString]
+        # The name is content[0] (usually!)
+        # The date is the first line that looks like a date
+        date=None
+        for c in content:
+            if Helpers.InterpretDateString(c) is not None:
+                date=Helpers.InterpretDateString(c)
+                break
+
+        y=m=d=0
+        if date is not None:
+            y=date.year
+            m=date.month
+            d=date.day
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], URL=directoryUrl, Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Vol=0, Number=0, Day=str(d), DayInt=d, Whole=0, Pages=0)
+        print("   (singleton): "+str(fi))
+        fanzineIssueList.append(fi)
+        return
 
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
