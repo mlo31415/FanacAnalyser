@@ -1,4 +1,4 @@
-import collections
+import Helpers
 import FanacOrgReaders
 import FanacDirectories
 
@@ -39,15 +39,49 @@ FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.DayInt)  # Sorts in 
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
 
-file=open("Chronological Listing of Fanzines.txt", "w+")
+f=open("Chronological Listing of Fanzines.txt", "w+")
 monthYear=(-1, -1)
 for fz in FanacOrgReaders.g_fanacIssueInfo:
     if fz.URL is not None:
         if monthYear != (fz.MonthInt, fz.YearInt):
-            file.write("\n"+ str(fz.YearInt)+" "+str(fz.MonthInt)+"\n")
+            f.write("\n"+ str(fz.YearInt)+" "+str(fz.MonthInt)+"\n")
             monthYear=(fz.MonthInt, fz.YearInt)
-        file.write("   "+fz.FanzineIssueName+"\n")
-file.close()
+        f.write("   "+fz.FanzineIssueName+"\n")
+f.close()
+
+# Generate html for a chronological table
+f=open("Chronological Listing of Fanzines.html", "w+")
+f.write('<table border="0" cellspacing="7">\n') # Begin the main table
+
+monthYear=""
+for fz in FanacOrgReaders.g_fanacIssueInfo:
+    if fz.URL is None  or fz.YearInt == 0:
+        continue
+
+    # Start the row
+    # Put the month & year in the first column of the table only if it changes.
+    newMonthYear= Helpers.IntToMonth(fz.MonthInt) + " " + str(fz.YearInt)
+    if newMonthYear != monthYear:
+        if monthYear != "":   # Is this the first month box?
+            f.write('</table></td></tr>\n')  # No.  So end the previous month box
+
+        f.write('<tr><td><table border="0">')    # Start a new month box
+        monthYear=newMonthYear
+        f.write('    <tr><td width="120">\n' + newMonthYear + '</td>\n')
+    else:
+        f.write('    <tr><td width="120">&nbsp;</td>\n')        # Add an empty month box
+
+    # The hyperlink goes in column 2
+    url=fz.DirectoryURL+"/"+fz.URL
+    f.write('        <td width="250">' + '<a href="'+url+'">'+fz.FanzineIssueName+'</a>' + '</td>\n')
+
+    # And end the row
+    f.write('  </tr>\n')
+
+f.write("</table></td></tr>\n")
+f.write('</table>\n')
+f.close()
+
 
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))

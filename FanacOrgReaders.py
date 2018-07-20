@@ -180,7 +180,7 @@ def ExtractSerial(columnHeaders, row):
     numInt=None
     maybeWholeInt=None
 
-    #TODO: Need to deal with hyphenated numbers, e.g.,  3-4
+    #TODO: Need to deal with hyphenated volume and issue numbers, e.g.,  3-4
     #TODO: Need to deal with things like 25A
     #TODO: Need to deal with decimal numbers, e.g., 16.5
     if wholeText is not None:
@@ -343,7 +343,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
                 "NOSFAn", "Planeteer", "Sense_FAPA", "SF_Digest", "SF_Digest_2", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
                 "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
 
-    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
+    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
 
     # There are two ways to access and analyze the web pages: BeautifulSoup and Selenium
     # We prefer to use BeautifulSoup because it's faster, but it seems to fail some times.  When it fails, we use Selenium.
@@ -384,7 +384,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             y=date.year
             m=date.month
             d=date.day
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], URL=directoryUrl, Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Vol=0, Number=0, Day=str(d), DayInt=d, Whole=0, Pages=0)
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Vol=0, Number=0, Day=str(d), DayInt=d, Whole=0, Pages=0)
         print("   (singleton): "+str(fi))
         fanzineIssueList.append(fi)
         return
@@ -488,7 +488,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         pages=ExtractPageCount(columnHeaders, tableRow)
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Day=dayText,
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Day=dayText,
                           DayInt=dayInt, Whole=wholeInt, Pages=pages)
         print("   ("+str(dirFormat[0])+","+str(dirFormat[1])+"): "+str(fi))
         fanzineIssueList.append(fi)

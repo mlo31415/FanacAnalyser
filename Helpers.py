@@ -353,6 +353,28 @@ def InterpretMonth(monthData):
         month=0
     return month
 
+
+
+#====================================================================================
+def IntToMonth(m):
+    months={1 : "January",
+        2 : "February",
+        3 : "March",
+        4 : "April",
+        5 : "May",
+        6 : "June",
+        7 : "July",
+        8 : "August",
+        9 : "September",
+        10 : "October",
+        11 : "November",
+        12 : "December"}
+
+    if m not in months.keys():
+        return "No month: '"+str(m)+"'"
+
+    return months[m]
+
 # ----------------------------------------
 # Interpret a free-form date string
 # We will assume no time information
