@@ -496,3 +496,27 @@ def ParseDate(dateText):
         date.replace(day=date)
 
     return date
+
+#=============================================================================
+# Print the text to a log file open by the main program
+# If isError is set also print it to the error file.
+def Log(text, isError=False):
+    global g_logFile
+    global g_errorFile
+
+    print(text, file=g_logFile)
+
+    if isError:
+        print(text, file=g_errorFile)
+
+def LogOpen(logfilename, errorfilename):
+    global g_logFile
+    g_logFile=open(logfilename, "w+")
+    global g_errorFile
+    g_errorFile=open(errorfilename, "w+")
+
+def LogClose():
+    global g_logFile
+    g_logFile.close()
+    global g_errorFile
+    g_errorFile.close()

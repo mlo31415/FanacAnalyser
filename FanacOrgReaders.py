@@ -18,7 +18,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common import exceptions as SeEx
 
 # ============================================================================================
-def ReadFanacFanzineIssues(logfile):
+def ReadFanacFanzineIssues():
     # Read index.html files on fanac.org
     # We have a dictionary containing the names and URLs of the 1942 fanzines.
     # The next step is to figure out what 1942 issues of each we have on the website
@@ -38,16 +38,11 @@ def ReadFanacFanzineIssues(logfile):
         print("'"+key+"', "+title+"', "+dirname+"'")
         if '/' in dirname:
             print("   skipped because of '/' in name:"+dirname)
-            logfile.write(dirname+"      ***skipped because the index page pointed to is not on fanac.org\n")
+            Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
             continue
 
         # Get the index file format for this directory
         dirFormat=FanacDirectoryFormats.FanacDirectoryFormats().GetFormat(dirname.lower())
-
-        # if dirFormat == (8, 0):
-        #     print("   Skipped because no index.html file: "+ dirname)
-        #     logfile.write(dirname+"   ***skipped because no index file\n")
-        #     continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
@@ -56,14 +51,14 @@ def ReadFanacFanzineIssues(logfile):
         if url is None:
             continue
         if not url.startswith("http://www.fanac.org"):
-            logfile.write(url+"    ***skipped because not a fanac.org url\n")
+            Helpers.Log(url+"    ***skipped because not a fanac.org url", True)
             continue
 
         if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-            logfile.write(url+"    ***skipped because in the fan_funds or fanzines/Miscellaneous directories\n")
+            Helpers.Log(url+"    ***skipped because in the fan_funds or fanzines/Miscellaneous directories", True)
             continue
 
-        ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo, logfile)
+        ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo)
 
     # Now g_fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
@@ -328,14 +323,14 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList, logfile):
+def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList):
     global g_browser
 
     skippers=["Emu Tracks Over America", "IGOTS", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The",
               "Australian Science Fiction Bullsheet, The", "Plokta", "Vapourware", "Wastebasket"]
     if fanzineName in skippers:
         print("   Skipping: "+fanzineName +" Because it is in skippers")
-        logfile.write(fanzineName+"      ***Skipping because it is in skippers\n")
+        Helpers.Log(fanzineName+"      ***Skipping because it is in skippers", True)
         return
 
     # Fanzines with only a single page rather than an index.
@@ -357,7 +352,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             h=requests.get(directoryUrl)
         except:
             print("***Request failed for: "+directoryUrl)
-            logfile.write(directoryUrl+"      ***failed because it didn't load\n")
+            Helpers.Log(directoryUrl+"      ***failed because it didn't load", True)
             return
 
     # Parse the page looking for the body
@@ -393,11 +388,10 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
     soupTable=Helpers.LookForTable(soupBody)
     if soupTable is None:
-        print("*** No index Table found!")
-        logfile.write(directoryUrl+"      ***failed because no index Table found in index.html\n")
+        print("*** No index Table found! ...hecking Selenium")
+        Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html: checking Selenium", True)
 
         # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
-        print("    Trying Selenium")
         usingBeautifulSoup=False
         # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
         if g_browser is None:
@@ -413,13 +407,13 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
         except:
             print("*** Selenium failed also!")
-            logfile.write(directoryUrl+"      ***Selenium failed also\n")
+            Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
             return
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
     # Subsequent rows are fanzine issue rows
-    logfile.write(directoryUrl+"\n")
+    Helpers.Log(directoryUrl+"\n")
 
     # Start by creating a list of the column headers.  This will be used to locate information in each row.
     columnHeaders=[]
@@ -498,10 +492,10 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             urlT=""
             if fi.URL==None:
                 urlT="*No URL*"
-            logfile.write("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT+"\n")
+            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT)
         else:
             print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
-            logfile.write(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat)+"\n")
+            Helpers.Log(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat), True)
     return
 
 

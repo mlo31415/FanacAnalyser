@@ -3,15 +3,15 @@ import FanacOrgReaders
 import FanacDirectories
 
 
-logFile=open("FanacAnalysisLog.txt", "w+")
+Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
 
 # Trigger the reading of the fanac fanzine directories
 FanacDirectories.FanacDirectories()
 
 # Read the fanac.org fanzine direcgtory and produce a list of all issues present
-FanacOrgReaders.ReadFanacFanzineIssues(logFile)
+FanacOrgReaders.ReadFanacFanzineIssues()
 
-logFile.close()
+Helpers.LogClose()
 
 # Print a list of all fanzines found for 1943
 FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
