@@ -71,6 +71,7 @@ class FanacDirectories:
 
         self.ReadModernOrClassicTable("http://www.fanac.org/fanzines/Classic_Fanzines.html")
         self.ReadModernOrClassicTable("http://www.fanac.org/fanzines/Modern_Fanzines.html")
+        self.ReadModernOrClassicTable("http://www.fanac.org/fanzines/Electronic_Fanzines.html")
 
         print("----Done reading Classic and Modern tables")
         return
@@ -79,8 +80,8 @@ class FanacDirectories:
     def ReadModernOrClassicTable(self, url):
         h=requests.get(url)
         s=BeautifulSoup(h.content, "html.parser")
-        # We look for the first table that does ot contain a "navbar"
-        tables=s.body.find_all("table")
+        # We look for the first table that does not contain a "navbar"
+        tables=s.find_all("table")
         for table in tables:
             if "sortable" in str(table.attrs) and not "navbar" in str(table.attrs):
                 # OK, we've found the main table.  Now read it

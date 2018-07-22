@@ -326,7 +326,9 @@ def ExtractHrefAndTitle(columnHeaders, row):
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList):
     global g_browser
 
-    skippers=["Emu Tracks Over America", "IGOTS", "Flight of the Kangaroo, The", "Enchanted Duplicator, The", "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The",
+    skippers=["Emu Tracks Over America", "IGOTS", "Flight of the Kangaroo, The", "Enchanted Duplicator, The",
+              "Ionisphere", "Stratus SF SIG News",                          # These E-fanzines ought to be fixable
+              "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The",
               "Australian Science Fiction Bullsheet, The", "Plokta", "Vapourware", "Wastebasket"]
     if fanzineName in skippers:
         print("   Skipping: "+fanzineName +" Because it is in skippers")
@@ -388,7 +390,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
     soupTable=Helpers.LookForTable(soupBody)
     if soupTable is None:
-        print("*** No index Table found! ...hecking Selenium")
+        print("*** No index Table found! ...checking Selenium")
         Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html: checking Selenium", True)
 
         # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
