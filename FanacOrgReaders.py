@@ -32,7 +32,7 @@ def ReadFanacFanzineIssues():
     global g_fanacIssueInfo
     g_fanacIssueInfo=[]
 
-    keys=sorted(list(FanacDirectories.FanacDirectories().Dict().keys()))
+    keys=sorted(list(FanacDirectories.FanacDirectories().Dict().keys()))    # Note that using a dictionary eliminates the consequences of duplicate entries on the Classic, Modern and Electronic pages
     for key in keys:
         title, dirname=FanacDirectories.FanacDirectories().Dict()[key]
         print("'"+key+"', "+title+"', "+dirname+"'")
