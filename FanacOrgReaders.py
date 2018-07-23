@@ -41,7 +41,7 @@ def ReadFanacFanzineIssues():
             "Australian Science Fiction Bullsheet, The",
             "Bullsheet",
             "IGOTS",
-            "Ionisphere",  # Edie is working on fixing this
+            #"Ionisphere",  # Edie is working on fixing this
             "Stratus SF SIG News",  # Edie is working on fixing this
             "Plokta",
             "Vapourware",
@@ -110,11 +110,12 @@ def ExtractDate(columnHeaders, row):
         # Get the date
         try:
             date=Helpers.ParseDate(dateText)
-
+            return (date.year, str(date.year), date.month, str(date.month), date.day, str(date.day))
         except:
-            Helpers.Log("      ***Date failure, date='"+dateText+"'", True)
-            return (0, "<no year>", 0, "<no month>", 0, "<no day>")
-        return (date.year, str(date.year), date.month, str(date.month), date.day, str(date.day))
+            pass
+        Helpers.Log("      ***Date failure, date='"+dateText+"'", True)
+        return (0, "<no year>", 0, "<no month>", 0, "<no day>")
+
     else:
         # Figure out how to get a year
         yearText=GetCellValueByColHeader(columnHeaders, row, "Year")

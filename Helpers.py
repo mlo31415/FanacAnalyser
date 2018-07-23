@@ -384,6 +384,7 @@ def MonthToInt(text):
                           "summer" : 7, "sum" : 7,
                           "fall" : 10, "autumn" : 10, "fal" : 10,
                           "winter" : 1, "win" : 1,
+                          "winter/spring" : 3,
                           "january/february"  : 2, "january-february" : 2, "jan-feb" : 2,
                           "february/march" : 3, "february-march" : 3, "feb-mar" : 3,
                           "march/april" : 4, "march-april" : 4, "mar-apr" : 4,
@@ -463,7 +464,25 @@ def IntToMonth(m):
 #     return None
 
 
-#====================================================================================# Handle dates like "Thanksgiving"
+#====================================================================================
+# Deal with completely random date strings
+def InterpretRandomDatestring(text):
+    text=text.lower()
+    if text == "solar eclipse 2017":
+        return datetime(2017, 8, 21)
+    if text == "2018 news years' day":
+        return datetime(2018, 1, 1)
+    if text == "christmas 2015.":
+        return datetime(2015, 12, 25)
+    if text == "hogmanay 1991/1992":
+        return datetime(1991, 12, 31)
+    if text == "gray cup day 2014":
+        return datetime(2014 ,11, 30)
+
+    return None
+
+#====================================================================================
+#  Handle dates like "Thanksgiving"
 # Returns a month/day tuple which will often be exactly correct and rarely off by enough to matter
 # Note that we don't (currently) attempt to handle moveable feasts by taking the year in account
 def InterpretNamedDay(dayString):
@@ -479,6 +498,7 @@ def InterpretNamedDay(dayString):
         "chinese new year": (2, 15),
         "lunar new year": (2, 15),
         "leap day": (2, 29),
+        "ides of march": (3, 15),
         "st urho's day": (3, 16),
         "st. urho's day": (3, 16),
         "saint urho's day": (3, 16),
@@ -500,15 +520,19 @@ def InterpretNamedDay(dayString):
         "stampede parade": (7, 10),
         "system administrator appreciation day": (7, 25),
         "apres le deluge": (8, 1),      # Opuntia, 2013 Calgary floods
+        "august 14 to 16": (8,15),
         "international whale shark day": (8, 30),
         "labor day": (9, 3),
         "labour day": (9, 3),
+        "september 15 to 18": (9, 17),
+        "september 17 to 20": (9, 19),
         "(canadian) thanksgiving": (10, 15),
         "halloween": (10, 31),
         "october (halloween)": (10,31),
         "remembrance day": (11, 11),
         "rememberance day": (11, 11),
         "thanksgiving": (11, 24),
+        "november (december)" : (12, 1),
         "before christmas december": (12, 15),
         "saturnalia": (12, 21),
         "winter solstice": (12, 21),
