@@ -4,6 +4,40 @@ import FanacNames
 from datetime import datetime
 import timestring as timestring
 import dateutil.parser
+import re
+
+
+#-------------------------------------------------------------
+def CannonicizeColumnHeaders(header):
+    # 2nd item is the cannonical form
+    translationTable={
+                        "published" : "date",
+                        "editors" : "editor",
+                        "zine" : "issue",
+                        "mo." : "month",
+                        "quartermonth" : "month",
+                        "quarter" : "month",
+                        "season" : "month",
+                        "notes" : "notes",
+                        "no." : "number",
+                        "num" : "number",
+                        "#" : "number",
+                        "page" : "pages",
+                        "pages" : "pages",
+                        "pp," : "pages",
+                        "pub" : "publisher",
+                        "vol" : "volume",
+                        "volume" : "volume",
+                        "volumenumber" : "volnum",
+                        "vol#" : "volnum",
+                        "vol.#" : "volnum",
+                        "wholenum" : "whole",
+                        "year" : "year",
+                      }
+    try:
+        return translationTable[header.replace(" ", "").replace("/", "").lower()]
+    except:
+        return header.lower()
 
 
 #-----------------------------------------
@@ -22,6 +56,7 @@ def FindBracketedText(s, b):
     if l2 == -1:
         return "", ""
     return s[l1+1:l2], s[l2+3+len(b):]
+
 
 #-------------------------------------
 # Function to pull and href and accompanying text from a Tag
@@ -56,6 +91,7 @@ def N(tag):
     except:
         return "Something"
 
+
 #----------------------------------------
 # Function to compress newline elements from a list of Tags.
 def RemoveNewlineRows(tags):
@@ -65,12 +101,14 @@ def RemoveNewlineRows(tags):
             compressedTags.append(row)
     return compressedTags
 
+
 #---------------------------------------
 # Function to find the index of a string in a list of strings
 def FindIndexOfStringInList(list, str):
     for i in range(0, len(list) - 1):
         if list[i] == str:
             return i
+
 
 #--------------------------------------------
 # Function to attempt to decode an issue designation into a volume and number
@@ -201,6 +239,7 @@ def CompareIssueSpec(name1, vol1, num1, whole1, name2, vol2, num2, whole2):
 
     return False
 
+
 #==================================================================================
 # Create a name for comparison purposes which is lower case and without whitespace or punctuation
 # We make it all lower case
@@ -241,6 +280,7 @@ def YearAs4Digits(year):
         return year+2000
 
     return year+1900
+
 
 # ----------------------------------------
 # Turn year into an int
@@ -313,6 +353,17 @@ def InterpretMonth(monthData):
     monthData=RemoveHTMLDebris(monthData)
     if len(monthData) == 0:
         return 0
+
+    monthInt=MonthToInt(monthData)
+    if monthInt is None:
+        print("   ***Month conversion failed: "+monthData)
+        monthInt=0
+
+    return monthInt
+
+
+#====================================================================================
+def MonthToInt(text):
     monthConversionTable={"jan" : 1, "january" : 1, "1" : 1,
                           "feb" : 2, "february" : 2, "feburary" : 2, "2" : 2,
                           "mar" : 3, "march" : 3, "3" : 3,
@@ -333,27 +384,23 @@ def InterpretMonth(monthData):
                           "summer" : 7, "sum" : 7,
                           "fall" : 10, "autumn" : 10, "fal" : 10,
                           "winter" : 1, "win" : 1,
-                          "january-february" : 2, "jan-feb" : 2,
-                          "february-march" : 3, "feb-mar" : 3,
-                          "march-april" : 4, "mar-apr" : 4,
-                          "april-may" : 5, "apr-may" : 5,
-                          "may-june" : 6, "may-jun" : 6,
-                          "june-july" : 7, "jun-jul" : 7,
-                          "july-august" : 8, "jul-aug" : 8,
-                          "august-september" : 9, "aug-sep" : 9,
-                          "september-october" : 10, "sep-oct" : 10,
-                          "october-november" : 11, "oct-nov" : 11,
-                          "september-december" : 12,
-                          "november-december" : 12, "nov-dec" : 12,
-                          "december-january" : 12, "dec-jan" : 12}
+                          "january/february"  : 2, "january-february" : 2, "jan-feb" : 2,
+                          "february/march" : 3, "february-march" : 3, "feb-mar" : 3,
+                          "march/april" : 4, "march-april" : 4, "mar-apr" : 4,
+                          "april/may" : 5, "april-may" : 5, "apr-may" : 5,
+                          "may/june" : 6, "may-june" : 6, "may-jun" : 6,
+                          "june/july" : 7, "june-july" : 7, "jun-jul" : 7,
+                          "july/august" : 8, "july-august" : 8, "jul-aug" : 8,
+                          "august/september" : 9, "august-september" : 9, "aug-sep" : 9,
+                          "september/october" : 10, "september-october" : 10, "sep-oct" : 10,
+                          "october/november" : 11, "october-november" : 11, "oct-nov" : 11,
+                          "september/december" : 12, "september-december" : 12,
+                          "november/december" : 12, "november-december" : 12, "november (december)" : 12, "nov-dec" : 12,
+                          "december/january" : 12, "december-january" : 12, "dec-jan" : 12}
     try:
-        month=monthConversionTable[monthData.replace(" ", "").lower()]
+        return monthConversionTable[text.replace(" ", "").lower()]
     except:
-        print("   ***Month conversion failed: "+monthData)
-        month=0
-    return month
-
-
+        return None
 
 #====================================================================================
 def IntToMonth(m):
@@ -375,89 +422,211 @@ def IntToMonth(m):
 
     return months[m]
 
-# ----------------------------------------
-# Interpret a free-form date string
-# We will assume no time information
-def InterpretDateString(datestring):
-    # We will try a series of possible formats
-    try:
-        return timestring.date(datestring)
-    except:
-        pass
 
-    try:
-        y=int(datestring)  # Just a bare number.  It pretty much has to be a year.
-        return datetime(y, 1, 1)
-    except:
-        pass
+# # ----------------------------------------
+# # Interpret a free-form date string
+# # We will assume no time information
+# def InterpretDateString(datestring):
+#     # We will try a series of possible formats
+#     try:
+#         return timestring.date(datestring)
+#     except:
+#         pass
+#
+#     try:
+#         y=int(datestring)  # Just a bare number.  It pretty much has to be a year.
+#         return datetime(y, 1, 1)
+#     except:
+#         pass
+#
+#     try:
+#         return datetime.strptime(datestring, '%b %Y')   # 'Jun 2005'
+#     except:
+#         pass
+#
+#     try:
+#         return datetime.strptime(datestring, '%B %Y')   # 'June 2005'
+#     except:
+#         pass
+#
+#     try:
+#         # Look at the case of exactly two tokens, and the second is a year-like number (E.g., June 1987)
+#         d=datestring.split(" ")
+#         try:
+#             y=int(d[1])
+#             m=InterpretMonth(d[0])
+#             return datetime(y, m, 1)
+#         except:
+#             pass
+#     except:
+#         pass
+#     return None
 
-    try:
-        return datetime.strptime(datestring, '%b %Y')   # 'Jun 2005'
-    except:
-        pass
 
+#====================================================================================# Handle dates like "Thanksgiving"
+# Returns a month/day tuple which will often be exactly correct and rarely off by enough to matter
+# Note that we don't (currently) attempt to handle moveable feasts by taking the year in account
+def InterpretNamedDay(dayString):
+    namedDayConverstionTable={
+        "unknown": (1, 1),
+        "unknown ?": (1, 1),
+        "new year's day" : (1, 1),
+        "edgar allen poe's birthday": (1, 19),
+        "edgar allan poe's birthday": (1, 19),
+        "groundhog day": (2, 4),
+        "canadian national flag day": (2, 15),
+        "national flag day": (2, 15),
+        "chinese new year": (2, 15),
+        "lunar new year": (2, 15),
+        "leap day": (2, 29),
+        "st urho's day": (3, 16),
+        "st. urho's day": (3, 16),
+        "saint urho's day": (3, 16),
+        "april fool's day" : (4, 1),
+        "good friday": (4, 8),
+        "easter": (4, 10),
+        "national garlic day": (4, 19),
+        "world free press day": (5, 3),
+        "cinco de mayo": (5, 5),
+        "victoria day": (5, 22),
+        "world no tobacco day": (5, 31),
+        "world environment day": (6, 5),
+        "great flood": (6, 19),      # Opuntia, 2013 Calgary floods
+        "summer solstice": (6, 21),
+        "world wide party": (6, 21),
+        "canada day": (7, 1),
+        "stampede": (7, 10),
+        "stampede rodeo": (7, 10),
+        "stampede parade": (7, 10),
+        "system administrator appreciation day": (7, 25),
+        "apres le deluge": (8, 1),      # Opuntia, 2013 Calgary floods
+        "international whale shark day": (8, 30),
+        "labor day": (9, 3),
+        "labour day": (9, 3),
+        "(canadian) thanksgiving": (10, 15),
+        "halloween": (10, 31),
+        "october (halloween)": (10,31),
+        "remembrance day": (11, 11),
+        "rememberance day": (11, 11),
+        "thanksgiving": (11, 24),
+        "before christmas december": (12, 15),
+        "saturnalia": (12, 21),
+        "winter solstice": (12, 21),
+        "christmas": (12, 25),
+        "christmas issue": (12, 25),
+        "christmas issue december": (12, 25),
+        "xmas ish the end of december": (12, 25),
+        "boxing day": (12, 26),
+        "hogmanay": (12, 31),
+        "auld lang syne": (12, 31),
+    }
     try:
-        return datetime.strptime(datestring, '%B %Y')   # 'June 2005'
+        return namedDayConverstionTable[dayString.lower()]
     except:
-        pass
-
-    try:
-        # Look at the case of exactly two tokens, and the second is a year-like number (E.g., June 1987)
-        d=datestring.split(" ")
-        try:
-            y=int(d[1])
-            m=InterpretMonth(d[0])
-            return datetime(y, m, 1)
-        except:
-            pass
-    except:
-        pass
-    return None
-
-
-# ----------------------------------------
-def CannonicizeColumnHeaders(header):
-    # 2nd item is the cannonical form
-    translationTable={"title" : "title",
-                      "issue" : "issue",
-                      "month" : "month",
-                      "mo." : "month",
-                      "day" : "day",
-                      "year" : "year",
-                      "repro" : "repro",
-                      "editor" : "editor",
-                      "editors" : "editor",
-                      "notes" : "notes",
-                      "pages" : "pages",
-                      "page" : "pages",
-                      "size" : "size",
-                      "type" : "type",
-                      "#" : "#",
-                      "no" : "#",
-                      "number" : "#",
-                      "vol" : "vol",
-                      "volume" : "vol",
-                      "num" : "num",
-                      "headline" : "headline",
-                      "publisher" : "publisher",
-                      "published" : "date"}
-    try:
-        return translationTable[header.replace(" ", "").lower()]
-    except:
-        print("   ***Column Header conversion failed: '" + header + "'")
         return None
+
+
+#====================================================================================
+#  Deal with situtions like "late December"
+# We replace the vague relative term by a non-vague (albeit unreasonably precise) number
+def InterpretRelativeWords(daystring):
+    conversionTable={
+        "start of": 1,
+        "early": 8,
+        "early in": 8,
+        "mid": 15,
+        "middle": 15,
+        "?": 15,
+        "middle late": 19,
+        "late": 24,
+        "end of": 30,
+        "the end of": 30,
+        "around the end of": 30
+    }
+
+    try:
+        return conversionTable[daystring.replace(",", " ").replace("-", " ").lower()]
+    except:
+        return None
+
 
 
 #=============================================================================================
 def ParseDate(dateText):
 
+    # Whitespace is not a date...
     dateText=dateText.strip()
     if len(dateText) == 0:
         return None
 
-    # This uses the dateutil parser which can handle a wide variety of date formats...but not all.
-    # So the first step is to reduce some of the crud used by fanzines to an actual date.
+    # First just try dateutil on the string
+    # If it work, we've got an answer. If not, we'll keep trying.
+    try:
+        return dateutil.parser.parse(dateText, default=datetime(1, 1, 1))
+    except:
+        pass    # We'll continue with fancier things
 
+    # A common pattern of date that dateutil can't parse is <something> <some year>, where <something> might be "Easter" or "Q1" or "summer"
+    # So look for strings of the format:
+    #   Non-whitespace which includes at least one non-digit
+    #   Followed by a number between 1920 and 2050 or followed by a number between 00 and 99 inclusive.
+    # Take the first to be a date-within-year string and the second to be a year string.
+
+    # That used the dateutil parser which can handle a wide variety of date formats...but not all.
+    # So the next step is to reduce some of the crud used by fanzines to an actual date.
+    # Remove commas, which should never be significant
+    dateText=dateText.replace(",", "").strip()
+
+    m=re.compile("^(.+)\s+(\d\d)$").match(dateText)     # 2-digit years
+    if m is not None and len(m.groups()) == 2 and len(m.groups()[0]) > 0:
+        mtext=m.groups()[0]
+        ytext=m.groups()[1]
+        m=MonthToInt(mtext)
+        try:
+            y=int(ytext)
+            if y > 35:
+                y=y+1900
+            else:
+                y=y+2000
+        except:
+            y=None
+        if y is not None and m is not None:
+            return datetime(y, m, 1)
+
+    m=re.compile("^(.+)\s+(\d\d\d\d)$").match(dateText)     # 4-digit years
+    if m is not None and m.groups() is not None and len(m.groups()) == 2:
+        mtext=m.groups()[0]
+        ytext=m.groups()[1]
+        m=MonthToInt(mtext)
+        try:
+            y=int(ytext)
+        except:
+            y=None
+        if y is not None and m is not None:
+            if y > 1920 and y < 2050:
+                return datetime(y, m, 1)
+
+    # OK, that didn't work.
+    # Assuming that a year was found, try one of the weird month-day formats.
+    if y is not None:
+        rslt=InterpretNamedDay(mtext)
+        if rslt is not None:
+            return datetime(y, rslt[0], rslt[1])
+
+    # That didn't work.
+    # There are some words used to add days which are relative terms "late september", "Mid february" etc.
+    # Give them a try.
+    if y is not None:
+        # In this case the *last* token is assumed to be a month and all previous tokens to be the relative stuff
+        tokens=mtext.replace("-", " ").replace(",", " ").split()
+        if tokens is not None and len(tokens) > 0:
+            modifier=" ".join(tokens[:-1])
+            m=MonthToInt(tokens[-1:][0])
+            d=InterpretRelativeWords(modifier)
+            if m is not None and d is not None:
+                return datetime(y, m, d)
+
+    return None
     # Seasons go to months
     dateText=dateText.replace("Summer", "July").replace("Spring", "April").replace("Fall", "October").replace("Autumn", "October").replace("Winter", "January")
     dateText=dateText.replace("Q1", "February").replace("Q2", "May").replace("Q1", "August").replace("Q1", "November")
@@ -491,7 +660,7 @@ def ParseDate(dateText):
                 dateText=dateText[len(mon+"-"):]
                 break
 
-    date=dateutil.parser.parse(dateText)
+    date=dateutil.parser.parse(dateText, default=datetime(1, 1, 1))
     if day is not None:
         date.replace(day=date)
 
@@ -504,6 +673,7 @@ def Log(text, isError=False):
     global g_logFile
     global g_errorFile
 
+    print(text)
     print(text, file=g_logFile)
 
     if isError:

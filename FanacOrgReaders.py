@@ -35,9 +35,23 @@ def ReadFanacFanzineIssues():
     keys=sorted(list(FanacDirectories.FanacDirectories().Dict().keys()))    # Note that using a dictionary eliminates the consequences of duplicate entries on the Classic, Modern and Electronic pages
     for key in keys:
         title, dirname=FanacDirectories.FanacDirectories().Dict()[key]
-        print("'"+key+"', "+title+"', "+dirname+"'")
-        if '/' in dirname:
-            print("   skipped because of '/' in name:"+dirname)
+        Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
+
+        skippers=[
+            "Australian Science Fiction Bullsheet, The",
+            "Bullsheet",
+            "IGOTS",
+            "Ionisphere",  # Edie is working on fixing this
+            "Stratus SF SIG News",  # Edie is working on fixing this
+            "Plokta",
+            "Vapourware",
+            "Wastebasket"
+        ]
+        if dirname in skippers:
+            Helpers.Log(dirname+"      ***Skipping because it is in skippers", True)
+            continue
+
+        if dirname.startswith("http://"):
             Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
             continue
 
@@ -98,7 +112,7 @@ def ExtractDate(columnHeaders, row):
             date=Helpers.ParseDate(dateText)
 
         except:
-            print("***Date failure, date='"+dateText+"'")
+            Helpers.Log("      ***Date failure, date='"+dateText+"'", True)
             return (0, "<no year>", 0, "<no month>", 0, "<no day>")
         return (date.year, str(date.year), date.month, str(date.month), date.day, str(date.day))
     else:
@@ -162,11 +176,11 @@ def InterpretSerial(s):
 # Sometimes the number is composite V2#3 and stored who-knows-where and we gotta find it.
 def ExtractSerial(columnHeaders, row):
 
-    wholeText=GetCellValueByColHeader(columnHeaders, row, ["WholeNum", "Whole"])
-    maybeWholeText=GetCellValueByColHeader(columnHeaders, row, ["Number", "Num"])
-    volText=GetCellValueByColHeader(columnHeaders, row, ["Vol", "Volume"])
-    numText=GetCellValueByColHeader(columnHeaders, row, ["Number", "No", "Num"])
-    volNumText=GetCellValueByColHeader(columnHeaders, row, ["VolNum", "VolumeNumber"])
+    wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole")
+    volText=GetCellValueByColHeader(columnHeaders, row, "Volume")
+    numText=GetCellValueByColHeader(columnHeaders, row, "Number")
+    volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")
+    maybeWholeText=numText
     if type(volNumText) is tuple:
         volNumText=volNumText[0]
 
@@ -326,19 +340,11 @@ def ExtractHrefAndTitle(columnHeaders, row):
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList):
     global g_browser
 
-    skippers=["Emu Tracks Over America", "IGOTS", "Flight of the Kangaroo, The", "Enchanted Duplicator, The",
-              "Ionisphere", "Stratus SF SIG News",                          # These E-fanzines ought to be fixable
-              "Tails of Fandom", "BNF of IZ", "NEOSFS Newsletter, Issue 3, The",
-              "Australian Science Fiction Bullsheet, The", "Plokta", "Vapourware", "Wastebasket"]
-    if fanzineName in skippers:
-        print("   Skipping: "+fanzineName +" Because it is in skippers")
-        Helpers.Log(fanzineName+"      ***Skipping because it is in skippers", True)
-        return
-
     # Fanzines with only a single page rather than an index.
-    singletons=["Ah_Sweet_Idiocy", "Chanticleer", "Entropy", "Fan-Fare", "FanToSee", "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster",
+    singletons=["Ah_Sweet_Idiocy", "BNF_of_IZ", "Chanticleer", "Cosmag", "emu", "Enchanted_Duplicator", "Entropy", "Fan-Fare", "FanToSee", "Flight of the Kangaroo, The",
+                "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster", "NEOSFS, Issue 3, The",
                 "NOSFAn", "Planeteer", "Sense_FAPA", "SF_Digest", "SF_Digest_2", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
-                "Starlight", "SunSpots", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
+                "Starlight", "SunSpots", "Tails_of_Fandom", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
 
     FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
 
@@ -353,21 +359,26 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         try:
             h=requests.get(directoryUrl)
         except:
-            print("***Request failed for: "+directoryUrl)
             Helpers.Log(directoryUrl+"      ***failed because it didn't load", True)
             return
 
     # Parse the page looking for the body
     soup = BeautifulSoup(h.content, "html.parser")
-    soupBody = soup.body.contents
 
     # We need to do special handling for singletons
-    if directoryUrl.split("/")[-1:][0] in singletons:
+    if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
         # Usually, a singleton has the information in the first h2 block
-        for stuff in soupBody:
+        found=None
+        for stuff in soup:
             if stuff.name == "h2":
+                found=stuff
                 break
-        content=[str(e) for e in stuff.contents if type(e) is NavigableString]
+
+        if found is None:
+            Helpers.Log("***Failed to find date in '"+directoryUrl+"' which is a singleton.", True)
+            return
+
+        content=[str(e) for e in found.contents if type(e) is NavigableString]
         # The name is content[0] (usually!)
         # The date is the first line that looks like a date
         date=None
@@ -388,6 +399,12 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
+    try:
+        soupBody = soup.body.contents
+    except:
+        Helpers.Log("***Failed to find soup.body.contents in "+directoryUrl, True)
+        return
+
     soupTable=Helpers.LookForTable(soupBody)
     if soupTable is None:
         print("*** No index Table found! ...checking Selenium")
@@ -425,20 +442,12 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         soupTable.contents=[t for t in soupTable.contents if not isinstance(t, NavigableString)]
         if len(soupTable.contents[0]) > 1:
             columnHeaders=soupTable.contents[0].text.strip()
+        columnHeaders=columnHeaders.split("\n")
     else:
         # Selenium is our tool for this one.
         colhead=seTable[0].find_elements_by_xpath("th")
         columnHeaders=[e.text for e in colhead]
-        columnHeaders="\n".join(columnHeaders)  # It's easier to do the substitutions if the headers are all one long string
-
-    # Some of the pages have different headers for columns.  Convert them here to the standard form.
-    columnHeaders=columnHeaders.replace("Vol/#", "VolNum").replace("Vol./#", "VolNum")
-    columnHeaders=columnHeaders.replace("#", "Num")
-    columnHeaders=columnHeaders.replace("Mo.", "Month").replace("Quarter/Month", "Month").replace("Quarter", "Month").replace("Season", "Month")
-    columnHeaders=columnHeaders.replace("Pp.", "Pages")
-    columnHeaders=columnHeaders.replace("Zine", "Issue").replace("Fanzine", "Issue")
-    columnHeaders=columnHeaders.replace("/", "")
-    columnHeaders=columnHeaders.split("\n")  # Split the header string into a list of individual header strings for later use
+    columnHeaders=[Helpers.CannonicizeColumnHeaders(c) for c in columnHeaders]
 
     # We need to pull the fanzine rows in from either BeautifulSoup or Selenium and save them in the same format for later analysis.
     # The format will be a list of rows
