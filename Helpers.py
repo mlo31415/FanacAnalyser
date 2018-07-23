@@ -403,6 +403,7 @@ def MonthToInt(text):
     except:
         return None
 
+
 #====================================================================================
 def IntToMonth(m):
     months={1 : "January",
@@ -422,46 +423,6 @@ def IntToMonth(m):
         return "No month: '"+str(m)+"'"
 
     return months[m]
-
-
-# # ----------------------------------------
-# # Interpret a free-form date string
-# # We will assume no time information
-# def InterpretDateString(datestring):
-#     # We will try a series of possible formats
-#     try:
-#         return timestring.date(datestring)
-#     except:
-#         pass
-#
-#     try:
-#         y=int(datestring)  # Just a bare number.  It pretty much has to be a year.
-#         return datetime(y, 1, 1)
-#     except:
-#         pass
-#
-#     try:
-#         return datetime.strptime(datestring, '%b %Y')   # 'Jun 2005'
-#     except:
-#         pass
-#
-#     try:
-#         return datetime.strptime(datestring, '%B %Y')   # 'June 2005'
-#     except:
-#         pass
-#
-#     try:
-#         # Look at the case of exactly two tokens, and the second is a year-like number (E.g., June 1987)
-#         d=datestring.split(" ")
-#         try:
-#             y=int(d[1])
-#             m=InterpretMonth(d[0])
-#             return datetime(y, m, 1)
-#         except:
-#             pass
-#     except:
-#         pass
-#     return None
 
 
 #====================================================================================
@@ -651,44 +612,7 @@ def ParseDate(dateText):
                 return datetime(y, m, d)
 
     return None
-    # Seasons go to months
-    dateText=dateText.replace("Summer", "July").replace("Spring", "April").replace("Fall", "October").replace("Autumn", "October").replace("Winter", "January")
-    dateText=dateText.replace("Q1", "February").replace("Q2", "May").replace("Q1", "August").replace("Q1", "November")
 
-    # Deal with "early," "middle", and "late" in the month
-    day=None
-    if dateText.lower().startswith("early"):
-        day=1
-        dateText=dateText[5:].strip()
-    elif dateText.lower().startswith("mid"):
-        day=15
-        dateText=dateText[3:].strip()
-    elif dateText.lower().startswith("middle"):
-        day=15
-        dateText=dateText[6:].strip()
-    elif dateText.lower().startswith("late"):
-        day=28
-        dateText=dateText[4:].strip()
-
-    if dateText.startswith("-"):    # Just in case it was hyphenated "mid-June"
-        dateText=dateText[1:]
-
-    # Now deal with month ranges, e.g., May-June
-    # We adopt the arbitrary rule that a date range is replaced by the month at the end of the range
-    if "-" in dateText:
-        months=["jan", "january", "feb", "february", "mar", "march", "apr", "april", "may", "jun", "june", "jul", "july", "aug", "august", "sep", "sept", "september",
-                "oct", "october", "nov", "november", "dec", "december"]
-        dateTextLower=dateText.lower()
-        for mon in months:
-            if dateTextLower.startswith(mon+"-"):    # Do we need to worry about spaces around dash?
-                dateText=dateText[len(mon+"-"):]
-                break
-
-    date=dateutil.parser.parse(dateText, default=datetime(1, 1, 1))
-    if day is not None:
-        date.replace(day=date)
-
-    return date
 
 #=============================================================================
 # Print the text to a log file open by the main program
