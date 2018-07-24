@@ -375,7 +375,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
                 break
 
         if found is None:
-            Helpers.Log("***Failed to find date in '"+directoryUrl+"' which is a singleton.", True)
+            Helpers.Log("          ***Failed to find date in '"+directoryUrl+"' which is a singleton.", True)
             return
 
         content=[str(e) for e in found.contents if type(e) is NavigableString]
@@ -407,8 +407,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
     soupTable=Helpers.LookForTable(soupBody)
     if soupTable is None:
-        print("*** No index Table found! ...checking Selenium")
-        Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html: checking Selenium", True)
+        Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
 
         # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
         usingBeautifulSoup=False
@@ -425,7 +424,6 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             time.sleep(0.3)  # Just-in-case
 
         except:
-            print("*** Selenium failed also!")
             Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
             return
 

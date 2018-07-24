@@ -2,7 +2,7 @@ import os
 from bs4 import NavigableString
 import FanacNames
 from datetime import datetime
-import timestring as timestring
+import math
 import dateutil.parser
 import re
 
@@ -58,7 +58,7 @@ def FindBracketedText(s, b):
     return s[l1+1:l2], s[l2+3+len(b):]
 
 
-#-------------------------------------
+#=====================================================================================
 # Function to pull and href and accompanying text from a Tag
 # The structure is "<a href='URL'>LINKTEXT</a>
 # We want to extract the URL and LINKTEXT
@@ -73,7 +73,14 @@ def GetHrefAndTextFromTag(tag):
 
     return (tag.contents[0].string, href)
 
-#-----------------------------------------
+
+#=====================================================================================
+# Remove certain strings which amount to whitespace
+def RemoveHTMLDebris(str):
+    return str.replace("<br>", "").replace("<BR>", "")
+
+
+#=====================================================================================
 # Function to generate the proper kind of path.  (This may change depending on the target location of the output.)
 def RelPathToURL(relPath):
     if relPath == None:
@@ -83,7 +90,7 @@ def RelPathToURL(relPath):
     return "http://www.fanac.org/"+os.path.normpath(os.path.join("fanzines", relPath)).replace("\\", "/")
 
 
-#-----------------------------------------
+#=====================================================================================
 # Simple function to name tags for debugging purposes
 def N(tag):
     try:
@@ -92,7 +99,7 @@ def N(tag):
         return "Something"
 
 
-#----------------------------------------
+#=====================================================================================
 # Function to compress newline elements from a list of Tags.
 def RemoveNewlineRows(tags):
     compressedTags = []
@@ -102,7 +109,7 @@ def RemoveNewlineRows(tags):
     return compressedTags
 
 
-#---------------------------------------
+#=====================================================================================
 # Function to find the index of a string in a list of strings
 def FindIndexOfStringInList(list, str):
     for i in range(0, len(list) - 1):
@@ -110,7 +117,7 @@ def FindIndexOfStringInList(list, str):
             return i
 
 
-#--------------------------------------------
+#=====================================================================================
 # Function to attempt to decode an issue designation into a volume and number
 # Return a tuple of Volume and Number
 # If there's no volume specified, Volume is None and Number is the whole number
@@ -163,7 +170,7 @@ def DecodeIssueDesignation(str):
         return (None, None)
 
 
-# ----------------------------------------
+#=====================================================================================
 # Function to search recursively for the table containing the fanzines listing
 def LookForTable(tag):
     #print("call LookForTable with tag=", N(tag))
@@ -264,16 +271,14 @@ def CompareCompressedName(n1, n2):
 # ===================================================================
 # Date-Time stuff
 
-# ----------------------------------------
-# Remove certain strings which amount to whitespace
-def RemoveHTMLDebris(str):
-    return str.replace("<br>", "").replace("<BR>", "")
 
-
-#=========================================
+#=================================================================================
 # Convert 2-digit years to four digit years
 def YearAs4Digits(year):
-    if year>100:
+    if year is None:
+        return None
+
+    if year > 100:
         return year
 
     if year < 26:
@@ -282,7 +287,7 @@ def YearAs4Digits(year):
     return year+1900
 
 
-# ----------------------------------------
+#=================================================================================
 # Turn year into an int
 def InterpretYear(yearText):
 
@@ -293,7 +298,7 @@ def InterpretYear(yearText):
     if len(yearText.strip()) == 0:   # If it's blank, return 0
         return 0
 
-    yearText=RemoveHTMLDebris(yearText)
+    yearText=RemoveHTMLDebris(yearText) # We treat <br> and </br> as whitespace, also
     if len(yearText) == 0:
         return 0
 
@@ -312,11 +317,11 @@ def InterpretYear(yearText):
         except:
             pass
 
-    print("   ***Year conversion failed: '"+yearText+"'")
+    Log("   ***Year conversion failed: '"+yearText+"'", True)
     return 0
 
 
-# ----------------------------------------
+#=================================================================================
 # Turn day into an int
 def InterpretDay(dayData):
 
@@ -334,12 +339,12 @@ def InterpretDay(dayData):
     try:
         day=int(dayData)
     except:
-        print("   ***Day conversion failed: '"+dayData+"'")
+        Log("   ***Day conversion failed: '"+dayData+"'", True)
         day=0
     return day
 
 
-# ----------------------------------------
+#=================================================================================
 # Turn month into an int
 def InterpretMonth(monthData):
 
@@ -356,7 +361,7 @@ def InterpretMonth(monthData):
 
     monthInt=MonthToInt(monthData)
     if monthInt is None:
-        print("   ***Month conversion failed: "+monthData)
+        Log("   ***Month conversion failed: "+monthData, True)
         monthInt=0
 
     return monthInt
@@ -383,21 +388,16 @@ def MonthToInt(text):
                           "spring" : 4, "spr" : 4,
                           "summer" : 7, "sum" : 7,
                           "fall" : 10, "autumn" : 10, "fal" : 10,
-                          "winter" : 1, "win" : 1,
-                          "winter/spring" : 3,
-                          "january/february"  : 2, "january-february" : 2, "jan-feb" : 2,
-                          "february/march" : 3, "february-march" : 3, "feb-mar" : 3,
-                          "march/april" : 4, "march-april" : 4, "mar-apr" : 4,
-                          "april/may" : 5, "april-may" : 5, "apr-may" : 5,
-                          "may/june" : 6, "may-june" : 6, "may-jun" : 6,
-                          "june/july" : 7, "june-july" : 7, "jun-jul" : 7,
-                          "july/august" : 8, "july-august" : 8, "jul-aug" : 8,
-                          "august/september" : 9, "august-september" : 9, "aug-sep" : 9,
-                          "september/october" : 10, "september-october" : 10, "sep-oct" : 10,
-                          "october/november" : 11, "october-november" : 11, "oct-nov" : 11,
-                          "september/december" : 12, "september-december" : 12,
-                          "november/december" : 12, "november-december" : 12, "november (december)" : 12, "nov-dec" : 12,
-                          "december/january" : 12, "december-january" : 12, "dec-jan" : 12}
+                          "winter" : 1, "win" : 1}
+
+    # First look to see if the input is two month names separated by a non-alphabetic character (e.g., "September-November"
+    m=re.compile("^([a-zA-Z]+)[-/]([a-zA-Z]+)$").match(text)
+    if m is not None and len(m.groups()) == 2 and len(m.groups()[0]) > 0:
+        m1=MonthToInt(m.groups()[0])
+        m2=MonthToInt(m.groups()[1])
+        if m1 is not None and m2 is not None:
+            return math.ceil((m1+m2)/2)
+
     try:
         return monthConversionTable[text.replace(" ", "").lower()]
     except:
@@ -438,7 +438,9 @@ def InterpretRandomDatestring(text):
     if text == "hogmanay 1991/1992":
         return datetime(1991, 12, 31)
     if text == "gray cup day 2014":
-        return datetime(2014 ,11, 30)
+        return datetime(2014, 11, 30)
+    if text == "october 2013, haloween":
+        return datetime(2013, 10, 31)
 
     return None
 
@@ -568,11 +570,7 @@ def ParseDate(dateText):
         ytext=m.groups()[1]
         m=MonthToInt(mtext)
         try:
-            y=int(ytext)
-            if y > 35:
-                y=y+1900
-            else:
-                y=y+2000
+            y=YearAs4Digits(int(ytext))
         except:
             y=None
         if y is not None and m is not None:
@@ -588,7 +586,7 @@ def ParseDate(dateText):
         except:
             y=None
         if y is not None and m is not None:
-            if y > 1920 and y < 2050:
+            if y > 1860 and y < 2050:       # Outside this range it can't be a fannish-relevant year (the range is oldest fan birth date to middle-future)
                 return datetime(y, m, 1)
 
     # OK, that didn't work.
