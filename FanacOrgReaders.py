@@ -41,7 +41,6 @@ def ReadFanacFanzineIssues():
             "Australian Science Fiction Bullsheet, The",
             "Bullsheet",
             "IGOTS",
-            "Stratus SF SIG News",  # Edie is working on fixing this
             "Plokta",
             "Vapourware",
             "Wastebasket"
