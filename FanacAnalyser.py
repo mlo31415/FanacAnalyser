@@ -51,7 +51,7 @@ f.close()
 
 # Generate html for a chronological table
 f=open("Chronological Listing of Fanzines.html", "w+")
-f.write('<table border="0" cellspacing="7">\n') # Begin the main table
+f.write('<table border="2" cellspacing="4">\n') # Begin the main table
 
 monthYear=""
 for fz in FanacOrgReaders.g_fanacIssueInfo:
@@ -60,12 +60,15 @@ for fz in FanacOrgReaders.g_fanacIssueInfo:
 
     # Start the row
     # Put the month & year in the first column of the table only if it changes.
-    newMonthYear= Helpers.IntToMonth(fz.MonthInt) + " " + str(fz.YearInt)
+    month=fz.MonthInt
+    if month == 0:
+        month=1
+    newMonthYear= Helpers.IntToMonth(month) + " " + str(fz.YearInt)
     if newMonthYear != monthYear:
         if monthYear != "":   # Is this the first month box?
             f.write('</table></td></tr>\n')  # No.  So end the previous month box
 
-        f.write('<tr><td><table border="0">')    # Start a new month box
+        f.write('<tr><td><table>')    # Start a new month box
         monthYear=newMonthYear
         f.write('    <tr><td width="120">\n' + newMonthYear + '</td>\n')
     else:
