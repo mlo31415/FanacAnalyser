@@ -379,16 +379,19 @@ def MonthToInt(text):
                           "aug" : 8, "august" : 8, "8" : 8,
                           "sep" : 9, "sept" : 9, "september" : 9, "9" : 9,
                           "oct" : 10, "october" : 10, "10" : 10,
-                          "nov" : 11, "november" : 11, "late november" : 11, "11" : 11,
+                          "nov" : 11, "november" : 11, "11" : 11,
                           "dec" : 12, "december" : 12, "12" : 12,
-                          "1q" : 1,
-                          "4q" : 4,
-                          "7q" : 7,
-                          "10q" : 10,
+                          "1q" : 1, "q1" : 1,
+                          "4q" : 4, "q2" : 4,
+                          "7q" : 7, "q3" : 7,
+                          "10q" : 10, "q4" : 10,
                           "spring" : 4, "spr" : 4,
                           "summer" : 7, "sum" : 7,
                           "fall" : 10, "autumn" : 10, "fal" : 10,
-                          "winter" : 1, "win" : 1}
+                          "winter" : 1, "win" : 1,
+                          "xmas" : 12}
+
+    text=text.replace(" ", "").lower()
 
     # First look to see if the input is two month names separated by a non-alphabetic character (e.g., "September-November"
     m=re.compile("^([a-zA-Z]+)[-/]([a-zA-Z]+)$").match(text)
@@ -399,7 +402,7 @@ def MonthToInt(text):
             return math.ceil((m1+m2)/2)
 
     try:
-        return monthConversionTable[text.replace(" ", "").lower()]
+        return monthConversionTable[text]
     except:
         return None
 
@@ -431,13 +434,13 @@ def InterpretRandomDatestring(text):
     text=text.lower()
     if text == "solar eclipse 2017":
         return datetime(2017, 8, 21)
-    if text == "2018 news years' day":
+    if text == "2018 new years' day":
         return datetime(2018, 1, 1)
     if text == "christmas 2015.":
         return datetime(2015, 12, 25)
     if text == "hogmanay 1991/1992":
         return datetime(1991, 12, 31)
-    if text == "gray cup day 2014":
+    if text == "grey cup day 2014":
         return datetime(2014, 11, 30)
     if text == "october 2013, haloween":
         return datetime(2013, 10, 31)
@@ -519,8 +522,8 @@ def InterpretNamedDay(dayString):
 def InterpretRelativeWords(daystring):
     conversionTable={
         "start of": 1,
-        "early": 8,
-        "early in": 8,
+        "early": 7,
+        "early in": 7,
         "mid": 15,
         "middle": 15,
         "?": 15,
@@ -552,6 +555,11 @@ def ParseDate(dateText):
         return dateutil.parser.parse(dateText, default=datetime(1, 1, 1))
     except:
         pass    # We'll continue with fancier things
+
+    # There are some dates which follow no useful pattern.  Check for them
+    d=InterpretRandomDatestring(dateText)
+    if d is not None:
+        return d
 
     # A common pattern of date that dateutil can't parse is <something> <some year>, where <something> might be "Easter" or "Q1" or "summer"
     # So look for strings of the format:
