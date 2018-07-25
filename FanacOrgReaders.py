@@ -40,7 +40,6 @@ def ReadFanacFanzineIssues():
         skippers=[
             "Australian Science Fiction Bullsheet, The",
             "Bullsheet",
-            "IGOTS",
             "Plokta",
             "Vapourware",
             "Wastebasket"
