@@ -38,8 +38,8 @@ def ReadFanacFanzineIssues():
         Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
 
         skippers=[
-            "Australian Science Fiction Bullsheet, The",
-            "Bullsheet",
+            #"Australian Science Fiction Bullsheet, The",
+            #"Bullsheet",
             "Plokta",
             "Vapourware",
             "Wastebasket"
@@ -360,70 +360,61 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
             Helpers.Log(directoryUrl+"      ***failed because it didn't load", True)
             return
 
-    # Parse the page looking for the body
+    # Next, parse the page looking for the body
     soup = BeautifulSoup(h.content, "html.parser")
 
-    # We need to do special handling for singletons
+    # We need to handle singletons specially
     if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
-        # Usually, a singleton has the information in the first h2 block
-        found=None
-        for stuff in soup:
-            if stuff.name == "h2":
-                found=stuff
-                break
+        return ReadSingleton(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup)
 
-        if found is None:
-            Helpers.Log("          ***Failed to find date in '"+directoryUrl+"' which is a singleton.", True)
-            return
+    # We also have some pages where we have a tree of pages with specially-flagged fanzine index tables at the end.
+    # If this is the root of one of them...
+    specialBiggies=["Australian Science Fiction Bullsheet, The", "MT Void, The"]
+    if fanzineName in specialBiggies:
+        # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
+        #TODO: Everything
 
-        content=[str(e) for e in found.contents if type(e) is NavigableString]
-        # The name is content[0] (usually!)
-        # The date is the first line that looks like a date
-        date=None
-        for c in content:
-            if Helpers.InterpretDateString(c) is not None:
-                date=Helpers.InterpretDateString(c)
-                break
-
-        y=m=d=0
-        if date is not None:
-            y=date.year
-            m=date.month
-            d=date.day
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Vol=0, Number=0, Day=str(d), DayInt=d, Whole=0, Pages=0)
-        print("   (singleton): "+str(fi))
-        fanzineIssueList.append(fi)
         return
 
-    # Because the structures of the pages are so random, we need to search the body for the table.
-    # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
-    try:
-        soupBody = soup.body.contents
-    except:
-        Helpers.Log("***Failed to find soup.body.contents in "+directoryUrl, True)
+    ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup, g_browser, usingBeautifulSoup)
+    return
+
+
+def ReadSingleton(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup):
+    # Usually, a singleton has the information in the first h2 block
+    found=None
+    for stuff in soup:
+        if stuff.name=="h2":
+            found=stuff
+            break
+    if found is None:
+        Helpers.Log("          ***Failed to find date in '"+directoryUrl+"' which is a singleton.", True)
         return
+    content=[str(e) for e in found.contents if type(e) is NavigableString]
+    # The name is content[0] (usually!)
+    # The date is the first line that looks like a date
+    date=None
+    for c in content:
+        if Helpers.InterpretDateString(c) is not None:
+            date=Helpers.InterpretDateString(c)
+            break
+    y=m=d=0
+    if date is not None:
+        y=date.year
+        m=date.month
+        d=date.day
+    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Vol=0, Number=0, Day=str(d),
+                      DayInt=d, Whole=0, Pages=0)
+    print("   (singleton): "+str(fi))
+    fanzineIssueList.append(fi)
+    return
 
-    soupTable=Helpers.LookForTable(soupBody)
-    if soupTable is None:
-        Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
 
-        # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
-        usingBeautifulSoup=False
-        # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
-        if g_browser is None:
-            g_browser=webdriver.Firefox()
+def ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup, g_browser, usingBeautifulSoup):
 
-        # Open the index page in the browser
-        g_browser.get(directoryUrl)
-
-        # Find the index table's column header row and extract the column headers
-        try:
-            seTable=g_browser.find_elements_by_xpath('/html/body/table[2]/tbody/tr')
-            time.sleep(0.3)  # Just-in-case
-
-        except:
-            Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
-            return
+    seTable, soupTable, usingBeautifulSoup=LocateAnonymousIndexTable(directoryUrl, g_browser, soup, usingBeautifulSoup)
+    if seTable is None and soupTable is None:
+        return
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -436,7 +427,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
         # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
         soupTable.contents=[t for t in soupTable.contents if not isinstance(t, NavigableString)]
-        if len(soupTable.contents[0]) > 1:
+        if len(soupTable.contents[0])>1:
             columnHeaders=soupTable.contents[0].text.strip()
         columnHeaders=columnHeaders.split("\n")
     else:
@@ -472,12 +463,11 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
                     cellval=cell.text
                 newRow.append(cellval)
             tableRows.append(newRow)
-
     # Now we process the table rows, extracting the information for each fanzine issue.
     for i in range(0, len(tableRows)):
         # We need to skip the column headers
         tableRow=tableRows[i]
-        if len(tableRow) == 1 and tableRow[0] == "\n":    # Skip empty rows
+        if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
             continue
         print("   row="+str(tableRow))
 
@@ -489,7 +479,8 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         pages=ExtractPageCount(columnHeaders, tableRow)
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt, Number=numInt, Day=dayText,
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt,
+                          Number=numInt, Day=dayText,
                           DayInt=dayInt, Whole=wholeInt, Pages=pages)
         print("   ("+str(dirFormat[0])+","+str(dirFormat[1])+"): "+str(fi))
         fanzineIssueList.append(fi)
@@ -503,7 +494,40 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         else:
             print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
             Helpers.Log(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat), True)
-    return
+
+
+def LocateAnonymousIndexTable(directoryUrl, g_browser, soup, usingBeautifulSoup):
+    # Because the structures of the pages are so random, we need to search the body for the table.
+    # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
+    failed=False
+    try:
+        soupBody=soup.body.contents
+    except:
+        Helpers.Log("***Failed to find soup.body.contents in "+directoryUrl, True)
+        return None, None, None
+
+    soupTable=Helpers.LookForTable(soupBody)
+    seTable=None
+    if soupTable is None:
+        Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
+
+        # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
+        usingBeautifulSoup=False
+        # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
+        if g_browser is None:
+            g_browser=webdriver.Firefox()
+
+        # Open the index page in the browser
+        g_browser.get(directoryUrl)
+
+        # Find the index table's column header row and extract the column headers
+        try:
+            seTable=g_browser.find_elements_by_xpath('/html/body/table[2]/tbody/tr')
+            time.sleep(0.3)  # Just-in-case
+        except:
+            Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
+            return None, None, None
+    return seTable, soupTable, usingBeautifulSoup
 
 
 
