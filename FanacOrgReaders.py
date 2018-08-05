@@ -375,6 +375,8 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     if fanzineName in specialBiggies:
         # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
         #TODO: Everything
+        # Scan for flagged tables on this page
+
 
         return
 
@@ -511,7 +513,7 @@ def LocateAnonymousIndexTable(directoryUrl, soup):
         Helpers.Log("***Failed to find soup.body.contents in "+directoryUrl, True)
         return None
 
-    soupTable=Helpers.LookForTable(soupBody)
+    soupTable=Helpers.LookForTable(soupBody, {"border" : "1", "cellpadding" : "5"})
     seTable=None
     usingBeautifulSoup=True
     if soupTable is None:

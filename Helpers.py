@@ -172,27 +172,30 @@ def DecodeIssueDesignation(str):
 
 #=====================================================================================
 # Function to search recursively for the table containing the fanzines listing
-def LookForTable(tag):
+# flags is a dictionary of attributes abd values to be matched
+def LookForTable(tag, flags):
     #print("call LookForTable with tag=", N(tag))
     for stuff in tag:
-        #print ("   stuff=", stuff.name)
         if stuff.name == "table":
-            #print("   Table found!!!")
             # Next, we check the table to see if it has the values table border="1" cellpadding="5"
             try:
-                if stuff.attrs["border"] == "1" and stuff.attrs["cellpadding"] == "5":
+                ok=True
+                for key in flags.keys():
+                    if (stuff.attrs[key] != flags[key]):
+                        ok=False
+                        break
+                    pass
+                if ok:
                     return stuff
             except:
                 continue
         try:
             if len(stuff.contents) > 0:
-                val=LookForTable(stuff.contents)
+                val=LookForTable(stuff.contents, flags)
             if val != None:
-                #print("   val popped")
                 return val
         except:
             continue
-    #print("   Return None")
     return None
 
 
