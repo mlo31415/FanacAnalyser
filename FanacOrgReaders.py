@@ -349,7 +349,10 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
     # There are two ways to access and analyze the web pages: BeautifulSoup and Selenium
     # We prefer to use BeautifulSoup because it's faster, but it seems to fail some times.  When it fails, we use Selenium.
 
-    # Download the index.html which lists all of the issues of the specified fanzine currently on the site
+    # Download the index.html, which is
+    # * The fanzine's Issue Index Table page
+    # * A singleton page
+    # * The root of a tree with multiple Issue Index Pages
     try:
         h = requests.get(directoryUrl)
     except:
@@ -375,6 +378,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
 
         return
 
+    # This seems to be an ordinary page, so read it.
     ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup, g_browser)
     return
 
