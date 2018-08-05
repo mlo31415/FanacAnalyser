@@ -379,7 +379,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         return
 
     # This seems to be an ordinary page, so read it.
-    ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup, g_browser)
+    ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup)
     return
 
 
@@ -414,9 +414,9 @@ def ReadSingleton(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, s
 
 PageParser=collections.namedtuple("PageParser", "SeTable, SoupTable, UsingBeautifulSoup")
 
-def ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup, g_browser):
+def ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup):
 
-    parser=LocateAnonymousIndexTable(directoryUrl, g_browser, soup)
+    parser=LocateAnonymousIndexTable(directoryUrl, soup)
     if parser is None:
         return
 
@@ -500,7 +500,8 @@ def ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueL
             Helpers.Log(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat), True)
 
 
-def LocateAnonymousIndexTable(directoryUrl, g_browser, soup):
+def LocateAnonymousIndexTable(directoryUrl, soup):
+    global g_browser
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
     failed=False
