@@ -52,13 +52,9 @@ def ReadFanacFanzineIssues():
             Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
             continue
 
-        # Get the index file format for this directory
-        dirFormat=FanacDirectoryFormats.FanacDirectoryFormats().GetFormat(dirname.lower())
-
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
         url=Helpers.RelPathToURL(dirname)
-        print("   Format: '"+title+"' --> '"+url+"' --> "+str(dirFormat))
         if url is None:
             continue
         if not url.startswith("http://www.fanac.org"):
@@ -69,7 +65,7 @@ def ReadFanacFanzineIssues():
             Helpers.Log(url+"    ***skipped because in the fan_funds or fanzines/Miscellaneous directories", True)
             continue
 
-        ReadAndAppendFanacFanzineIndexPage(title, url, dirFormat, g_fanacIssueInfo)
+        ReadAndAppendFanacFanzineIndexPage(title, url, g_fanacIssueInfo)
 
     # Now g_fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
@@ -335,7 +331,7 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fanzineIssueList):
+def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList):
     global g_browser
 
     # Fanzines with only a single page rather than an index.
@@ -376,12 +372,24 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, dirFormat, fan
         # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
         #TODO: Everything
         # Scan for flagged tables on this page
+        tab=Helpers.LookForTable(soup, {"class" : "indextable"})    #TODO: We may need to get soup.body or soup.body.contents
+        if tab is not None:
+            pass    #TODO: Evualute it.
 
+        # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
+        links=soup.find_all("a")
+        for link in links:
+            # If it's an html file it's probably worth investigatin
+            url=link.attrs["href"]
+            p=re.compile("^[a-zA-Z0-9\-_]*.html$")
+            m=p.match(url)
+            if m is not None and len(m.groups()) == 1:
+                ReadAndAppendFanacFanzineIndexPage(fanzineName, url, fanzineIssueList)
 
         return
 
     # This seems to be an ordinary page, so read it.
-    ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup)
+    ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup)
     return
 
 
@@ -416,7 +424,7 @@ def ReadSingleton(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, s
 
 PageParser=collections.namedtuple("PageParser", "SeTable, SoupTable, UsingBeautifulSoup")
 
-def ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueList, fanzineName, soup):
+def ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup):
 
     parser=LocateAnonymousIndexTable(directoryUrl, soup)
     if parser is None:
@@ -488,7 +496,7 @@ def ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueL
         fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt,
                           Number=numInt, Day=dayText,
                           DayInt=dayInt, Whole=wholeInt, Pages=pages)
-        print("   ("+str(dirFormat[0])+","+str(dirFormat[1])+"): "+str(fi))
+        print("   "+str(fi))
         fanzineIssueList.append(fi)
 
         # Log it.
@@ -498,8 +506,7 @@ def ReadFanzineIndexTable(FanacIssueInfo, dirFormat, directoryUrl, fanzineIssueL
                 urlT="*No URL*"
             Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT)
         else:
-            print("      Can't handle format:"+str(dirFormat)+" from "+directoryUrl)
-            Helpers.Log(fanzineName+"      ***Skipping becase we don't handle format "+str(dirFormat), True)
+            Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, True)
 
 
 def LocateAnonymousIndexTable(directoryUrl, soup):
