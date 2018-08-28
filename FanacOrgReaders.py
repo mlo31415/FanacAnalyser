@@ -3,19 +3,13 @@ from bs4 import NavigableString
 import requests
 import collections
 import Helpers
-import FanacNames
+import os
 import re
-import FanacDirectoryFormats
-import timestring
 import FanacDirectories
 import time
 import roman
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common import exceptions as SeEx
+
 
 # ============================================================================================
 def ReadFanacFanzineIssues():
@@ -37,6 +31,10 @@ def ReadFanacFanzineIssues():
         title, dirname=FanacDirectories.FanacDirectories().Dict()[key]
         Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
 
+        unskippers=[
+            "Australian Science Fiction Bullsheet, The",
+            "Bullsheet",
+        ]
         skippers=[
             #"Australian Science Fiction Bullsheet, The",
             #"Bullsheet",
@@ -51,6 +49,9 @@ def ReadFanacFanzineIssues():
         if dirname.startswith("http://"):
             Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
             continue
+
+        #if dirname not in unskippers:
+        #    continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
@@ -328,72 +329,104 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
     return name, href
 
+FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList):
     global g_browser
 
+    print("   ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
     # Fanzines with only a single page rather than an index.
     singletons=["Ah_Sweet_Idiocy", "BNF_of_IZ", "Chanticleer", "Cosmag", "emu", "Enchanted_Duplicator", "Entropy", "Fan-Fare", "FanToSee", "Flight of the Kangaroo, The",
                 "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster", "NEOSFS, Issue 3, The",
                 "NOSFAn", "Planeteer", "Sense_FAPA", "SF_Digest", "SF_Digest_2", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
                 "Starlight", "SunSpots", "Tails_of_Fandom", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
 
-    FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
 
     # There are two ways to access and analyze the web pages: BeautifulSoup and Selenium
     # We prefer to use BeautifulSoup because it's faster, but it seems to fail some times.  When it fails, we use Selenium.
 
+    # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the end.
+    # If this is the root of one of them...
+    specialBiggies=["Australian Science Fiction Bullsheet, The", "MT Void, The"]
+    if fanzineName in specialBiggies:
+        ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
+        return
+
+    # It looks like this is a single level directory.
+    soup=OpenSoup(directoryUrl)
+    if soup is None:
+        return
+
+    # We need to handle singletons specially
+    if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
+        ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup)
+        return
+
+    # By elimination, this must be an ordinary page, so read it.
+    # Locate the Index Table on this page.
+    parser=LocateAnonymousIndexTable(directoryUrl, soup)
+    if parser is None:
+        return
+
+    ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser)
+    return
+
+
+#===================================================================================
+# The "special biggie" pages are few (only two it the time this ie being written) and need to be handled specially
+# The characteristic is that they are a tree of pages which may contain one or more *tagged* fanzine index tables on any level.
+# The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
+def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
+
+    soup=OpenSoup(directoryUrl)
+    if soup is None:
+        return
+
+    # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
+    # TODO: Everything
+    # Scan for flagged tables on this page
+    parser=LocateIndexTable(directoryUrl, soup)  # TODO: We may need to get soup.body or soup.body.contents
+    if parser is not None:
+        ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser)
+
+    # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
+    links=soup.find_all("a")
+    for link in links:
+        # If it's an html file it's probably worth investigating
+        if "href" in link.attrs.keys():     # Some pages have <A NAME="1"> tags which we need to ignore
+            url=link.attrs["href"]
+            p=re.compile("^[a-zA-Z0-9\-_]*.html$")
+            m=p.match(url)
+            if m is not None:
+                ReadSpecialBiggie(directoryUrl+"/"+url, fanzineIssueList, fanzineName)
+    return
+
+#======================================================================================
+# Open a directory's index webpage using BeautifulSoup
+def OpenSoup(directoryUrl):
     # Download the index.html, which is
     # * The fanzine's Issue Index Table page
     # * A singleton page
     # * The root of a tree with multiple Issue Index Pages
     try:
-        h = requests.get(directoryUrl)
+        h=requests.get(directoryUrl)
     except:
         try:
             h=requests.get(directoryUrl)
         except:
             Helpers.Log(directoryUrl+"      ***failed because it didn't load", True)
-            return
+            return None
 
     # Next, parse the page looking for the body
-    soup = BeautifulSoup(h.content, "html.parser")
-
-    # We need to handle singletons specially
-    if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
-        return ReadSingleton(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup)
-
-    # We also have some pages where we have a tree of pages with specially-flagged fanzine index tables at the end.
-    # If this is the root of one of them...
-    specialBiggies=["Australian Science Fiction Bullsheet, The", "MT Void, The"]
-    if fanzineName in specialBiggies:
-        # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
-        #TODO: Everything
-        # Scan for flagged tables on this page
-        tab=Helpers.LookForTable(soup, {"class" : "indextable"})    #TODO: We may need to get soup.body or soup.body.contents
-        if tab is not None:
-            pass    #TODO: Evualute it.
-
-        # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
-        links=soup.find_all("a")
-        for link in links:
-            # If it's an html file it's probably worth investigatin
-            url=link.attrs["href"]
-            p=re.compile("^[a-zA-Z0-9\-_]*.html$")
-            m=p.match(url)
-            if m is not None and len(m.groups()) == 1:
-                ReadAndAppendFanacFanzineIndexPage(fanzineName, url, fanzineIssueList)
-
-        return
-
-    # This seems to be an ordinary page, so read it.
-    ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup)
-    return
+    soup=BeautifulSoup(h.content, "html.parser")
+    return soup
 
 
-def ReadSingleton(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup):
+#======================================================================================
+# Read a singleton-format fanzine page
+def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
     # Usually, a singleton has the information in the first h2 block
     found=None
     for stuff in soup:
@@ -422,13 +455,14 @@ def ReadSingleton(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, s
     fanzineIssueList.append(fi)
     return
 
-PageParser=collections.namedtuple("PageParser", "SeTable, SoupTable, UsingBeautifulSoup")
+#=============================================
+# Define a named tuple to hold web page parser information
+PageParser=collections.namedtuple("PageParser", "SeTable, SoupTable")
 
-def ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzineName, soup):
 
-    parser=LocateAnonymousIndexTable(directoryUrl, soup)
-    if parser is None:
-        return
+#=========================================================================================
+# Read a fanzine's page of any format
+def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser):
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -437,7 +471,7 @@ def ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzin
 
     # Start by creating a list of the column headers.  This will be used to locate information in each row.
     columnHeaders=[]
-    if parser.UsingBeautifulSoup:
+    if parser.SoupTable is not None:
         # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
         # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
         parser.SoupTable.contents=[t for t in parser.SoupTable.contents if not isinstance(t, NavigableString)]
@@ -455,7 +489,7 @@ def ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzin
     # Each row will be a list of cells
     # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
     tableRows=[]
-    if parser.UsingBeautifulSoup:
+    if parser.SoupTable is not None:
         for i in range(1, len(parser.SoupTable)):
             tableRow=Helpers.RemoveNewlineRows(parser.SoupTable.contents[i])
             newRow=[]
@@ -477,6 +511,7 @@ def ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzin
                     cellval=cell.text
                 newRow.append(cellval)
             tableRows.append(newRow)
+
     # Now we process the table rows, extracting the information for each fanzine issue.
     for i in range(0, len(tableRows)):
         # We need to skip the column headers
@@ -509,6 +544,19 @@ def ReadFanzineIndexTable(FanacIssueInfo, directoryUrl, fanzineIssueList, fanzin
             Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, True)
 
 
+
+#===============================================================================
+# Locate a fanzine index table of the old, standard, untagged sort.
+def LocateIndexTable(directoryUrl, soup):
+    p=LocateTaggedIndexTable(directoryUrl, soup)
+    if p is not None:
+        return p
+
+    return LocateAnonymousIndexTable(directoryUrl, soup)
+
+
+#===============================================================================
+# Locate a fanzine index table of the old, standard, untagged sort.
 def LocateAnonymousIndexTable(directoryUrl, soup):
     global g_browser
     # Because the structures of the pages are so random, we need to search the body for the table.
@@ -522,12 +570,10 @@ def LocateAnonymousIndexTable(directoryUrl, soup):
 
     soupTable=Helpers.LookForTable(soupBody, {"border" : "1", "cellpadding" : "5"})
     seTable=None
-    usingBeautifulSoup=True
     if soupTable is None:
         Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
 
         # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
-        usingBeautifulSoup=False
         # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
         if g_browser is None:
             g_browser=webdriver.Firefox()
@@ -538,11 +584,29 @@ def LocateAnonymousIndexTable(directoryUrl, soup):
         # Find the index table's column header row and extract the column headers
         try:
             seTable=g_browser.find_elements_by_xpath('/html/body/table[2]/tbody/tr')
+            if len(seTable) == 0:
+                return None
             time.sleep(0.3)  # Just-in-case
         except:
             Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
             return None
-    return PageParser(seTable, soupTable, usingBeautifulSoup)
+    return PageParser(seTable, soupTable)
 
+
+#===============================================================================
+# Locate a fanzine index table that has been taged by 'class="indextable"'.
+def LocateTaggedIndexTable(directoryUrl, soup):
+
+    try:
+        soupBody=soup.body.contents
+    except:
+        return None
+
+    soupTable=Helpers.LookForTable(soupBody, {"class" : "indextable"})
+    if soupTable == None:
+        return None
+
+
+    return PageParser(None, soupTable)
 
 
