@@ -337,11 +337,13 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
 
     print("   ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
     # Fanzines with only a single page rather than an index.
+    # Note that these are directory names
     singletons=["Ah_Sweet_Idiocy", "BNF_of_IZ", "Chanticleer", "Cosmag", "emu", "Enchanted_Duplicator", "Entropy", "Fan-Fare", "FanToSee", "Flight of the Kangaroo, The",
-                "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster", "NEOSFS, Issue 3, The",
+                "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster",
                 "NOSFAn", "Planeteer", "Sense_FAPA", "SF_Digest", "SF_Digest_2", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
                 "Starlight", "SunSpots", "Tails_of_Fandom", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
 
+    weirdos=["Legal Rules, The", "NEOSFS Newsletter, Issue 3, The"]
 
     # There are two ways to access and analyze the web pages: BeautifulSoup and Selenium
     # We prefer to use BeautifulSoup because it's faster, but it seems to fail some times.  When it fails, we use Selenium.
@@ -351,6 +353,10 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
     specialBiggies=["Australian Science Fiction Bullsheet, The", "MT Void, The"]
     if fanzineName in specialBiggies:
         ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
+        return
+
+    # Ignore weirdos for now
+    if fanzineName in weirdos:
         return
 
     # It looks like this is a single level directory.
@@ -560,39 +566,44 @@ def LocateIndexTable(directoryUrl, soup):
 # Locate a fanzine index table of the old, standard, untagged sort.
 def LocateAnonymousIndexTable(directoryUrl, soup):
     global g_browser
+
     # Because the structures of the pages are so random, we need to search the body for the table.
-    # *So far* all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
-    failed=False
+    # *So far* nearly all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
+    soupTable=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "5"})
+    if soupTable is not None:
+        return PageParser(None, soupTable)
+
+    # Then there's Peon...
+    soupTable=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "3"})
+    if soupTable is not None:
+        return PageParser(None, soupTable)
+
+    # Then there's Bable-On...
+    soupTable=Helpers.LookForTable(soup, {"cellpadding" : "10"})
+    if soupTable is not None:
+        return PageParser(None, soupTable)
+
+    Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
+
+    # This seems to sometimes generate an error which seems to be due to a bug in BeautifulSoup. (Or maybe something odd and unspotted in some of our pages.)
+    # When this happens, we try again using Selenium
+    # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
+    if g_browser is None:
+        g_browser=webdriver.Firefox()
+
+    # Open the index page in the browser
+    g_browser.get(directoryUrl)
+
+    # Find the index table's column header row and extract the column headers
     try:
-        soupBody=soup.body.contents
-    except:
-        Helpers.Log("***Failed to find soup.body.contents in "+directoryUrl, True)
-        return None
-
-    soupTable=Helpers.LookForTable(soupBody, {"border" : "1", "cellpadding" : "5"})
-    seTable=None
-    if soupTable is None:
-        Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
-
-        # This seems to sometimes generate an error which seems to be due to a bug in BeautifulSoup. (Or maybe something odd and unspotted in some of our pages.)
-        # When this happens, we try again using Selenium
-        # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
-        if g_browser is None:
-            g_browser=webdriver.Firefox()
-
-        # Open the index page in the browser
-        g_browser.get(directoryUrl)
-
-        # Find the index table's column header row and extract the column headers
-        try:
-            seTable=g_browser.find_elements_by_xpath('/html/body/table[2]/tbody/tr')
-            if len(seTable) == 0:
-                return None
-            time.sleep(0.3)  # Just-in-case
-        except:
-            Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
+        seTable=g_browser.find_elements_by_xpath('/html/body/table[2]/tbody/tr')
+        if len(seTable) == 0:
             return None
-    return PageParser(seTable, soupTable)
+        time.sleep(0.3)  # Just-in-case
+    except:
+        Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
+        return None
+    return PageParser(seTable, None)
 
 
 #===============================================================================
