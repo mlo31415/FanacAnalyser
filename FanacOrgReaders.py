@@ -371,11 +371,11 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
 
     # By elimination, this must be an ordinary page, so read it.
     # Locate the Index Table on this page.
-    parser=LocateAnonymousIndexTable(directoryUrl, soup)
-    if parser is None:
+    table=LocateAnonymousIndexTable(directoryUrl, soup)
+    if table is None:
         return
 
-    ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser)
+    ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table)
     return
 
 
@@ -462,14 +462,9 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
     fanzineIssueList.append(fi)
     return
 
-#=============================================
-# Define a named tuple to hold web page parser information
-PageParser=collections.namedtuple("PageParser", "SeTable, SoupTable")
-
-
 #=========================================================================================
 # Read a fanzine's page of any format
-def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser):
+def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -478,46 +473,30 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser):
 
     # Start by creating a list of the column headers.  This will be used to locate information in each row.
     columnHeaders=[]
-    if parser.SoupTable is not None:
-        # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
-        # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
-        parser.SoupTable.contents=[t for t in parser.SoupTable.contents if not isinstance(t, NavigableString)]
-        if len(parser.SoupTable.contents[0])>1:
-            columnHeaders=parser.SoupTable.contents[0].text.strip()
-        columnHeaders=columnHeaders.split("\n")
-    else:
-        # Selenium is our tool for this one.
-        colhead=parser.SeTable[0].find_elements_by_xpath("th")
-        columnHeaders=[e.text for e in colhead]
+
+    # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
+    # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
+    table.contents=[t for t in table.contents if not isinstance(t, NavigableString)]
+    if len(table.contents[0])>1:
+        columnHeaders=table.contents[0].text.strip()
+    columnHeaders=columnHeaders.split("\n")
     columnHeaders=[Helpers.CannonicizeColumnHeaders(c) for c in columnHeaders]
 
-    # We need to pull the fanzine rows in from either BeautifulSoup or Selenium and save them in the same format for later analysis.
+    # We need to pull the fanzine rows in from BeautifulSoup and save them in the same format for later analysis.
     # The format will be a list of rows
     # Each row will be a list of cells
     # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
     tableRows=[]
-    if parser.SoupTable is not None:
-        for i in range(1, len(parser.SoupTable)):
-            tableRow=Helpers.RemoveNewlineRows(parser.SoupTable.contents[i])
-            newRow=[]
-            for cell in tableRow:
-                cellval=Helpers.GetHrefAndTextFromTag(cell)
-                if cellval[1] is None:
-                    newRow.append(cellval[0])
-                else:
-                    newRow.append(cellval)
-            tableRows.append(newRow)
-    else:
-        for i in range(1, len(parser.SeTable)):
-            newRow=[]
-            for cell in parser.SeTable[i].find_elements_by_xpath("td"):
-                try:
-                    link=cell.find_element_by_xpath("a").get_attribute("href")
-                    cellval=(cell.text, link)
-                except:
-                    cellval=cell.text
+    for i in range(1, len(table)):
+        tableRow=Helpers.RemoveNewlineRows(table.contents[i])
+        newRow=[]
+        for cell in tableRow:
+            cellval=Helpers.GetHrefAndTextFromTag(cell)
+            if cellval[1] is None:
+                newRow.append(cellval[0])
+            else:
                 newRow.append(cellval)
-            tableRows.append(newRow)
+        tableRows.append(newRow)
 
     # Now we process the table rows, extracting the information for each fanzine issue.
     for i in range(0, len(tableRows)):
@@ -569,41 +548,22 @@ def LocateAnonymousIndexTable(directoryUrl, soup):
 
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* nearly all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
-    soupTable=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "5"})
-    if soupTable is not None:
-        return PageParser(None, soupTable)
+    table=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "5"})
+    if table is not None:
+        return table
 
     # Then there's Peon...
-    soupTable=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "3"})
-    if soupTable is not None:
-        return PageParser(None, soupTable)
+    table=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "3"})
+    if table is not None:
+        return table
 
     # Then there's Bable-On...
-    soupTable=Helpers.LookForTable(soup, {"cellpadding" : "10"})
-    if soupTable is not None:
-        return PageParser(None, soupTable)
+    table=Helpers.LookForTable(soup, {"cellpadding" : "10"})
+    if table is not None:
+        return table
 
-    Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
-
-    # This seems to sometimes generate an error which seems to be due to a bug in BeautifulSoup. (Or maybe something odd and unspotted in some of our pages.)
-    # When this happens, we try again using Selenium
-    # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
-    if g_browser is None:
-        g_browser=webdriver.Firefox()
-
-    # Open the index page in the browser
-    g_browser.get(directoryUrl)
-
-    # Find the index table's column header row and extract the column headers
-    try:
-        seTable=g_browser.find_elements_by_xpath('/html/body/table[2]/tbody/tr')
-        if len(seTable) == 0:
-            return None
-        time.sleep(0.3)  # Just-in-case
-    except:
-        Helpers.Log(directoryUrl+"      ***Selenium failed also", True)
-        return None
-    return PageParser(seTable, None)
+    Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html", True)
+    return None
 
 
 #===============================================================================
@@ -618,7 +578,7 @@ def LocateTaggedIndexTable(directoryUrl, soup):
     tables=soup.body.find_all("table")
     for table in tables:
         if "class" in table.attrs.keys() and table.attrs["class"][0] == "indextable":
-            return PageParser(None, table)
+            return table
 
     return None
 
