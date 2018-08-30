@@ -67,19 +67,19 @@ def ReadModernOrClassicTable(fanacDirectories, url):
 
 # Read the fanac.org fanzine direcgtory and produce a list of all issues present
 ReadClassicModernPages(fanacDirectories)
-FanacOrgReaders.ReadFanacFanzineIssues(fanacDirectories)
+fanacIssueInfo=FanacOrgReaders.ReadFanacFanzineIssues(fanacDirectories)
 
 
 Helpers.LogClose()
 
 # Print a list of all fanzines found for 1943
-FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
-FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
-FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
+fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
+fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
+fanacIssueInfo.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
 
 file=open("1943 Fanzines.txt", "w+")
 count1943=0
-for fz in FanacOrgReaders.g_fanacIssueInfo:
+for fz in fanacIssueInfo:
     if fz.YearInt == 1943:
         file.write(fz.FanzineIssueName+"\n")
         count1943=count1943+1
@@ -88,19 +88,19 @@ file.close()
 # Get a count of issues and pages
 pageCount=0
 issueCount=0
-for fz in FanacOrgReaders.g_fanacIssueInfo:
+for fz in fanacIssueInfo:
     if fz.URL != None:
         pageCount=pageCount+fz.Pages
         issueCount=issueCount+1
 
 # Produce a list of fanzines by date
-FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.DayInt)  # Sorts in place on day
-FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
-FanacOrgReaders.g_fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
+fanacIssueInfo.sort(key=lambda elem: elem.DayInt)  # Sorts in place on day
+fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
+fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
 
 f=open("Chronological Listing of Fanzines.txt", "w+")
 monthYear=(-1, -1)
-for fz in FanacOrgReaders.g_fanacIssueInfo:
+for fz in fanacIssueInfo:
     if fz.URL is not None:
         if monthYear != (fz.MonthInt, fz.YearInt):
             f.write("\n"+ str(fz.YearInt)+" "+str(fz.MonthInt)+"\n")
@@ -113,7 +113,7 @@ f=open("Chronological Listing of Fanzines.html", "w+")
 f.write('<table border="2" cellspacing="4">\n') # Begin the main table
 
 monthYear=""
-for fz in FanacOrgReaders.g_fanacIssueInfo:
+for fz in fanacIssueInfo:
     if fz.URL is None  or fz.YearInt == 0:
         continue
 

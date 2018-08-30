@@ -23,8 +23,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
     global g_browser
     g_browser=None
-    global g_fanacIssueInfo
-    g_fanacIssueInfo=[]
+    fanacIssueInfo=[]
 
     keys=sorted(list(fanacDirectories.keys()))    # Note that using a dictionary eliminates the consequences of duplicate entries on the Classic, Modern and Electronic pages
     for key in keys:
@@ -65,13 +64,14 @@ def ReadFanacFanzineIssues(fanacDirectories):
             Helpers.Log(url+"    ***skipped because in the fan_funds or fanzines/Miscellaneous directories", True)
             continue
 
-        ReadAndAppendFanacFanzineIndexPage(title, url, g_fanacIssueInfo)
+        ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo)
 
-    # Now g_fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
+    # Now fanacIssueInfo is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
     if g_browser is not None:
         g_browser.quit()
-    return
+
+    return fanacIssueInfo
 
 
 #=============================================================================================
