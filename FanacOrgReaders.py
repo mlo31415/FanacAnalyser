@@ -371,7 +371,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
 
     # By elimination, this must be an ordinary page, so read it.
     # Locate the Index Table on this page.
-    table=LocateAnonymousIndexTable(directoryUrl, soup)
+    table=LocateIndexTable(directoryUrl, soup)
     if table is None:
         return
 
@@ -390,11 +390,11 @@ def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
         return
 
     # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
-    # TODO: Everything
+
     # Scan for flagged tables on this page
-    parser=LocateTaggedIndexTable(directoryUrl, soup)  # TODO: We may need to get soup.body or soup.body.contents
-    if parser is not None:
-        ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser)
+    table=LocateIndexTable(directoryUrl, soup)
+    if table is not None:
+        ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table)
 
     # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
     links=soup.find_all("a")
@@ -530,25 +530,19 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
             Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, True)
 
 
-
 #===============================================================================
-# Locate a fanzine index table of the old, standard, untagged sort.
+# Locate a fanzine index table.
 def LocateIndexTable(directoryUrl, soup):
-    p=LocateTaggedIndexTable(directoryUrl, soup)
-    if p is not None:
-        return p
-
-    return LocateAnonymousIndexTable(directoryUrl, soup)
-
-
-#===============================================================================
-# Locate a fanzine index table of the old, standard, untagged sort.
-def LocateAnonymousIndexTable(directoryUrl, soup):
     global g_browser
 
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* nearly all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
     table=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "5"})
+    if table is not None:
+        return table
+
+    # A few cases have been tagged explicitly
+    table=Helpers.LookForTable(soup, {"class" : "indextable"})
     if table is not None:
         return table
 
@@ -565,21 +559,5 @@ def LocateAnonymousIndexTable(directoryUrl, soup):
     Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html", True)
     return None
 
-
-#===============================================================================
-# Locate a fanzine index table that has been tagged by 'class="indextable"'.
-def LocateTaggedIndexTable(directoryUrl, soup):
-
-    try:
-        soupBody=soup.body.contents
-    except:
-        return None
-
-    tables=soup.body.find_all("table")
-    for table in tables:
-        if "class" in table.attrs.keys() and table.attrs["class"][0] == "indextable":
-            return table
-
-    return None
 
 
