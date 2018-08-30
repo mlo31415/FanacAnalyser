@@ -6,14 +6,13 @@ import collections
 import Helpers
 import os
 import re
-import FanacDirectories
 import time
 import roman
 from selenium import webdriver
 
 
 # ============================================================================================
-def ReadFanacFanzineIssues():
+def ReadFanacFanzineIssues(fanacDirectories):
     # Read index.html files on fanac.org
     # We have a dictionary containing the names and URLs of the 1942 fanzines.
     # The next step is to figure out what 1942 issues of each we have on the website
@@ -27,9 +26,9 @@ def ReadFanacFanzineIssues():
     global g_fanacIssueInfo
     g_fanacIssueInfo=[]
 
-    keys=sorted(list(FanacDirectories.FanacDirectories().Dict().keys()))    # Note that using a dictionary eliminates the consequences of duplicate entries on the Classic, Modern and Electronic pages
+    keys=sorted(list(fanacDirectories.keys()))    # Note that using a dictionary eliminates the consequences of duplicate entries on the Classic, Modern and Electronic pages
     for key in keys:
-        title, dirname=FanacDirectories.FanacDirectories().Dict()[key]
+        title, dirname=fanacDirectories[key]
         Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
 
         unskippers=[
@@ -167,7 +166,7 @@ def InterpretSerial(s):
 # Extract a serial number (vol, num, whole_num) from a table row
 # We return a tuple: (vol, num)
 # Some fanzines have a whole number --> returned as VolNone, Num=nnn
-# Others have a Volum and a number --> returned as Vol=nn, Num=nn
+# Others have a Volume and a number --> returned as Vol=nn, Num=nn
 # Sometimes the number is composite V2#3 and stored who-knows-where and we gotta find it.
 def ExtractSerial(columnHeaders, row):
 

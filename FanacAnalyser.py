@@ -1,15 +1,74 @@
 import Helpers
 import FanacOrgReaders
-import FanacDirectories
+import requests
+from bs4 import BeautifulSoup
 
 
 Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
 
-# Trigger the reading of the fanac fanzine directories
-FanacDirectories.FanacDirectories()
+# This is a dictionary of fanzines on Fanac.org
+# The key is the compressed name (Helpers.CompressName())
+# The value is a tuple consisting of the link name and link url
+fanacDirectories={}
+
+# ====================================================================================
+# Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html
+# Read the table to get a list of all the fanzines on Fanac.org
+# Return a list of tuples (name on page, name of directory)
+#       The name on page is the display named used in the Classic and Modern tables
+#       The name of directory is the name of the directory pointed to
+
+def ReadClassicModernPages(fanacDirectories):
+    print("----Begin reading Classic and Modern tables")
+
+    ReadModernOrClassicTable(fanacDirectories, "http://www.fanac.org/fanzines/Classic_Fanzines.html")
+    ReadModernOrClassicTable(fanacDirectories, "http://www.fanac.org/fanzines/Modern_Fanzines.html")
+    ReadModernOrClassicTable(fanacDirectories, "http://www.fanac.org/fanzines/Electronic_Fanzines.html")
+
+    print("----Done reading Classic and Modern tables")
+    return
+
+# -------------------------------------------------------------------------
+# We have a name and a dirname from the fanac.org Classic and Modern pages.
+# The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
+def AddFanacDirectory(fanacDirectories, name, dirname):
+    isDup=False
+
+    if name in fanacDirectories:
+        print("   duplicate: name="+name+"  dirname="+dirname)
+        return
+
+    if dirname[:3]=="http":
+        print("    ignored, because is HTML: "+dirname)
+        return
+
+    # Add name and directory reference
+    cname=Helpers.CompressName(name)
+    print("   added to fanacDirectories: key='"+cname+"'  name='"+name+"'  dirname='"+dirname+"'")
+    fanacDirectories[cname]=(name, dirname)
+    return
+
+# ======================================================================
+def ReadModernOrClassicTable(fanacDirectories, url):
+    h=requests.get(url)
+    s=BeautifulSoup(h.content, "html.parser")
+    # We look for the first table that does not contain a "navbar"
+    tables=s.find_all("table")
+    for table in tables:
+        if "sortable" in str(table.attrs) and not "navbar" in str(table.attrs):
+            # OK, we've found the main table.  Now read it
+            trs=table.find_all("tr")
+            for i in range(1, len(trs)):
+                # Now the data rows
+                name=trs[i].find_all("td")[1].contents[0].contents[0].contents[0]
+                dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
+                AddFanacDirectory(fanacDirectories, name, dirname)
+    return
 
 # Read the fanac.org fanzine direcgtory and produce a list of all issues present
-FanacOrgReaders.ReadFanacFanzineIssues()
+ReadClassicModernPages(fanacDirectories)
+FanacOrgReaders.ReadFanacFanzineIssues(fanacDirectories)
+
 
 Helpers.LogClose()
 
