@@ -1,6 +1,7 @@
 import os
 from bs4 import NavigableString
 import FanacNames
+import urllib
 from datetime import datetime
 import math
 import dateutil.parser
@@ -172,19 +173,19 @@ def DecodeIssueDesignation(str):
 
 #=====================================================================================
 # Function to search recursively for the table containing the fanzines listing
-# flags is a dictionary of attributes abd values to be matched
+# flags is a dictionary of attributes and values to be matched, e.g., {"class" : "indextable", ...}
 def LookForTable(tag, flags):
-    t=str(tag)
-    t=(t[:75]+'..') if len(t)>75 else t
-    print("call LookForTable with tag=", N(tag)+"  tag="+t)
+    #t=str(tag)
+    #t=(t[:75]+'..') if len(t)>75 else t
+    #print("call LookForTable with tag=", N(tag)+"  tag="+t)
     for stuff in tag:
         if stuff.name == "table":
-            print("   we found a table.")
+            #print("   we found a table.")
             # Next, we check the table to see if it has the values table border="1" cellpadding="5"
             try:
                 ok=True
                 for key in flags.keys():
-                    if (stuff.attrs[key][0] != flags[key]):
+                    if stuff.attrs[key][0] != flags[key]:
                         ok=False
                         break
                     pass
@@ -194,7 +195,7 @@ def LookForTable(tag, flags):
                 continue
         try:
             if len(stuff.contents) > 0:
-                print("  going down a level")
+                #print("  going down a level")
                 val=LookForTable(stuff.contents, flags)
             if val != None:
                 return val
@@ -651,3 +652,19 @@ def LogClose():
     g_logFile.close()
     global g_errorFile
     g_errorFile.close()
+
+# =============================================================================
+#   Change the filename in a URL
+def ChangeFileInURL(url, newFileName):
+    u=urllib.parse.urlparse(url)
+    p=u[2].split("/")   # Split the path (which may include a filename) into components
+    f=p[-1:][0].split(".")     # Split the last component of the path (which may be a filename) into stuff plus an extension
+    if len(f) > 1:
+        # If there is an extension, then the last compoent of the path is a filename to be replaced.
+        p="/".join(p[:-1])+"/"+newFileName
+    else:
+        # Otherwise, we just tack on the new filename
+        p="/".join(p)+"/"+newFileName
+
+    u=(u[0], u[1], p, u[3], u[4], u[5])
+    return urllib.parse.urlunparse(u)

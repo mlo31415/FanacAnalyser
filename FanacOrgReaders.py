@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
+import urllib
 import requests
 import collections
 import Helpers
@@ -32,8 +33,7 @@ def ReadFanacFanzineIssues():
         Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
 
         unskippers=[
-            "Australian Science Fiction Bullsheet, The",
-            "Bullsheet",
+            "MT_Void",
         ]
         skippers=[
             #"Australian Science Fiction Bullsheet, The",
@@ -50,8 +50,8 @@ def ReadFanacFanzineIssues():
             Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
             continue
 
-        #if dirname not in unskippers:
-        #    continue
+        if dirname not in unskippers:
+            continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
@@ -375,7 +375,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
 
 
 #===================================================================================
-# The "special biggie" pages are few (only two it the time this ie being written) and need to be handled specially
+# The "special biggie" pages are few (only two at the time this ie being written) and need to be handled specially
 # The characteristic is that they are a tree of pages which may contain one or more *tagged* fanzine index tables on any level.
 # The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
 def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
@@ -387,7 +387,7 @@ def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
     # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
     # TODO: Everything
     # Scan for flagged tables on this page
-    parser=LocateIndexTable(directoryUrl, soup)  # TODO: We may need to get soup.body or soup.body.contents
+    parser=LocateTaggedIndexTable(directoryUrl, soup)  # TODO: We may need to get soup.body or soup.body.contents
     if parser is not None:
         ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, parser)
 
@@ -400,7 +400,9 @@ def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
             p=re.compile("^[a-zA-Z0-9\-_]*.html$")
             m=p.match(url)
             if m is not None:
-                ReadSpecialBiggie(directoryUrl+"/"+url, fanzineIssueList, fanzineName)
+                if url.startswith("index") or url.startswith("archive"):
+                    u=Helpers.ChangeFileInURL(directoryUrl, url)
+                    ReadSpecialBiggie(u, fanzineIssueList, fanzineName)
     return
 
 #======================================================================================
@@ -573,7 +575,8 @@ def LocateAnonymousIndexTable(directoryUrl, soup):
     if soupTable is None:
         Helpers.Log(directoryUrl+"      ***failed because BeautifulSoup found no index table in index.html\n           checking Selenium", True)
 
-        # This seems to sometimes be generate an error which seems to be due to a bug in BeautifulSoup. When this happens, we try again using Selenium
+        # This seems to sometimes generate an error which seems to be due to a bug in BeautifulSoup. (Or maybe something odd and unspotted in some of our pages.)
+        # When this happens, we try again using Selenium
         # If necessary, instantiate the web browser Selenium will use (we keep it as a global because it takes a long time to instantiate.)
         if g_browser is None:
             g_browser=webdriver.Firefox()
@@ -594,7 +597,7 @@ def LocateAnonymousIndexTable(directoryUrl, soup):
 
 
 #===============================================================================
-# Locate a fanzine index table that has been taged by 'class="indextable"'.
+# Locate a fanzine index table that has been tagged by 'class="indextable"'.
 def LocateTaggedIndexTable(directoryUrl, soup):
 
     try:
@@ -602,11 +605,11 @@ def LocateTaggedIndexTable(directoryUrl, soup):
     except:
         return None
 
-    soupTable=Helpers.LookForTable(soupBody, {"class" : "indextable"})
-    if soupTable == None:
-        return None
+    tables=soup.body.find_all("table")
+    for table in tables:
+        if "class" in table.attrs.keys() and table.attrs["class"][0] == "indextable":
+            return PageParser(None, table)
 
-
-    return PageParser(None, soupTable)
+    return None
 
 
