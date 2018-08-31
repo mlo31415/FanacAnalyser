@@ -6,11 +6,6 @@ from bs4 import BeautifulSoup
 
 Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
 
-# This is a dictionary of fanzines on Fanac.org
-# The key is the compressed name (Helpers.CompressName())
-# The value is a tuple consisting of the link name and link url
-fanacDirectories={}
-
 # ====================================================================================
 # Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html
 # Read the table to get a list of all the fanzines on Fanac.org
@@ -18,23 +13,27 @@ fanacDirectories={}
 #       The name on page is the display named used in the Classic and Modern tables
 #       The name of directory is the name of the directory pointed to
 
-def ReadClassicModernPages(fanacDirectories):
+def ReadClassicModernPages():
     print("----Begin reading Classic and Modern tables")
+    # This is a dictionary of fanzines on Fanac.org
+    # The key is the compressed name (Helpers.CompressName())
+    # The value is a tuple consisting of the link name and link url
+    fanacFanzineDirectories={}
 
-    ReadModernOrClassicTable(fanacDirectories, "http://www.fanac.org/fanzines/Classic_Fanzines.html")
-    ReadModernOrClassicTable(fanacDirectories, "http://www.fanac.org/fanzines/Modern_Fanzines.html")
-    ReadModernOrClassicTable(fanacDirectories, "http://www.fanac.org/fanzines/Electronic_Fanzines.html")
+    ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Classic_Fanzines.html")
+    ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Modern_Fanzines.html")
+    ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Electronic_Fanzines.html")
 
     print("----Done reading Classic and Modern tables")
-    return
+    return fanacFanzineDirectories
 
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacDirectories, name, dirname):
+def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
     isDup=False
 
-    if name in fanacDirectories:
+    if name in fanacFanzineDirectories:
         print("   duplicate: name="+name+"  dirname="+dirname)
         return
 
@@ -44,12 +43,12 @@ def AddFanacDirectory(fanacDirectories, name, dirname):
 
     # Add name and directory reference
     cname=Helpers.CompressName(name)
-    print("   added to fanacDirectories: key='"+cname+"'  name='"+name+"'  dirname='"+dirname+"'")
-    fanacDirectories[cname]=(name, dirname)
+    print("   added to fanacFanzineDirectories: key='"+cname+"'  name='"+name+"'  dirname='"+dirname+"'")
+    fanacFanzineDirectories[cname]=(name, dirname)
     return
 
 # ======================================================================
-def ReadModernOrClassicTable(fanacDirectories, url):
+def ReadModernOrClassicTable(fanacFanzineDirectories, url):
     h=requests.get(url)
     s=BeautifulSoup(h.content, "html.parser")
     # We look for the first table that does not contain a "navbar"
@@ -62,24 +61,24 @@ def ReadModernOrClassicTable(fanacDirectories, url):
                 # Now the data rows
                 name=trs[i].find_all("td")[1].contents[0].contents[0].contents[0]
                 dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
-                AddFanacDirectory(fanacDirectories, name, dirname)
+                AddFanacDirectory(fanacFanzineDirectories, name, dirname)
     return
 
-# Read the fanac.org fanzine direcgtory and produce a list of all issues present
-ReadClassicModernPages(fanacDirectories)
-fanacIssueInfo=FanacOrgReaders.ReadFanacFanzineIssues(fanacDirectories)
+# Read the fanac.org fanzine directory and produce a list of all issues present
+fanacFanzineDirectories=ReadClassicModernPages()
+fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
 
 Helpers.LogClose()
 
-# Print a list of all fanzines found for 1943
-fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
-fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
-fanacIssueInfo.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
+# Print a list of all fanzines found for 1943 sorted by fanzine name, then date
+fanacIssueList.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
+fanacIssueList.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
+fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
 
 file=open("1943 Fanzines.txt", "w+")
 count1943=0
-for fz in fanacIssueInfo:
+for fz in fanacIssueList:
     if fz.YearInt == 1943:
         file.write(fz.FanzineIssueName+"\n")
         count1943=count1943+1
@@ -88,19 +87,19 @@ file.close()
 # Get a count of issues and pages
 pageCount=0
 issueCount=0
-for fz in fanacIssueInfo:
+for fz in fanacIssueList:
     if fz.URL != None:
         pageCount=pageCount+fz.Pages
         issueCount=issueCount+1
 
 # Produce a list of fanzines by date
-fanacIssueInfo.sort(key=lambda elem: elem.DayInt)  # Sorts in place on day
-fanacIssueInfo.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
-fanacIssueInfo.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
+fanacIssueList.sort(key=lambda elem: elem.DayInt)  # Sorts in place on day
+fanacIssueList.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
+fanacIssueList.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
 
 f=open("Chronological Listing of Fanzines.txt", "w+")
 monthYear=(-1, -1)
-for fz in fanacIssueInfo:
+for fz in fanacIssueList:
     if fz.URL is not None:
         if monthYear != (fz.MonthInt, fz.YearInt):
             f.write("\n"+ str(fz.YearInt)+" "+str(fz.MonthInt)+"\n")
@@ -113,7 +112,7 @@ f=open("Chronological Listing of Fanzines.html", "w+")
 f.write('<table border="2" cellspacing="4">\n') # Begin the main table
 
 monthYear=""
-for fz in fanacIssueInfo:
+for fz in fanacIssueList:
     if fz.URL is None  or fz.YearInt == 0:
         continue
 
