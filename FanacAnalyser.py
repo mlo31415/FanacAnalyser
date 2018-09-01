@@ -103,7 +103,7 @@ monthYear=(-1, -1)
 for fz in fanacIssueList:
     if fz.URL is not None:
         if monthYear != (fz.MonthInt, fz.YearInt):
-            f.write("\n"+ str(fz.YearInt)+" "+str(fz.MonthInt)+"\n")
+            f.write("\n"+ Helpers.FormatDate(fz.YearInt, fz.MonthInt, None)+"\n")
             monthYear=(fz.MonthInt, fz.YearInt)
         f.write("   "+fz.FanzineIssueName+"\n")
 f.close()
@@ -122,7 +122,7 @@ for fz in fanacIssueList:
     month=fz.MonthInt
     if month == 0:
         month=1
-    newMonthYear= Helpers.IntToMonth(month) + " " + str(fz.YearInt)
+    newMonthYear= Helpers.FormatDate(fz.YearInt, month, None)
     if newMonthYear != monthYear:
         if monthYear != "":   # Is this the first month box?
             f.write('</table></td></tr>\n')  # No.  So end the previous month box

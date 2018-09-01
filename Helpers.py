@@ -578,7 +578,7 @@ def ParseDate(dateText):
 # Arguments may be string, integer or None
 def FormatDate(year, month, day):
     y=None
-    if year is not None:
+    if year is not None and year != 0:
         y=year
         if type(year) is int:
             if year < 25:
@@ -615,6 +615,9 @@ def FormatDate(year, month, day):
         if out != " ":
             out=out+" "
         out=out+y
+
+    if out == "":
+        out="(undated)"
 
     return out
 

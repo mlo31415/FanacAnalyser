@@ -513,6 +513,10 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
         fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt,
                           Number=numInt, Day=dayText,
                           DayInt=dayInt, Whole=wholeInt, Pages=pages)
+        if fi.FanzineIssueName == "<not found>" and fi.Vol is None and fi.Year is None and fi.Month is None:
+            Helpers.Log("   ****Skipping null table row: "+str(fi))
+            continue
+
         print("   "+str(fi))
         fanzineIssueList.append(fi)
 
