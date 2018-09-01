@@ -8,7 +8,6 @@ import os
 import re
 import time
 import roman
-from selenium import webdriver
 
 
 # ============================================================================================
@@ -345,10 +344,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
 
     weirdos=["Legal Rules, The", "NEOSFS Newsletter, Issue 3, The"]
 
-    # There are two ways to access and analyze the web pages: BeautifulSoup and Selenium
-    # We prefer to use BeautifulSoup because it's faster, but it seems to fail some times.  When it fails, we use Selenium.
-
-    # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the end.
+    # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
     # If this is the root of one of them...
     specialBiggies=["Australian Science Fiction Bullsheet, The", "MT Void, The"]
     if fanzineName in specialBiggies:

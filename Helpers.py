@@ -574,6 +574,52 @@ def ParseDate(dateText):
 
 
 #=============================================================================
+# Format a date for Fanac.org
+# Arguments may be string, integer or None
+def FormatDate(year, month, day):
+    y=None
+    if year is not None:
+        y=year
+        if type(year) is int:
+            if year < 25:
+                year=year+2000
+            if year < 100:
+                year=year+1900
+            y=str(year)
+    m=None
+    if month is not None and month != 0:
+        m=month
+        if type(month) is int:
+            if month > 0 and month <13:
+                m=["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][month-1]   # -1 is to deal with zero-based indexing...
+            else:
+                m="<invalid: "+str(month)+">"
+    d=None
+    if day is not None and day != 0:
+        if day > 0 and day < 32:
+            d=str(day)
+        else:
+            d="<invalid: "+str(day)+">"
+
+    out=""
+    if m is not None:
+        out=m
+    if d is not None:
+        if out != "":
+            out=out+" "+d
+        else:
+            out=d
+    if y is not None:
+        if d is not None:
+            out=out+","
+        if out != " ":
+            out=out+" "
+        out=out+y
+
+    return out
+
+
+#=============================================================================
 # Print the text to a log file open by the main program
 # If isError is set also print it to the error file.
 def Log(text, isError=False):

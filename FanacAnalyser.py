@@ -48,6 +48,7 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
     return
 
 # ======================================================================
+# Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
 def ReadModernOrClassicTable(fanacFanzineDirectories, url):
     h=requests.get(url)
     s=BeautifulSoup(h.content, "html.parser")
@@ -80,7 +81,7 @@ file=open("1943 Fanzines.txt", "w+")
 count1943=0
 for fz in fanacIssueList:
     if fz.YearInt == 1943:
-        file.write(fz.FanzineIssueName+"\n")
+        file.write(fz.FanzineIssueName+"  ("+Helpers.FormatDate(fz.YearInt, fz.MonthInt, fz.DayInt)+")\n")
         count1943=count1943+1
 file.close()
 
