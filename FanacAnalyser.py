@@ -144,6 +144,32 @@ f.write("</table></td></tr>\n")
 f.write('</table>\n')
 f.close()
 
+def Sorter(fz):
+    if fz.Whole is not None:
+        return fz.Whole
+    if fz.Vol is not None and fz.Number is not None:
+        return fz.Vol+fz.Number/100
+    if fz.Vol is not None:
+        return fz.Vol
+    if fz.Number is not None:
+        return fz.Number/100
+    return 0
+
+
+# Produce a list of fanzines by title
+fanacIssueList.sort(key=lambda elem: Sorter(elem))  # Sorts in place on day
+fanacIssueList.sort(key=lambda elem: elem.FanzineName)  # Sorts in place on year
+
+f=open("Alphabetical Listing of Fanzines.txt", "w+")
+fmz=""
+for fz in fanacIssueList:
+    if fz.URL is not None:
+        if fmz != fz.FanzineName:
+            f.write("\n"+fz.FanzineName+"\n")
+            fmz=fz.FanzineName
+        f.write("   "+fz.FanzineIssueName+"  "+Helpers.FormatDate(fz.YearInt, fz.MonthInt, fz.DayInt)+"\n")
+f.close()
+
 
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
