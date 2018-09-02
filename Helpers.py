@@ -5,6 +5,7 @@ from datetime import datetime
 import math
 import dateutil.parser
 import re
+import collections
 
 
 #-------------------------------------------------------------
@@ -406,8 +407,8 @@ def InterpretRandomDatestring(text):
 # Note that we don't (currently) attempt to handle moveable feasts by taking the year in account
 def InterpretNamedDay(dayString):
     namedDayConverstionTable={
-        "unknown": (1, 1),
-        "unknown ?": (1, 1),
+        "unknown": (None, None),
+        "unknown ?": (None, None),
         "new year's day" : (1, 1),
         "edgar allen poe's birthday": (1, 19),
         "edgar allan poe's birthday": (1, 19),
@@ -451,7 +452,7 @@ def InterpretNamedDay(dayString):
         "remembrance day": (11, 11),
         "rememberance day": (11, 11),
         "thanksgiving": (11, 24),
-        "november (december)" : (12, 1),
+        "november (december)" : (12, None),
         "before christmas december": (12, 15),
         "saturnalia": (12, 21),
         "winter solstice": (12, 21),
@@ -573,33 +574,92 @@ def ParseDate(dateText):
     return None
 
 
+
+#=============================================================================
+def MonthName(month):
+    if month is None:
+        return None
+
+    if month > 0 and month < 13:
+        m=["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][month-1]  # -1 is to deal with zero-based indexing...
+    else:
+        m="<invalid: "+str(month)+">"
+    return m
+
+
+#==============================================================================
+def DayName(day):
+    if day is None or day == 0:
+        return None
+
+    if day < 1 or day > 31:
+        return "<invalid day>"
+
+    return str(day)
+
+
+#=============================================================================
+# Format an integer year.  Note that this is designed for fanzines, so two-digit years become ambiguous at 2033.
+def YearName(year):
+    if year is None or year == 0:
+        return None
+
+    if year > 99:
+        return str(year)
+
+    if year > 33:
+        return str(year+1900)
+
+    return str(year+2000)
+
+
+#=============================================================================
+# Take various text versions of a month and convert them to the full-out spelling
+def StandardizeMonth(month):
+    table={"1" : "January", "jan" : "January",
+       "2" : "February", "feb" : "February",
+       "3" : "March",
+       "4" : "April", "apr": "April",
+       "5" : "May",
+       "6" : "June", "jun" : "June",
+       "7" : "July", "jul" : "july",
+       "8" : "August", "aug" : "August",
+       "9" : "September", "sep" : "September",
+       "10" : "October", "oct" : "October",
+       "11" : "November", "nov" : "November",
+       "12" : "December", "dec" : "December"}
+
+    if month.lower().strip() not in table.keys():
+        return month
+
+    return table[month.lower().strip()]
+
+
+
+FanacDate=collections.namedtuple("FanacDate", "Year YearInt Month MonthInt Day DayInt")
+
+#=============================================================================
+# Allow raw use of FormatDate
+def FormatDate2(year, month, day):
+    return FormatDate(FanacDate(YearInt=year, Year=(str(year)), MonthInt=month, Month=MonthName(month), DayInt=day, Day=DayName(day)))
+
+
 #=============================================================================
 # Format a date for Fanac.org
-# Arguments may be string, integer or None
-def FormatDate(year, month, day):
-    y=None
-    if year is not None and year != 0:
-        y=year
-        if type(year) is int:
-            if year < 25:
-                year=year+2000
-            if year < 100:
-                year=year+1900
-            y=str(year)
-    m=None
-    if month is not None and month != 0:
-        m=month
-        if type(month) is int:
-            if month > 0 and month <13:
-                m=["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][month-1]   # -1 is to deal with zero-based indexing...
-            else:
-                m="<invalid: "+str(month)+">"
-    d=None
-    if day is not None and day != 0:
-        if day > 0 and day < 32:
-            d=str(day)
-        else:
-            d="<invalid: "+str(day)+">"
+# Argument is a FanacDate
+def FormatDate(fd):
+
+    y=fd.Year
+    if y is None:
+        y=YearName(fd.YearInt)
+    m=fd.Month
+    if m is None:
+        m=MonthName(fd.MonthInt)
+    else:
+        m=StandardizeMonth(m)
+    d=fd.Day
+    if d is None:
+        d=DayName(fd.DayInt)
 
     out=""
     if m is not None:

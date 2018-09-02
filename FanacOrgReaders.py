@@ -335,7 +335,8 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
     return name, href
 
-FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL  Year YearInt Month MonthInt Day DayInt Whole Pages")
+FanacDate=collections.namedtuple("FanacDate", "Year YearInt Month MonthInt Day DayInt")
+FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL Date Whole Pages")
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
@@ -460,8 +461,8 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
         y=date.year
         m=date.month
         d=date.day
-    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Vol=0, Number=0, Day=str(d),
-                      DayInt=d, Whole=0, Pages=0)
+    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=FanacDate(Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Day=str(d),
+                      DayInt=d), Vol=0, Number=0, Whole=0, Pages=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -518,10 +519,9 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
         pages=ExtractPageCount(columnHeaders, tableRow)
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Vol=volInt,
-                          Number=numInt, Day=dayText,
-                          DayInt=dayInt, Whole=wholeInt, Pages=pages)
-        if fi.FanzineIssueName == "<not found>" and fi.Vol is None and fi.Year is None and fi.Month is None:
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=FanacDate(Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Day=dayText,
+                          DayInt=dayInt), Vol=volInt, Number=numInt, Whole=wholeInt, Pages=pages)
+        if fi.FanzineIssueName == "<not found>" and fi.Vol is None and fi.Date.Year is None and fi.Date.Month is None:
             Helpers.Log("   ****Skipping null table row: "+str(fi))
             continue
 
@@ -533,7 +533,7 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
             urlT=""
             if fi.URL==None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Month)+" "+str(fi.Year)+"]  "+urlT)
+            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Date.Month)+" "+str(fi.Date.Year)+"]  "+urlT)
         else:
             Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, True)
 

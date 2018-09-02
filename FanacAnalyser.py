@@ -73,15 +73,15 @@ fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 Helpers.LogClose()
 
 # Print a list of all fanzines found for 1943 sorted by fanzine name, then date
-fanacIssueList.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
-fanacIssueList.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
+fanacIssueList.sort(key=lambda elem: elem.Date.MonthInt)  # Sorts in place on month
+fanacIssueList.sort(key=lambda elem: elem.Date.YearInt)  # Sorts in place on year
 fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
 
 file=open("1943 Fanzines.txt", "w+")
 count1943=0
 for fz in fanacIssueList:
-    if fz.YearInt == 1943:
-        file.write(fz.FanzineIssueName+"  ("+Helpers.FormatDate(fz.YearInt, fz.MonthInt, fz.DayInt)+")\n")
+    if fz.Date.YearInt == 1943:
+        file.write(fz.FanzineIssueName+"  ("+Helpers.FormatDate(fz.Date)+")\n")
         count1943=count1943+1
 file.close()
 
@@ -94,17 +94,17 @@ for fz in fanacIssueList:
         issueCount=issueCount+1
 
 # Produce a list of fanzines by date
-fanacIssueList.sort(key=lambda elem: elem.DayInt)  # Sorts in place on day
-fanacIssueList.sort(key=lambda elem: elem.MonthInt)  # Sorts in place on month
-fanacIssueList.sort(key=lambda elem: elem.YearInt)  # Sorts in place on year
+fanacIssueList.sort(key=lambda elem: elem.Date.DayInt)  # Sorts in place on day
+fanacIssueList.sort(key=lambda elem: elem.Date.MonthInt)  # Sorts in place on month
+fanacIssueList.sort(key=lambda elem: elem.Date.YearInt)  # Sorts in place on year
 
 f=open("Chronological Listing of Fanzines.txt", "w+")
 monthYear=(-1, -1)
 for fz in fanacIssueList:
     if fz.URL is not None:
-        if monthYear != (fz.MonthInt, fz.YearInt):
-            f.write("\n"+ Helpers.FormatDate(fz.YearInt, fz.MonthInt, None)+"\n")
-            monthYear=(fz.MonthInt, fz.YearInt)
+        if monthYear != (fz.Date.MonthInt, fz.Date.YearInt):
+            f.write("\n"+ Helpers.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None)+"\n")
+            monthYear=(fz.Date.MonthInt, fz.Date.YearInt)
         f.write("   "+fz.FanzineIssueName+"\n")
 f.close()
 
@@ -114,15 +114,15 @@ f.write('<table border="2" cellspacing="4">\n') # Begin the main table
 
 monthYear=""
 for fz in fanacIssueList:
-    if fz.URL is None  or fz.YearInt == 0:
+    if fz.URL is None  or fz.Date.YearInt == 0:
         continue
 
     # Start the row
     # Put the month & year in the first column of the table only if it changes.
-    month=fz.MonthInt
+    month=fz.Date.MonthInt
     if month == 0:
         month=1
-    newMonthYear= Helpers.FormatDate(fz.YearInt, month, None)
+    newMonthYear= Helpers.FormatDate2(fz.Date.YearInt, month, None)
     if newMonthYear != monthYear:
         if monthYear != "":   # Is this the first month box?
             f.write('</table></td></tr>\n')  # No.  So end the previous month box
@@ -167,7 +167,7 @@ for fz in fanacIssueList:
         if fmz != fz.FanzineName:
             f.write("\n"+fz.FanzineName+"\n")
             fmz=fz.FanzineName
-        f.write("   "+fz.FanzineIssueName+"    "+Helpers.FormatSerial(fz.Vol, fz.Number, fz.Whole)+"   "+Helpers.FormatDate(fz.YearInt, fz.MonthInt, fz.DayInt)+"\n")
+        f.write("   "+fz.FanzineIssueName+"    "+Helpers.FormatSerial(fz.Vol, fz.Number, fz.Whole)+"   "+Helpers.FormatDate(fz.Date)+"\n")
 f.close()
 
 
