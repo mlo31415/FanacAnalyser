@@ -173,7 +173,6 @@ def ExtractSerial(columnHeaders, row):
     volText=GetCellValueByColHeader(columnHeaders, row, "Volume")
     numText=GetCellValueByColHeader(columnHeaders, row, "Number")
     volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")
-    maybeWholeText=numText
     if type(volNumText) is tuple:
         volNumText=volNumText[0]
 
@@ -212,16 +211,16 @@ def ExtractSerial(columnHeaders, row):
                 volInt=None
 
     # If there's no vol, anything under "Num", etc., must actually be a whole number
-    if maybeWholeText is not None:
+    if volText is None:
         try:
+            maybeWholeText=numText
             maybeWholeInt=int(maybeWholeText)
+            numText=None
         except:
-            if maybeWholeText is not None and len(maybeWholeText) > 0:
-                print("*** Uninterpretable Maybe Whole number: '"+str(maybeWholeText)+"'")
-            maybeWholeInt=None
+            pass
 
     # But if the *is* a volume specified, than any number not labelled "whole" must be a number within the volume
-    if numText is not None:
+    if volText is not None and numText is not None:
         try:
             numInt=int(numText)
         except:
