@@ -126,10 +126,12 @@ def ExtractDate(columnHeaders, row):
 
 #=============================================================================================
 # If there's a trailing Vol+Num designation at the end of a string, interpret it.
+# We return a tuple of a (Vol, Num) or a (None, Num)
 # We accept:
 #       ...Vnn[,][ ]#nnn[ ]
 #       ...nn[ ]
 #       ...nnn/nnn[  ]
+#       ...nn.mm
 def InterpretSerial(s):
 
     s=s.upper()
@@ -152,8 +154,14 @@ def InterpretSerial(s):
     if m is not None and len(m.groups()) == 2:
         return roman.fromRoman(m.groups()[0]), int(m.groups()[1])
 
+    # Now look for a trailing decimal number
+    p=re.compile("^.*\D([0-9]+\.[0-9]+)\s*$")       # the \D demands a non-digit character; it's to stop the greedy parser.
+    m=p.match(s)
+    if m is not None and len(m.groups()) == 1:
+        return None, float(m.groups()[0])
+
     # Now look for a single trailing number
-    p=re.compile("^.*\D([0-9]+)\s*$")       #TODO: Why is /D here?
+    p=re.compile("^.*\D([0-9]+)\s*$")
     m=p.match(s)
     if m is not None and len(m.groups()) == 1:
         return None, int(m.groups()[0])
@@ -244,6 +252,7 @@ def ExtractSerial(columnHeaders, row):
     if titleText is not None:
         # Possible formats:
         #   n   -- a whole number
+        #   n.m -- a decimal number
         #   Vn  -- a volume number, but where's the issue?
         #   Vn[,] #m  -- a volume and number-within-volume
         #   Vn.m -- ditto
