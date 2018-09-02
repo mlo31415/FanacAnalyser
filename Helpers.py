@@ -623,6 +623,25 @@ def FormatDate(year, month, day):
 
 
 #=============================================================================
+# Format the Vol/Num/Whole information
+def FormatSerial(vol, num, whole):
+    if whole is not None and whole != 0 and vol is not None and vol !=0 and num is not None and num != 0:
+        return "#"+str(whole)+"  (V"+str(vol)+"#"+str(num)+")"
+
+    if whole is not None and whole != 0:
+        return "#"+str(whole)
+
+    v="?"
+    n="?"
+    if vol is not None and vol!=0:
+        v=str(vol)
+    if num is not None and num!=0:
+        n=str(num)
+
+    return "V"+v+"#"+n
+
+
+#=============================================================================
 # Print the text to a log file open by the main program
 # If isError is set also print it to the error file.
 def Log(text, isError=False):
