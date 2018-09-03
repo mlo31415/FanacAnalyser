@@ -16,6 +16,8 @@ class FanacDate:
     DayInt: int = None
     Date: datetime = None
 
+    #-----------------------------
+    # Define < operator for sorting
     def __lt__(self, other):
         if self.Date is not None and other.Date is not None:
             return self.Date < other.Date
@@ -39,6 +41,7 @@ class FanacDate:
             return self.DayInt < other.DayInt
         return False
 
+    #--------------------------------
     # Copy a FanacDate to self
     def Set1(self, other):
         self.YearText=other.YearText
@@ -49,6 +52,7 @@ class FanacDate:
         self.DayInt=other.DayInt
         self.Date=other.Date
 
+    #--------------------------------
     # Set values using only integer year/month/day. Day may be None
     def Set3(self, yearInt, monthInt, dayInt):
         self.YearText=str(yearInt)
@@ -68,6 +72,7 @@ class FanacDate:
         else:
             Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
 
+    #--------------------------------
     def Set6(self, yearText, yearInt, monthText, monthInt, dayText, dayInt):
         self.YearText=yearText
         self.YearInt=yearInt
@@ -82,7 +87,7 @@ class FanacDate:
         else:
             Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
 
-    # =============================================================================
+    #--------------------------------
     # Format a FanacDate for printing
     def FormatDate(self):
 
@@ -90,10 +95,8 @@ class FanacDate:
         if y is None:
             y=YearName(self.YearInt)
         m=self.MonthText
-        if m is None:
+        if m is None and self.MonthInt is not None:
             m=MonthName(self.MonthInt)
-        else:
-            m=StandardizeMonth(m)
         d=self.DayText
         if d is None:
             d=DayName(self.DayInt)
@@ -118,7 +121,7 @@ class FanacDate:
 
         return out
 
-    #===================================================================================
+    #--------------------------------
     # Parse a string to find a date.  This tries to interpret the *whole* string.
     def Parse(self, s):
 
@@ -527,7 +530,7 @@ def YearName(year):
 def StandardizeMonth(month):
     table={"1": "January", "jan": "January",
            "2": "February", "feb": "February",
-           "3": "March",
+           "3": "March", "mar": "March",
            "4": "April", "apr": "April",
            "5": "May",
            "6": "June", "jun": "June",
