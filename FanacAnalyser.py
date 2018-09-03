@@ -2,6 +2,7 @@ import Helpers
 import FanacOrgReaders
 import requests
 from bs4 import BeautifulSoup
+import FanacDate
 
 
 Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
@@ -73,15 +74,14 @@ fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 Helpers.LogClose()
 
 # Print a list of all fanzines found for 1943 sorted by fanzine name, then date
-fanacIssueList.sort(key=lambda elem: elem.Date.MonthInt)  # Sorts in place on month
-fanacIssueList.sort(key=lambda elem: elem.Date.YearInt)  # Sorts in place on year
+fanacIssueList.sort(key=lambda elem: elem.Date)
 fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
 
 file=open("1943 Fanzines.txt", "w+")
 count1943=0
 for fz in fanacIssueList:
     if fz.Date.YearInt == 1943:
-        file.write(fz.FanzineIssueName+"  ("+Helpers.FormatDate(fz.Date)+")\n")
+        file.write(fz.FanzineIssueName+"  ("+fz.Date.FormatDate()+")\n")
         count1943=count1943+1
 file.close()
 
@@ -94,16 +94,14 @@ for fz in fanacIssueList:
         issueCount=issueCount+1
 
 # Produce a list of fanzines by date
-fanacIssueList.sort(key=lambda elem: elem.Date.DayInt)  # Sorts in place on day
-fanacIssueList.sort(key=lambda elem: elem.Date.MonthInt)  # Sorts in place on month
-fanacIssueList.sort(key=lambda elem: elem.Date.YearInt)  # Sorts in place on year
+fanacIssueList.sort(key=lambda elem: elem.Date)
 
 f=open("Chronological Listing of Fanzines.txt", "w+")
 monthYear=(-1, -1)
 for fz in fanacIssueList:
     if fz.URL is not None:
         if monthYear != (fz.Date.MonthInt, fz.Date.YearInt):
-            f.write("\n"+ Helpers.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None)+"\n")
+            f.write("\n"+ FanacDate.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None)+"\n")
             monthYear=(fz.Date.MonthInt, fz.Date.YearInt)
         f.write("   "+fz.FanzineIssueName+"\n")
 f.close()
@@ -122,7 +120,7 @@ for fz in fanacIssueList:
     month=fz.Date.MonthInt
     if month == 0:
         month=1
-    newMonthYear= Helpers.FormatDate2(fz.Date.YearInt, month, None)
+    newMonthYear= FanacDate.FormatDate2(fz.Date.YearInt, month, None)
     if newMonthYear != monthYear:
         if monthYear != "":   # Is this the first month box?
             f.write('</table></td></tr>\n')  # No.  So end the previous month box
@@ -144,21 +142,9 @@ f.write("</table></td></tr>\n")
 f.write('</table>\n')
 f.close()
 
-def Sorter(fz):
-    if fz.Whole is not None:
-        return fz.Whole
-    if fz.Vol is not None and fz.Number is not None:
-        return fz.Vol+fz.Number/100
-    if fz.Vol is not None:
-        return fz.Vol
-    if fz.Number is not None:
-        return fz.Number/100
-    return 0
-
-
 # Produce a list of fanzines by title
-fanacIssueList.sort(key=lambda elem: Sorter(elem))  # Sorts in place on day
-fanacIssueList.sort(key=lambda elem: elem.FanzineName)  # Sorts in place on year
+fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
+fanacIssueList.sort(key=lambda elem: elem.FanzineName)  # Sorts in place on fanzine's name
 
 f=open("Alphabetical Listing of Fanzines.txt", "w+")
 fmz=""
@@ -167,7 +153,7 @@ for fz in fanacIssueList:
         if fmz != fz.FanzineName:
             f.write("\n"+fz.FanzineName+"\n")
             fmz=fz.FanzineName
-        f.write("   "+fz.FanzineIssueName+"    "+Helpers.FormatSerial(fz.Vol, fz.Number, fz.Whole)+"   "+Helpers.FormatDate(fz.Date)+"\n")
+        f.write("   "+fz.FanzineIssueName+"    "+Helpers.FormatSerial(fz.Vol, fz.Number, fz.Whole)+"   "+fz.Date.FormatDate()+"\n")
 f.close()
 
 

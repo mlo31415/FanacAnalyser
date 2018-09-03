@@ -1,14 +1,11 @@
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
-import urllib
 import requests
 import collections
 import Helpers
-import os
 import re
-import time
 import roman
-
+import FanacDate
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories):
@@ -96,32 +93,36 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
 def ExtractDate(columnHeaders, row):
 
+    d=FanacDate.FanacDate()
+
     # Does this have a Date column?
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
     if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            date=Helpers.ParseDate(dateText)
-            return (date.year, str(date.year), date.month, str(date.month), date.day, str(date.day))
+            date=FanacDate.FanacDate()
+            date.Parse(dateText)
+            return date
         except:
             pass
         Helpers.Log("      ***Date failure, date='"+dateText+"'", True)
-        return (0, "<no year>", 0, "<no month>", 0, "<no day>")
+        return d
 
     else:
         # Figure out how to get a year
         yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
-        yearInt=Helpers.InterpretYear(yearText)
+        yearInt=FanacDate.InterpretYear(yearText)
 
         # Now month
         monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
-        monthInt=Helpers.InterpretMonth(monthText)
+        monthInt=FanacDate.InterpretMonth(monthText)
 
         # And day
         dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
-        dayInt=Helpers.InterpretDay(dayText)
+        dayInt=FanacDate.InterpretDay(dayText)
 
-    return (yearInt, yearText, monthInt, monthText, dayInt, dayText)
+    d.Set6(yearText, yearInt, monthText, monthInt, dateText, dayInt)
+    return d
 
 
 #=============================================================================================
@@ -191,7 +192,6 @@ def ExtractSerial(columnHeaders, row):
 
     #TODO: Need to deal with hyphenated volume and issue numbers, e.g.,  3-4
     #TODO: Need to deal with things like 25A
-    #TODO: Need to deal with decimal numbers, e.g., 16.5
     if wholeText is not None:
         try:
             wholeInt=int(wholeText)
@@ -335,7 +335,8 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
     return name, href
 
-FanacDate=collections.namedtuple("FanacDate", "Year YearInt Month MonthInt Day DayInt")
+
+
 FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL Date Whole Pages")
 
 # ============================================================================================
@@ -456,13 +457,14 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
         if Helpers.InterpretDateString(c) is not None:
             date=Helpers.InterpretDateString(c)
             break
-    y=m=d=0
+    y=m=d=None
     if date is not None:
         y=date.year
         m=date.month
         d=date.day
-    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=FanacDate(Year=str(y), YearInt=y, Month=str(m), MonthInt=m, Day=str(d),
-                      DayInt=d), Vol=0, Number=0, Whole=0, Pages=0)
+    date=FanacDate
+    date.Set(str(y), y, str(m), m, str(d), d)
+    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Vol=0, Number=0, Whole=0, Pages=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -513,15 +515,14 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
-        yearInt, yearText, monthInt, monthText, dayInt, dayText=ExtractDate(columnHeaders, tableRow)
+        date=ExtractDate(columnHeaders, tableRow)
         volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=FanacDate(Year=yearText, YearInt=yearInt, Month=monthText, MonthInt=monthInt, Day=dayText,
-                          DayInt=dayInt), Vol=volInt, Number=numInt, Whole=wholeInt, Pages=pages)
-        if fi.FanzineIssueName == "<not found>" and fi.Vol is None and fi.Date.Year is None and fi.Date.Month is None:
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=date, Vol=volInt, Number=numInt, Whole=wholeInt, Pages=pages)
+        if fi.FanzineIssueName == "<not found>" and fi.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
             Helpers.Log("   ****Skipping null table row: "+str(fi))
             continue
 
@@ -531,9 +532,9 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
         # Log it.
         if fi is not None:
             urlT=""
-            if fi.URL==None:
+            if fi.URL is None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+str(fi.Date.Month)+" "+str(fi.Date.Year)+"]  "+urlT)
+            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
         else:
             Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, True)
 
