@@ -292,7 +292,7 @@ def ExtractSerial(columnHeaders, row):
 #============================================================================================
 def ExtractPageCount(columnHeaders, row):
 
-    pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp."])
+    pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])
     if pageText is None:
         return 0
 
