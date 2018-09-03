@@ -227,6 +227,9 @@ def FormatSerial(vol, num, whole):
     if whole is not None and whole != 0:
         return "#"+str(whole)
 
+    if vol is None and num is None:
+        return ""
+
     v="?"
     n="?"
     if vol is not None and vol!=0:
