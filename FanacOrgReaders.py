@@ -93,20 +93,16 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
 def ExtractDate(columnHeaders, row):
 
-    d=FanacDate.FanacDate()
-
     # Does this have a Date column?
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
     if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            date=FanacDate.FanacDate()
-            date.Parse(dateText)
-            return date
+            return FanacDate.FanacDate().Parse(dateText)
         except:
             pass
         Helpers.Log("      ***Date failure, date='"+dateText+"'", True)
-        return d
+        return FanacDate.FanacDate()
 
     else:
         # Figure out how to get a year
@@ -121,7 +117,23 @@ def ExtractDate(columnHeaders, row):
         dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
         dayInt=FanacDate.InterpretDay(dayText)
 
+    d=FanacDate.FanacDate()
     d.Set6(yearText, yearInt, monthText, monthInt, dateText, dayInt)
+
+    mo=monthText.strip() if monthText is not None else ""
+    da=dayText.strip() if dayText is not None else ""
+    ye=yearText.strip() if yearText is not None else ""
+
+    # We don't have a raw date string here, so we need to synthesize one
+    if Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
+        d.Raw=mo+"/"+da+"/"+ye
+    elif not Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
+        d.Raw=mo+" "+da+", "+ye
+    elif Helpers.IsNumeric(mo) and da == "":
+        d.Raw=FanacDate.MonthName(int(mo))+" "+ye
+    else:
+        d.Raw=(mo+" ").lstrip()+(da+" ").lstrip()+ye        # The lstrip() gets rid of the extra space if mo or da is null
+
     return d
 
 

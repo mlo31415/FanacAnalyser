@@ -14,6 +14,7 @@ class FanacDate:
     MonthInt: int = None
     DayText: str = None
     DayInt: int = None
+    Raw: str = None
     Date: datetime = None
 
     #-----------------------------
@@ -50,6 +51,7 @@ class FanacDate:
         self.MonthInt=other.MonthInt
         self.DayText=other.DayText
         self.DayInt=other.DayInt
+        self.Raw=other.Raw
         self.Date=other.Date
 
     #--------------------------------
@@ -91,6 +93,9 @@ class FanacDate:
     # Format a FanacDate for printing
     def FormatDate(self):
 
+        if self.Raw is not None:
+            return self.Raw
+
         y=self.YearText
         if y is None:
             y=YearName(self.YearInt)
@@ -127,7 +132,7 @@ class FanacDate:
 
         # Whitespace is not a date...
         dateText=s.strip()
-        if len(dateText)==0:
+        if len(dateText) == 0:
             return self
 
         # First just try dateutil on the string
@@ -136,6 +141,7 @@ class FanacDate:
             d=dateutil.parser.parse(dateText, default=datetime.datetime(1, 1, 1))
             if d != datetime.datetime(1, 1, 1):
                 self.Set3(d.year, d.month, d.day)
+                self.Raw=dateText
                 self.Date=d
                 return self
         except:
@@ -171,6 +177,7 @@ class FanacDate:
                 y=None
             if y is not None and m is not None:
                 self.Set6(ytext, y, mtext, m, None, None)
+                self.Raw=dateText
                 return self
 
         m=re.compile("^(.+)\s+(\d\d\d\d)$").match(dateText)  # 4-digit years
@@ -185,6 +192,7 @@ class FanacDate:
             if y is not None and m is not None:
                 if y > 1860 and y < 2100:  # Outside this range it can't be a fannish-relevant year (the range is oldest fan birth date to middle-future)
                     self.Set6(ytext, y, mtext, m, None, None)
+                    self.Raw=dateText
                     return self
 
         # OK, that didn't work.
@@ -193,6 +201,7 @@ class FanacDate:
             rslt=InterpretNamedDay(mtext)   # mtext was extracted by whichever pattern recognized the year and set y to non-None
             if rslt is not None:
                 self.Set6(ytext, y, mtext, rslt[0], None, rslt[1])
+                self.Raw=dateText
                 return self
 
         # That didn't work.
@@ -208,6 +217,7 @@ class FanacDate:
                 d=InterpretRelativeWords(modifier)
                 if m is not None and d is not None:
                     self.Set6(ytext, y, mtext, m, modifier, d)
+                    self.Raw=dateText
                     return self
 
         return self
@@ -345,7 +355,7 @@ def MonthToInt(text):
                           "summer": 7, "sum": 7,
                           "fall": 10, "autumn": 10, "fal": 10,
                           "winter": 1, "win": 1,
-                          "xmas": 12}
+                          "xmas": 12, "christmas": 12}
 
     text=text.replace(" ", "").lower()
 
@@ -387,17 +397,17 @@ def IntToMonth(m):
 def InterpretRandomDatestring(text):
     text=text.lower()
     if text == "solar eclipse 2017":
-        return FanacDate("2017", 2017, "Solar Eclipse", 8, None, 21)
+        return FanacDate("2017", 2017, "Solar Eclipse", 8, None, 21, text)
     if text == "2018 new year's day":
-        return FanacDate("2018", 2018, "New Years Day", 1, None, 1)
+        return FanacDate("2018", 2018, "New Years Day", 1, None, 1, text)
     if text == "christmas 2015.":
-        return FanacDate("2015", 2015, "Christmas", 12, None, 25)
+        return FanacDate("2015", 2015, "Christmas", 12, None, 25, text)
     if text == "hogmanay 1991/1992":
-        return FanacDate("1991", 1991, "Hogmany", 12, None, 31)
+        return FanacDate("1991", 1991, "Hogmany", 12, None, 31, text)
     if text == "grey cup day 2014":
-        return FanacDate("2014", 2014, "Grey Cup Day", 11, None, 30)
+        return FanacDate("2014", 2014, "Grey Cup Day", 11, None, 30, text)
     if text == "october 2013, halloween":
-        return FanacDate("2013", 2013, "Halloween", 10, None, 31)
+        return FanacDate("2013", 2013, "Halloween", 10, None, 31, text)
 
     return None
 

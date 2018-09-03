@@ -277,3 +277,17 @@ def ChangeFileInURL(url, newFileName):
 
     u=(u[0], u[1], p, u[3], u[4], u[5])
     return urllib.parse.urlunparse(u)
+
+
+
+# =============================================================================
+# Check to see if an argument (int, float or string) is a number
+def IsNumeric(arg):
+    if type(arg) in [float, int]:
+        return True
+
+    try:
+        x=float(arg)    # We throw away the result -- all we're interested in is if the conversation can be done without throwing an error
+        return True
+    except:
+        return False
