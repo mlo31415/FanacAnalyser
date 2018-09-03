@@ -192,7 +192,7 @@ def CreateFanacOrgAbsolutePath(fanacDir, str):
 #==================================================================================
 # Return a properly formatted link
 def FormatLink(name, url):
-    # TODO: Do we need to deal with tgurning blanks into %20 whatsits?
+    # TODO: Do we need to deal with turning blanks into %20 whatsits?
     return '<a href='+url+'>'+name+'</a>'
 
 
