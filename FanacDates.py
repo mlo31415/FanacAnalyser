@@ -241,15 +241,15 @@ def YearAs4Digits(year):
 def InterpretYear(yearText):
 
     if yearText is None:
-        return 0
+        return None
     if isinstance(yearText, int):  # If it's already an int, not to worry
         return yearText
     if len(yearText.strip()) == 0:  # If it's blank, return 0
-        return 0
+        return None
 
     yearText=Helpers.RemoveHTMLDebris(yearText)  # We treat <br> and </br> as whitespace, also
     if len(yearText) == 0:
-        return 0
+        return None
 
     # Convert to int
     try:
@@ -267,7 +267,7 @@ def InterpretYear(yearText):
             pass
 
     Helpers.Log("   ***Year conversion failed: '"+yearText+"'", True)
-    return 0
+    return None
 
 
 # =================================================================================
