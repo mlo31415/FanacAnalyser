@@ -101,7 +101,7 @@ monthYear=(-1, -1)
 for fz in fanacIssueList:
     if fz.URL is not None:
         if monthYear != (fz.Date.MonthInt, fz.Date.YearInt):
-            f.write("\n"+ fz.Date.FormatDate()+"\n")
+            f.write("\n"+ FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None)+"\n")
             monthYear=(fz.Date.MonthInt, fz.Date.YearInt)
         f.write("   "+fz.FanzineIssueName+"\n")
 f.close()

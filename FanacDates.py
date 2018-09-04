@@ -136,7 +136,7 @@ class FanacDate:
             return self
 
         # First just try dateutil on the string
-        # If it work, we've got an answer. If not, we'll keep trying.
+        # If it works, we've got an answer. If not, we'll keep trying.
         try:
             d=dateutil.parser.parse(dateText, default=datetime.datetime(1, 1, 1))
             if d != datetime.datetime(1, 1, 1):
@@ -167,7 +167,7 @@ class FanacDate:
         y=None
 
         m=re.compile("^(.+)\s+(\d\d)$").match(dateText)  # 2-digit years
-        if m is not None and len(m.groups())==2 and len(m.groups()[0])>0:
+        if m is not None and len(m.groups()) == 2 and len(m.groups()[0]) > 0:
             mtext=m.groups()[0]
             ytext=m.groups()[1]
             m=MonthToInt(mtext)
@@ -244,11 +244,11 @@ def InterpretYear(yearText):
         return 0
     if isinstance(yearText, int):  # If it's already an int, not to worry
         return yearText
-    if len(yearText.strip())==0:  # If it's blank, return 0
+    if len(yearText.strip()) == 0:  # If it's blank, return 0
         return 0
 
     yearText=Helpers.RemoveHTMLDebris(yearText)  # We treat <br> and </br> as whitespace, also
-    if len(yearText)==0:
+    if len(yearText) == 0:
         return 0
 
     # Convert to int
@@ -259,7 +259,7 @@ def InterpretYear(yearText):
         try:
             if '-' in yearText:
                 years=yearText.split("-")
-                if len(years)==2:
+                if len(years) == 2:
                     y1=YearAs4Digits(int(years[0]))
                     y2=YearAs4Digits(int(years[1]))
                     return max(y1, y2)
@@ -278,12 +278,12 @@ def InterpretDay(dayData):
         return None
     if isinstance(dayData, int):  # If it's already an int, not to worry
         return dayData
-    if len(dayData.strip())==0:  # If it's blank, return 0
+    if len(dayData.strip()) == 0:  # If it's blank, return 0
         return None
 
     # Convert to int
     dayData=Helpers.RemoveHTMLDebris(dayData)
-    if len(dayData)==0:
+    if len(dayData) == 0:
         return None
     try:
         day=int(dayData)
@@ -319,11 +319,11 @@ def InterpretMonth(monthData):
         return None
     if isinstance(monthData, int):
         return monthData
-    if len(monthData.strip())==0:  # If it's blank, return 0
+    if len(monthData.strip()) == 0:  # If it's blank, return 0
         return None
 
     monthData=Helpers.RemoveHTMLDebris(monthData)
-    if len(monthData)==0:
+    if len(monthData) == 0:
         return None
 
     monthInt=MonthToInt(monthData)
@@ -361,7 +361,7 @@ def MonthToInt(text):
 
     # First look to see if the input is two month names separated by a non-alphabetic character (e.g., "September-November"
     m=re.compile("^([a-zA-Z]+)[-/]([a-zA-Z]+)$").match(text)
-    if m is not None and len(m.groups())==2 and len(m.groups()[0])>0:
+    if m is not None and len(m.groups()) == 2 and len(m.groups()[0]) > 0:
         m1=MonthToInt(m.groups()[0])
         m2=MonthToInt(m.groups()[1])
         if m1 is not None and m2 is not None:
@@ -372,25 +372,6 @@ def MonthToInt(text):
     except:
         return None
 
-# ====================================================================================
-def IntToMonth(m):
-    months={1: "January",
-            2: "February",
-            3: "March",
-            4: "April",
-            5: "May",
-            6: "June",
-            7: "July",
-            8: "August",
-            9: "September",
-            10: "October",
-            11: "November",
-            12: "December"}
-
-    if m not in months.keys():
-        return "No month: '"+str(m)+"'"
-
-    return months[m]
 
 # ====================================================================================
 # Deal with completely random date strings
@@ -517,10 +498,10 @@ def MonthName(month):
 
 # ==============================================================================
 def DayName(day):
-    if day is None or day==0:
+    if day is None or day == 0:
         return None
 
-    if day<1 or day>31:
+    if day < 1 or day > 31:
         return "<invalid day>"
 
     return str(day)
@@ -528,7 +509,7 @@ def DayName(day):
 # =============================================================================
 # Format an integer year.  Note that this is designed for fanzines, so two-digit years become ambiguous at 2033.
 def YearName(year):
-    if year is None or year==0:
+    if year is None or year == 0:
         return None
 
     year=YearAs4Digits(year)
