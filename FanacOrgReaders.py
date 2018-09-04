@@ -30,7 +30,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
         Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
 
         unskippers=[
-            "MT_Void",
+            "CyberCozen",
         ]
         skippers=[
             #"Australian Science Fiction Bullsheet, The",
@@ -101,24 +101,21 @@ def ExtractDate(columnHeaders, row):
     if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            return FanacDates.Parse(dateText)
+            return FanacDate().Parse(dateText)
         except:
-            pass
-        Helpers.Log("      ***Date failure, date='"+dateText+"'", True)
-        return FanacDate()
+            pass    # If that doesn't work, try other schemes
 
-    else:
-        # Figure out how to get a year
-        yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
-        yearInt=FanacDates.InterpretYear(yearText)
+    # Figure out how to get a year
+    yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
+    yearInt=FanacDates.InterpretYear(yearText)
 
-        # Now month
-        monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
-        monthInt=FanacDates.InterpretMonth(monthText)
+    # Now month
+    monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
+    monthInt=FanacDates.InterpretMonth(monthText)
 
-        # And day
-        dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
-        dayInt=FanacDates.InterpretDay(dayText)
+    # And day
+    dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
+    dayInt=FanacDates.InterpretDay(dayText)
 
     d=FanacDate()
     d.Set6(yearText, yearInt, monthText, monthInt, dateText, dayInt)

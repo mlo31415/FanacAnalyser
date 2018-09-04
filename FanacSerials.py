@@ -217,18 +217,22 @@ class FanacSerial:
             else:
                 ser=FanacSerial().InterpretSerial(titleText)
 
-            if ser.Vol is not None and ser.Num is not None:
-                if volInt is None:
-                    volInt=ser.Vol
-                if numInt is None:
-                    numInt=ser.Num
-                if volInt!=ser.Vol or numInt!=ser.Num:
-                    print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(ser.Num))
-            elif ser.Num is not None:
-                if wholeInt is None:
-                    wholeInt=ser.Num
-                if wholeInt!=ser.Num:
-                    print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
+            # Some indexes have fanzine names ending in <month> <year>.  We'll detect these by looking for a trailing number between 1930 and 2050, and reject
+            # getting vol/ser, etc., from the title if we find it.
+            if ser.Num is None or ser.Num < 1930 or ser.Num > 2050:
+
+                if ser.Vol is not None and ser.Num is not None:
+                    if volInt is None:
+                        volInt=ser.Vol
+                    if numInt is None:
+                        numInt=ser.Num
+                    if volInt!=ser.Vol or numInt!=ser.Num:
+                        print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(ser.Num))
+                elif ser.Num is not None:
+                    if wholeInt is None:
+                        wholeInt=ser.Num
+                    if wholeInt!=ser.Num:
+                        print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
 
         self.Vol=volInt
         self.Num=numInt
