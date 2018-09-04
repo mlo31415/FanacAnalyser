@@ -2,7 +2,7 @@ import Helpers
 import FanacOrgReaders
 import requests
 from bs4 import BeautifulSoup
-import FanacDate
+import FanacDates
 
 
 Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
@@ -120,7 +120,7 @@ for fz in fanacIssueList:
     month=fz.Date.MonthInt
     if month == 0:
         month=1
-    newMonthYear= FanacDate.FormatDate2(fz.Date.YearInt, month, None)
+    newMonthYear= FanacDates.FormatDate2(fz.Date.YearInt, month, None)
     if newMonthYear != monthYear:
         if monthYear != "":   # Is this the first month box?
             f.write('</table></td></tr>\n')  # No.  So end the previous month box

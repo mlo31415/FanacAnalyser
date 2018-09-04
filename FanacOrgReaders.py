@@ -5,8 +5,10 @@ import collections
 import Helpers
 import re
 import roman
-import FanacDate
-import FanacSerial
+import FanacDates
+from FanacDates import FanacDate
+import FanacSerials
+from FanacSerials import FanacSerial
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories):
@@ -99,26 +101,26 @@ def ExtractDate(columnHeaders, row):
     if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            return FanacDate.FanacDate().Parse(dateText)
+            return FanacDates.Parse(dateText)
         except:
             pass
         Helpers.Log("      ***Date failure, date='"+dateText+"'", True)
-        return FanacDate.FanacDate()
+        return FanacDate()
 
     else:
         # Figure out how to get a year
         yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
-        yearInt=FanacDate.InterpretYear(yearText)
+        yearInt=FanacDates.InterpretYear(yearText)
 
         # Now month
         monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
-        monthInt=FanacDate.InterpretMonth(monthText)
+        monthInt=FanacDates.InterpretMonth(monthText)
 
         # And day
         dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
-        dayInt=FanacDate.InterpretDay(dayText)
+        dayInt=FanacDates.InterpretDay(dayText)
 
-    d=FanacDate.FanacDate()
+    d=FanacDate()
     d.Set6(yearText, yearInt, monthText, monthInt, dateText, dayInt)
 
     mo=monthText.strip() if monthText is not None else ""
@@ -131,7 +133,7 @@ def ExtractDate(columnHeaders, row):
     elif not Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
         d.Raw=mo+" "+da+", "+ye
     elif Helpers.IsNumeric(mo) and da == "":
-        d.Raw=FanacDate.MonthName(int(mo))+" "+ye
+        d.Raw=FanacDates.MonthName(int(mo))+" "+ye
     else:
         d.Raw=(mo+" ").lstrip()+(da+" ").lstrip()+ye        # The lstrip() gets rid of the extra space if mo or da is null
 
@@ -153,96 +155,10 @@ def ExtractSerial(columnHeaders, row):
     if type(volNumText) is tuple:
         volNumText=volNumText[0]
 
-    wholeInt=None
-    volInt=None
-    numInt=None
-    maybeWholeInt=None
-
-    #TODO: Need to deal with hyphenated volume and issue numbers, e.g.,  3-4
-    #TODO: Need to deal with things like 25A
-    if wholeText is not None:
-        try:
-            wholeInt=int(wholeText)
-        except:
-            if wholeText is not None and len(wholeText) > 0:
-                print("*** Uninterpretable Whole number: '"+str(wholeText)+"'")
-            wholeInt=None
-
-    if volNumText is not None:
-        ser=FanacSerial.InterpretSerial(volNumText)
-        if ser.Vol is not None and ser.Num is not None: # Otherwise, we don't actually have a volume+number
-            volInt=ser.Vol
-            numInt=ser.Num
-
-    if volText is not None:
-        try:
-            volInt=int(volText)
-        except:
-            # Maybe it's in Roman numerals?
-            try:
-                volInt=roman.fromRoman(volText.upper())
-            except:
-                if volText is not None and len(volText) > 0:
-                    print("*** Uninterpretable Vol number: '"+str(volText)+"'")
-                volInt=None
-
-    # If there's no vol, anything under "Num", etc., must actually be a whole number
-    if volText is None:
-        try:
-            maybeWholeText=numText
-            maybeWholeInt=int(maybeWholeText)
-            numText=None
-        except:
-            pass
-
-    # But if the *is* a volume specified, than any number not labelled "whole" must be a number within the volume
-    if volText is not None and numText is not None:
-        try:
-            numInt=int(numText)
-        except:
-            if numText is not None and len(numText) > 0:
-                print("*** Uninterpretable Num number: '"+str(numText)+"'")
-            numInt=None
-
-    # OK, now figure out the vol, num and whole.
-    # First, if a Vol is present, and an unambigious num is absent, the an ambigious Num must be the Vol's num
-    if volInt is not None and numInt is None and maybeWholeInt is not None:
-        numInt=maybeWholeInt
-        maybeWholeInt=None
-
-    # If the wholeInt is missing and maybeWholeInt hasn't been used up, make it the wholeInt
-    if wholeInt is None and maybeWholeInt is not None:
-        wholeInt=maybeWholeInt
-        maybeWholeInt=None
-
-    # Next, look at the title -- titles often have a serial designation at their end.
     titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
-    if titleText is not None:
-        # Possible formats:
-        #   n   -- a whole number
-        #   n.m -- a decimal number
-        #   Vn  -- a volume number, but where's the issue?
-        #   Vn[,] #m  -- a volume and number-within-volume
-        #   Vn.m -- ditto
-        if type(titleText) is tuple:
-            ser=FanacSerial.InterpretSerial(titleText[0])
-        else:
-            ser=FanacSerial.InterpretSerial(titleText)
 
-        if ser.Vol is not None and ser.Num is not None:
-            if volInt is None:
-                volInt=ser.Vol
-            if numInt is None:
-                numInt=ser.Num
-            if volInt != ser.Vol or numInt != ser.Num:
-                print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(ser.Num))
-        elif ser.Num is not None:
-            if wholeInt is None:
-                wholeInt=ser.Num
-            if wholeInt != ser.Num:
-                print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
+    return FanacSerial().ExtractSerial(volText, numText, wholeText, volNumText, titleText)
 
-    return FanacSerial.FanacSerial(volInt, numInt, wholeInt)
 
 
 #============================================================================================
@@ -430,9 +346,9 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
         y=date.year
         m=date.month
         d=date.day
-    date=FanacDate
+    date=FanacDate()
     date.Set(str(y), y, str(m), m, str(d), d)
-    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Serial=FanacSerial.FanacSerial(), Pages=0)
+    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Serial=FanacSerial(), Pages=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
