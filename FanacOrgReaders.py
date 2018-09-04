@@ -120,19 +120,7 @@ def ExtractDate(columnHeaders, row):
     d=FanacDate()
     d.Set6(yearText, yearInt, monthText, monthInt, dateText, dayInt)
 
-    mo=monthText.strip() if monthText is not None else ""
-    da=dayText.strip() if dayText is not None else ""
-    ye=yearText.strip() if yearText is not None else ""
-
-    # We don't have a raw date string here, so we need to synthesize one
-    if Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
-        d.Raw=mo+"/"+da+"/"+ye
-    elif not Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
-        d.Raw=mo+" "+da+", "+ye
-    elif Helpers.IsNumeric(mo) and da == "":
-        d.Raw=FanacDates.MonthName(int(mo))+" "+ye
-    else:
-        d.Raw=(mo+" ").lstrip()+(da+" ").lstrip()+ye        # The lstrip() gets rid of the extra space if mo or da is null
+    d.Raw=FanacDates.CreateRawText(dayText, monthText, yearText)
 
     return d
 

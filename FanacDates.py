@@ -93,9 +93,12 @@ class FanacDate:
     # Format a FanacDate for printing
     def FormatDate(self):
 
+        # If we have a raw form of the date, just return it.
         if self.Raw is not None:
             return self.Raw
 
+        # We don't have a raw form, so we need to compute a text version of the data we have
+        # We prefer the stored text for month and day to computed text
         y=self.YearText
         if y is None:
             y=YearName(self.YearInt)
@@ -106,21 +109,22 @@ class FanacDate:
         if d is None:
             d=DayName(self.DayInt)
 
+        # Now that we have text (or None) for each of the components, figure out how to assemble them.
         out=""
         if m is not None:
             out=m
         if d is not None:
-            if out!="":
-                out=out+" "+d
-            else:
-                out=d
+            if out != "":
+                out=out+" "
+            out=out+d
         if y is not None:
             if d is not None:
                 out=out+","
-            if out!=" ":
+            if out != " ":
                 out=out+" "
             out=out+y
 
+        # If no date has been generated, return an (undated) string.
         if out=="":
             out="(undated)"
 
@@ -333,7 +337,9 @@ def InterpretMonth(monthData):
 
     return monthInt
 
+
 # ====================================================================================
+# Convert a text month to integer
 def MonthToInt(text):
     monthConversionTable={"jan": 1, "january": 1, "1": 1,
                           "feb": 2, "february": 2, "feburary": 2, "2": 2,
@@ -374,7 +380,8 @@ def MonthToInt(text):
 
 
 # ====================================================================================
-# Deal with completely random date strings
+# Deal with completely random date strings that we've uncovered and added
+# There's no rhyme nor reason here -- just otherwise uninterpretable things we've run across.
 def InterpretRandomDatestring(text):
     text=text.lower()
     if text == "solar eclipse 2017":
@@ -391,6 +398,7 @@ def InterpretRandomDatestring(text):
         return FanacDate("2013", 2013, "Halloween", 10, None, 31, text)
 
     return None
+
 
 # ====================================================================================
 #  Handle dates like "Thanksgiving"
@@ -461,8 +469,9 @@ def InterpretNamedDay(dayString):
     except:
         return None
 
+
 # ====================================================================================
-#  Deal with situtions like "late December"
+# Deal with situations like "late December"
 # We replace the vague relative term by a non-vague (albeit unreasonably precise) number
 def InterpretRelativeWords(daystring):
     conversionTable={
@@ -486,6 +495,7 @@ def InterpretRelativeWords(daystring):
 
 
 # =============================================================================
+# Format an integer month as text
 def MonthName(month):
     if month is None:
         return None
@@ -496,7 +506,9 @@ def MonthName(month):
         m="<invalid: "+str(month)+">"
     return m
 
+
 # ==============================================================================
+# Format an integer day as text
 def DayName(day):
     if day is None or day == 0:
         return None
@@ -507,7 +519,7 @@ def DayName(day):
     return str(day)
 
 # =============================================================================
-# Format an integer year.  Note that this is designed for fanzines, so two-digit years become ambiguous at 2033.
+# Format an integer year as text.  Note that this is designed for fanzines, so two-digit years become ambiguous at 2033.
 def YearName(year):
     if year is None or year == 0:
         return None
@@ -515,6 +527,7 @@ def YearName(year):
     year=YearAs4Digits(year)
 
     return str(year)
+
 
 # =============================================================================
 # Take various text versions of a month and convert them to the full-out spelling
@@ -539,10 +552,30 @@ def StandardizeMonth(month):
 
 
 # =============================================================================
-# Allow raw use of FormatDate given integer imputs
+# Allow raw use of FormatDate given integer inputs
 def FormatDate2(year, month, day):
     d=FanacDate()
     d.Set6(YearName(year), year, MonthName(month), month, DayName(day), day)
     return d.FormatDate()
 
 
+# =============================================================================
+# Sometimes we don't have raw text for the whole date, but do have raw text for the month and day.
+# Use them to generate raw text for the date
+def CreateRawText(dayText, monthText, yearText):
+
+    # First make sure we have the text or an empty string if the item is None
+    mo=monthText.strip() if monthText is not None else ""
+    da=dayText.strip() if dayText is not None else ""
+    ye=yearText.strip() if yearText is not None else ""
+
+    # The format depends on what's known and what's not, and also depends on wether the month and day representations are strings of numbers ("7") or include other characters ("July")
+    if Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
+        return mo+"/"+da+"/"+ye             # 7/4/1776
+    elif not Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
+        return mo+" "+da+", "+ye            # July 4, 1776
+    elif Helpers.IsNumeric(mo) and da == "":
+        return MonthName(int(mo))+" "+ye    # July 1776
+    else:
+        # Text month and day.
+        return (mo+" ").lstrip()+(da+" ").lstrip()+ye  # The lstrip() gets rid of the extra space if mo or da is null
