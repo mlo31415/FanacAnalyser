@@ -6,6 +6,7 @@ import Helpers
 import re
 import roman
 import FanacDate
+import FanacSerial
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories):
@@ -138,51 +139,6 @@ def ExtractDate(columnHeaders, row):
 
 
 #=============================================================================================
-# If there's a trailing Vol+Num designation at the end of a string, interpret it.
-# We return a tuple of a (Vol, Num) or a (None, Num)
-# We accept:
-#       ...Vnn[,][ ]#nnn[ ]
-#       ...nn[ ]
-#       ...nnn/nnn[  ]
-#       ...nn.mm
-def InterpretSerial(s):
-
-    s=s.upper()
-
-    # First look for a Vol+Num designation
-    p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
-    m=p.match(s)
-    if m is not None and len(m.groups()) == 2:
-        return int(m.groups()[0]), int(m.groups()[1])
-
-    # Now look for nnn/nnn
-    p=re.compile("^.*([0-9]+)/([0-9]+)\s*$")
-    m=p.match(s)
-    if m is not None and len(m.groups()) == 2:
-        return int(m.groups()[0]), int(m.groups()[1])
-
-    # Now look for xxx/nnn, where xxx is in Roman numerals
-    p=re.compile("^\s*([IVXLC]+)/([0-9]+)\s*$")
-    m=p.match(s)
-    if m is not None and len(m.groups()) == 2:
-        return roman.fromRoman(m.groups()[0]), int(m.groups()[1])
-
-    # Now look for a trailing decimal number
-    p=re.compile("^.*\D([0-9]+\.[0-9]+)\s*$")       # the \D demands a non-digit character; it's to stop the greedy parser.
-    m=p.match(s)
-    if m is not None and len(m.groups()) == 1:
-        return None, float(m.groups()[0])
-
-    # Now look for a single trailing number
-    p=re.compile("^.*\D([0-9]+)\s*$")
-    m=p.match(s)
-    if m is not None and len(m.groups()) == 1:
-        return None, int(m.groups()[0])
-
-    # No good, return failure
-    return None, None
-
-#=============================================================================================
 # Extract a serial number (vol, num, whole_num) from a table row
 # We return a tuple: (vol, num)
 # Some fanzines have a whole number --> returned as VolNone, Num=nnn
@@ -213,10 +169,10 @@ def ExtractSerial(columnHeaders, row):
             wholeInt=None
 
     if volNumText is not None:
-        v, n=InterpretSerial(volNumText)
-        if v is not None and n is not None: # Otherwise, we don't actually have a volume+number
-            volInt=v
-            numInt=n
+        ser=FanacSerial.InterpretSerial(volNumText)
+        if ser.Vol is not None and ser.Num is not None: # Otherwise, we don't actually have a volume+number
+            volInt=ser.Vol
+            numInt=ser.Num
 
     if volText is not None:
         try:
@@ -269,24 +225,24 @@ def ExtractSerial(columnHeaders, row):
         #   Vn[,] #m  -- a volume and number-within-volume
         #   Vn.m -- ditto
         if type(titleText) is tuple:
-            v, n=InterpretSerial(titleText[0])
+            ser=FanacSerial.InterpretSerial(titleText[0])
         else:
-            v, n=InterpretSerial(titleText)
+            ser=FanacSerial.InterpretSerial(titleText)
 
-        if v is not None and n is not None:
+        if ser.Vol is not None and ser.Num is not None:
             if volInt is None:
-                volInt=v
+                volInt=ser.Vol
             if numInt is None:
-                numInt=n
-            if volInt != v or numInt != n:
-                print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(n))
-        elif n is not None:
+                numInt=ser.Num
+            if volInt != ser.Vol or numInt != ser.Num:
+                print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(ser.Num))
+        elif ser.Num is not None:
             if wholeInt is None:
-                wholeInt=n
-            if wholeInt != n:
-                print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(n))
+                wholeInt=ser.Num
+            if wholeInt != ser.Num:
+                print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
 
-    return volInt, numInt, wholeInt
+    return FanacSerial.FanacSerial(volInt, numInt, wholeInt)
 
 
 #============================================================================================
@@ -349,7 +305,7 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
 
 
-FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Vol  Number  DirectoryURL URL Date Whole Pages")
+FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Serial  DirectoryURL URL Date Pages")
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
@@ -476,7 +432,7 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
         d=date.day
     date=FanacDate
     date.Set(str(y), y, str(m), m, str(d), d)
-    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Vol=0, Number=0, Whole=0, Pages=0)
+    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Serial=FanacSerial.FanacSerial(), Pages=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -528,13 +484,13 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
         date=ExtractDate(columnHeaders, tableRow)
-        volInt, numInt, wholeInt=ExtractSerial(columnHeaders, tableRow)
+        ser=ExtractSerial(columnHeaders, tableRow)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=date, Vol=volInt, Number=numInt, Whole=wholeInt, Pages=pages)
-        if fi.FanzineIssueName == "<not found>" and fi.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=date, Serial=ser, Pages=pages)
+        if fi.FanzineIssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
             Helpers.Log("   ****Skipping null table row: "+str(fi))
             continue
 
@@ -546,7 +502,7 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  [V"+str(fi.Vol)+"#"+str(fi.Number)+"  W#"+str(fi.Whole)+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
+            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  ["+fi.Serial.FormatSerial()+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
         else:
             Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, True)
 

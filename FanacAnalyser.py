@@ -153,7 +153,7 @@ for fz in fanacIssueList:
         if fmz != fz.FanzineName:
             f.write("\n"+fz.FanzineName+"\n")
             fmz=fz.FanzineName
-        f.write("   "+fz.FanzineIssueName+"    "+Helpers.FormatSerial(fz.Vol, fz.Number, fz.Whole)+"   "+fz.Date.FormatDate()+"\n")
+        f.write("   "+fz.FanzineIssueName+"    "+fz.Serial.FormatSerial()+"   "+fz.Date.FormatDate()+"\n")
 f.close()
 
 
