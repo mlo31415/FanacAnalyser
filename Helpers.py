@@ -17,6 +17,7 @@ def CannonicizeColumnHeaders(header):
                         "season" : "month",
                         "notes" : "notes",
                         "no." : "number",
+                        "no,": "number",
                         "num" : "number",
                         "#" : "number",
                         "page" : "pages",
