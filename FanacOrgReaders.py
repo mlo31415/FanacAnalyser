@@ -338,6 +338,7 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
     fanzineIssueList.append(fi)
     return
 
+
 #=========================================================================================
 # Read a fanzine's page of any format
 def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):

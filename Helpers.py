@@ -10,6 +10,7 @@ def CannonicizeColumnHeaders(header):
                         "published" : "date",
                         "editors" : "editor",
                         "zine" : "issue",
+                        "fanzine" : "issue",
                         "mo." : "month",
                         "quartermonth" : "month",
                         "quarter" : "month",
