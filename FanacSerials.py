@@ -21,7 +21,9 @@ class FanacSerial:
         s=s.upper()
 
         # First look for a Vol+Num designation
-        p=re.compile("(.*)V([0-9]+),?\s*#([0-9]+)\s*$")
+        p=re.compile("^.*"+    # Leading stuff
+                    "V([0-9]+),?\s*"+  # Vnnn + optional comma + optional whitespace
+                    "#([0-9]+)\s*$")    # #nnn + optional whitespace
         m=p.match(s)
         if m is not None and len(m.groups()) == 2:
             self.Vol=int(m.groups()[0])
@@ -29,7 +31,7 @@ class FanacSerial:
             return self
 
         # Now look for nnn/nnn
-        p=re.compile("^.*([0-9]+)/([0-9]+)\s*$")
+        p=re.compile("^.*([0-9]+)/([0-9]+)\s*$")    # Leading stuff + nnn + slash + nnn * optional whitespace
         m=p.match(s)
         if m is not None and len(m.groups()) == 2:
             self.Vol=int(m.groups()[0])
@@ -37,7 +39,7 @@ class FanacSerial:
             return self
 
         # Now look for xxx/nnn, where xxx is in Roman numerals
-        p=re.compile("^\s*([IVXLC]+)/([0-9]+)\s*$")
+        p=re.compile("^\s*([IVXLC]+)/([0-9]+)\s*$")  # Leading whitespace + roman numeral characters + slash + nnn + whitespace
         m=p.match(s)
         if m is not None and len(m.groups()) == 2:
             self.Vol=roman.fromRoman(int(m.groups()[0]))
@@ -45,7 +47,8 @@ class FanacSerial:
             return self
 
         # Now look for a trailing decimal number
-        p=re.compile("^.*\D([0-9]+\.[0-9]+)\s*$")       # the \D demands a non-digit character; it's to stop the greedy parser.
+        p=re.compile("^.*\D([0-9]+\.[0-9]+)\s*$")   # Leading characters + single non-digit + nnn + dot + nnn + whitespace
+                                                    # the \D forces a non-digit character; it's to stop the greedy parser from eating into the digits.
         m=p.match(s)
         if m is not None and len(m.groups()) == 1:
             self.Vol=None
@@ -53,7 +56,7 @@ class FanacSerial:
             return self
 
         # Now look for a single trailing number
-        p=re.compile("^.*\D([0-9]+)\s*$")
+        p=re.compile("^.*\D([0-9]+)\s*$")           # Leading stuff + single non-digit + nnn + whitespace
         m=p.match(s)
         if m is not None and len(m.groups()) == 1:
             self.Vol=None

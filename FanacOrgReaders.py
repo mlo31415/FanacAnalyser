@@ -30,7 +30,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
         Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
 
         unskippers=[
-            "CyberCozen",
+            "Convention",
         ]
         skippers=[
             #"Australian Science Fiction Bullsheet, The",
@@ -47,8 +47,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
             Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
             continue
 
-        #if dirname not in unskippers:
-         #   continue
+        #if dirname not in unskippers:  continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
