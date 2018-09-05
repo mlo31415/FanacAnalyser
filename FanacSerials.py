@@ -129,7 +129,7 @@ class FanacSerial:
         if not s[0].isdigit():
             return (None, None)
 
-        # Now, the only legetimate charcater other than digits are the three delimiters, so translate them all to blanks and then split into the two digit strings
+        # Now, the only legitimate character other than digits are the three delimiters, so translate them all to blanks and then split into the two digit strings
         spl=s.replace(".", " ").replace("#", " ").split()
         if len(spl)!=2:
             return (None, None)
@@ -226,12 +226,12 @@ class FanacSerial:
                         volInt=ser.Vol
                     if numInt is None:
                         numInt=ser.Num
-                    if volInt!=ser.Vol or numInt!=ser.Num:
-                        print("***Inconsistent serial designations: "+str(volInt)+"!="+str(v)+"  or  "+str(numInt)+"!="+str(ser.Num))
+                    if volInt != ser.Vol or numInt != ser.Num:
+                        print("***Inconsistent serial designations: "+str(volInt)+"!="+str(ser.Vol)+"  or  "+str(numInt)+"!="+str(ser.Num))
                 elif ser.Num is not None:
                     if wholeInt is None:
                         wholeInt=ser.Num
-                    if wholeInt!=ser.Num:
+                    if wholeInt != ser.Num:
                         print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
 
         self.Vol=volInt
