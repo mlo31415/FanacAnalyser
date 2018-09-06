@@ -16,10 +16,9 @@ Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
 
 def ReadClassicModernPages():
     print("----Begin reading Classic and Modern tables")
-    # This is a dictionary of fanzines on Fanac.org
-    # The key is the compressed name (Helpers.CompressName())
-    # The value is a tuple consisting of the link name and link url
-    fanacFanzineDirectories={}
+    # This is a list of fanzines on Fanac.org
+    # Each item is a tuple of (compressed name,  link name,  link url)
+    fanacFanzineDirectories=[]
 
     ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Classic_Fanzines.html")
     ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Modern_Fanzines.html")
@@ -54,9 +53,9 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
 def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
     isDup=False
 
-    cname=Helpers.CompressName(name)
-
-    if cname in fanacFanzineDirectories.keys():
+    # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
+    dups=[e2 for e1, e2 in fanacFanzineDirectories if e2 == dirname]
+    if len(dups) > 0:
         print("   duplicate: name="+name+"  dirname="+dirname)
         return
 
@@ -65,8 +64,8 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
         return
 
     # Add name and directory reference
-    print("   added to fanacFanzineDirectories: key='"+cname+"'  name='"+name+"'  dirname='"+dirname+"'")
-    fanacFanzineDirectories[cname]=(name, dirname)
+    print("   added to fanacFanzineDirectories:  name='"+name+"'  dirname='"+dirname+"'")
+    fanacFanzineDirectories.append((name, dirname))
     return
 
 

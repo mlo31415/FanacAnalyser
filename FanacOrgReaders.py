@@ -24,13 +24,12 @@ def ReadFanacFanzineIssues(fanacDirectories):
     g_browser=None
     fanacIssueInfo=[]
 
-    keys=sorted(list(fanacDirectories.keys()))    # Note that using a dictionary eliminates the consequences of duplicate entries on the Classic, Modern and Electronic pages
-    for key in keys:
-        title, dirname=fanacDirectories[key]
-        Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
+    fanacDirectories.sort(key=lambda tup: tup[1])
+    for title, dirname in fanacDirectories:
+        Helpers.Log(dirname+",      '"+title+"'", True)
 
         unskippers=[
-            "Axe",
+            "Ansible",
         ]
         skippers=[
             #"Australian Science Fiction Bullsheet, The",
