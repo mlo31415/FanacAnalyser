@@ -144,7 +144,7 @@ f.close()
 
 # Produce a list of fanzines by title
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
-fanacIssueList.sort(key=lambda elem: elem.FanzineName)  # Sorts in place on fanzine's name
+fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
 
 f=open("Alphabetical Listing of Fanzines.txt", "w+")
 fmz=""
