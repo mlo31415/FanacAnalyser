@@ -78,7 +78,7 @@ Helpers.LogClose()
 
 # Print a list of all fanzines found for 1943 sorted by fanzine name, then date
 fanacIssueList.sort(key=lambda elem: elem.Date)
-fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName)  # Sorts in place on fanzine name
+fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower())  # Sorts in place on fanzine name
 
 file=open("1943 Fanzines.txt", "w+")
 count1943=0
@@ -91,12 +91,16 @@ file.close()
 # Get a count of issues and pages
 pageCount=0
 issueCount=0
+f=open("Items with No Page Count.txt", "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
         pageCount=pageCount+fz.Pages
         issueCount=issueCount+1
+        if fz.Pages == 0:
+            f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
+f.close()
 
-# Produce a list of fanzines by date
+# Produce a list of fanzines listed by date
 fanacIssueList.sort(key=lambda elem: elem.Date)
 
 f=open("Chronological Listing of Fanzines.txt", "w+")
