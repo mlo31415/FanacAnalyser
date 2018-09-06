@@ -7,6 +7,7 @@ class FanacSerial:
     Vol: int = None
     Num: int = None
     Whole: int = None
+    Suffix: str = None
 
     #=============================================================================================
     # If there's a trailing Vol+Num designation at the end of a string, interpret it.
@@ -20,14 +21,17 @@ class FanacSerial:
 
         s=s.upper()
 
-        # First look for a Vol+Num designation
+        # First look for a Vol+Num designation: Vnnn #mmm
         p=re.compile("^.*"+    # Leading stuff
                     "V([0-9]+),?\s*"+  # Vnnn + optional comma + optional whitespace
-                    "#([0-9]+)\s*$")    # #nnn + optional whitespace
+                    "#([0-9]+)([a-zA-Z]?)" #     # #nnn + optional single alphabetic character suffix
+                    "\s*$")    # optional whitespace
         m=p.match(s)
-        if m is not None and len(m.groups()) == 2:
+        if m is not None and len(m.groups()) in [2, 3]:
             self.Vol=int(m.groups()[0])
             self.Num=int(m.groups()[1])
+            if len(m.groups()) == 3:
+                self.Suffix=m.groups()[2]
             return self
 
         # Now look for nnn/nnn
@@ -47,8 +51,8 @@ class FanacSerial:
             return self
 
         # Now look for a trailing decimal number
-        p=re.compile("^.*\D([0-9]+\.[0-9]+)\s*$")   # Leading characters + single non-digit + nnn + dot + nnn + whitespace
-                                                    # the \D forces a non-digit character; it's to stop the greedy parser from eating into the digits.
+        p=re.compile("^.*?([0-9]+\.[0-9]+)\s*$")    # Leading characters + single non-digit + nnn + dot + nnn + whitespace
+                                                    # the ? makes * a non-greedy quantifier
         m=p.match(s)
         if m is not None and len(m.groups()) == 1:
             self.Vol=None
@@ -56,37 +60,42 @@ class FanacSerial:
             return self
 
         # Now look for a single trailing number
-        p=re.compile("^.*\D([0-9]+)\s*$")           # Leading stuff + single non-digit + nnn + whitespace
+        p=re.compile("^.*?([0-9]+)([a-zA-Z]?)\s*$")           # Leading stuff + nnn + optional single alphabetic character suffix + whitespace
         m=p.match(s)
-        if m is not None and len(m.groups()) == 1:
+        if m is not None and len(m.groups()) in [1, 2]:
             self.Vol=None
             self.Num=int(m.groups()[0])
+            if len(m.groups()) == 2:
+                self.Suffix=m.groups()[1]
             return self
 
         # No good, return failure
         return self
 
+    #=============================================================================
+    def Suf(self):
+        return self.Suffix if self.Suffix is not None else ""
 
     #=============================================================================
     # Format the Vol/Num/Whole information
     def FormatSerial(self):
-        if self.Whole is not None and self.Whole != 0 and self.Vol is not None and self.Vol !=0 and self.Num is not None and self.Num != 0:
-            return "#"+str(self.Whole)+"  (V"+str(self.Vol)+"#"+str(self.Num)+")"
+        if self.Whole is not None and self.Vol is not None and self.Num is not None:
+            return "#"+str(self.Whole)+"  (V"+str(self.Vol)+"#"+str(self.Num)+")"+self.Suf()
 
-        if self.Whole is not None and self.Whole != 0:
-            return "#"+str(self.Whole)
+        if self.Whole is not None:
+            return "#"+str(self.Whole)+self.Suf()
 
         if self.Vol is None and self.Num is None:
             return ""
 
         v="?"
         n="?"
-        if self.Vol is not None and self.Vol!=0:
+        if self.Vol is not None:
             v=str(self.Vol)
-        if self.Num is not None and self.Num!=0:
+        if self.Num is not None:
             n=str(self.Num)
 
-        return "V"+v+"#"+n
+        return "V"+v+"#"+n+self.Suf()
 
 
     # =====================================================================================
@@ -102,11 +111,11 @@ class FanacSerial:
 
         # Ok, it's not a simple number.  Drop leading and trailing spaces and see if it of the form #nn
         s=str.strip().lower()
-        if len(s)==0:
+        if len(s) == 0:
             return (None, None)
-        if s[0]=="#":
+        if s[0] == "#":
             s=s[1:]
-            if len(s)==0:
+            if len(s) == 0:
                 return (None, None)
             try:
                 return (None, int(s))
@@ -117,11 +126,11 @@ class FanacSerial:
         # Maybe it's of the form Vnn, #nn (or Vnn.nn or Vnn,#nn)
 
         # Strip any leading 'v'
-        if len(s)==0:
+        if len(s) == 0:
             return (None, None)
         if s[0]=="v":
             s=s[1:]
-            if len(s)==0:
+            if len(s) == 0:
                 return (None, None)
 
         # The first step is to see if there's at least one of the characters ' ', '.', and '#' in the middle
@@ -134,7 +143,7 @@ class FanacSerial:
 
         # Now, the only legitimate character other than digits are the three delimiters, so translate them all to blanks and then split into the two digit strings
         spl=s.replace(".", " ").replace("#", " ").split()
-        if len(spl)!=2:
+        if len(spl) != 2:
             return (None, None)
         try:
             return (int(spl[0]), int(spl[1]))
@@ -148,9 +157,9 @@ class FanacSerial:
         volInt=None
         numInt=None
         maybeWholeInt=None
+        suffix=None
 
         # TODO: Need to deal with hyphenated volume and issue numbers, e.g.,  3-4
-        # TODO: Need to deal with things like 25A
         if wholeText is not None:
             try:
                 wholeInt=int(wholeText)
@@ -164,6 +173,7 @@ class FanacSerial:
             if ser.Vol is not None and ser.Num is not None:  # Otherwise, we don't actually have a volume+number
                 volInt=ser.Vol
                 numInt=ser.Num
+                suffix=ser.Suffix
 
         if volText is not None:
             try:
@@ -215,10 +225,7 @@ class FanacSerial:
             #   Vn  -- a volume number, but where's the issue?
             #   Vn[,] #m  -- a volume and number-within-volume
             #   Vn.m -- ditto
-            if type(titleText) is tuple:
-                ser=FanacSerial().InterpretSerial(titleText[0])
-            else:
-                ser=FanacSerial().InterpretSerial(titleText)
+            ser=FanacSerial().InterpretSerial(titleText if type(titleText) is not tuple else titleText[0])
 
             # Some indexes have fanzine names ending in <month> <year>.  We'll detect these by looking for a trailing number between 1930 and 2050, and reject
             # getting vol/ser, etc., from the title if we find it.
@@ -236,8 +243,10 @@ class FanacSerial:
                         wholeInt=ser.Num
                     if wholeInt != ser.Num:
                         print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
+                suffix=ser.Suffix
 
         self.Vol=volInt
         self.Num=numInt
         self.Whole=wholeInt
+        self.Suffix=suffix
         return self

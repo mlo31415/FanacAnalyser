@@ -30,7 +30,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
         Helpers.Log(dirname+",      '"+title+"' --> '"+key+"'", True)
 
         unskippers=[
-            "Convention",
+            "Axe",
         ]
         skippers=[
             #"Australian Science Fiction Bullsheet, The",
