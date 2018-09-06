@@ -10,14 +10,23 @@ class FanacSerial:
     Suffix: str = None
 
     #=============================================================================================
+    # Try to interpret a complex string as serial information
     # If there's a trailing Vol+Num designation at the end of a string, interpret it.
-    # We return a tuple of a (Vol, Num) or a (None, Num)
+
     # We accept:
     #       ...Vnn[,][ ]#nnn[ ]
-    #       ...nn[ ]
-    #       ...nnn/nnn[  ]
+    #       ...nnn nnn/nnn      a number followed by a fraction
+    #       ...nnn/nnn[  ]      vol/num
+    #       ...rrr/nnn          vol (in Roman numerals)/num
     #       ...nn.mm
+    #       ...nn[ ]
+
     def InterpretSerial(self, s):
+
+        self.Vol=None
+        self.Num=None
+        self.Whole=None
+        self.Suffix=None
 
         s=s.upper()
 
@@ -34,8 +43,15 @@ class FanacSerial:
                 self.Suffix=m.groups()[2]
             return self
 
-        # Now look for nnn/nnn
-        p=re.compile("^.*([0-9]+)/([0-9]+)\s*$")    # Leading stuff + nnn + slash + nnn * optional whitespace
+        # Now look for nnn nnn/nnn
+        p=re.compile("^.*?([0-9]+)\s+([0-9]+)/([0-9]+)\s*$")    # Leading stuff + nnn + mandatory whitespace + nnn + slash + nnn * optional whitespace
+        m=p.match(s)
+        if m is not None and len(m.groups()) == 3:
+            self.Whole=int(m.groups()[0]) +  int(m.groups()[1])/int(m.groups()[2])
+            return self
+
+        # Now look for nnn/nnn (which is understood as vol/num
+        p=re.compile("^.*?([0-9]+)/([0-9]+)\s*$")    # Leading stuff + nnn + slash + nnn * optional whitespace
         m=p.match(s)
         if m is not None and len(m.groups()) == 2:
             self.Vol=int(m.groups()[0])
@@ -152,6 +168,8 @@ class FanacSerial:
 
 
     #==============================================================================
+    # Given the contents of various table columns, attempt to extract serial information
+    # This uses InterpretSerial for detailed decoding
     def ExtractSerial(self, volText, numText, wholeText, volNumText, titleText):
         wholeInt=None
         volInt=None
@@ -243,6 +261,10 @@ class FanacSerial:
                         wholeInt=ser.Num
                     if wholeInt != ser.Num:
                         print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
+
+                if ser.Whole is not None:
+                    wholeInt=ser.Whole
+
                 suffix=ser.Suffix
 
         self.Vol=volInt
