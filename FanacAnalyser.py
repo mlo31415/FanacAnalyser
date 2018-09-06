@@ -28,25 +28,6 @@ def ReadClassicModernPages():
     print("----Done reading Classic and Modern tables")
     return fanacFanzineDirectories
 
-# -------------------------------------------------------------------------
-# We have a name and a dirname from the fanac.org Classic and Modern pages.
-# The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
-    isDup=False
-
-    if name in fanacFanzineDirectories:
-        print("   duplicate: name="+name+"  dirname="+dirname)
-        return
-
-    if dirname[:3]=="http":
-        print("    ignored, because is HTML: "+dirname)
-        return
-
-    # Add name and directory reference
-    cname=Helpers.CompressName(name)
-    print("   added to fanacFanzineDirectories: key='"+cname+"'  name='"+name+"'  dirname='"+dirname+"'")
-    fanacFanzineDirectories[cname]=(name, dirname)
-    return
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
@@ -65,6 +46,29 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
                 dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
                 AddFanacDirectory(fanacFanzineDirectories, name, dirname)
     return
+
+
+# -------------------------------------------------------------------------
+# We have a name and a dirname from the fanac.org Classic and Modern pages.
+# The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
+def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
+    isDup=False
+
+    cname=Helpers.CompressName(name)
+
+    if cname in fanacFanzineDirectories.keys():
+        print("   duplicate: name="+name+"  dirname="+dirname)
+        return
+
+    if dirname[:3]=="http":
+        print("    ignored, because is HTML: "+dirname)
+        return
+
+    # Add name and directory reference
+    print("   added to fanacFanzineDirectories: key='"+cname+"'  name='"+name+"'  dirname='"+dirname+"'")
+    fanacFanzineDirectories[cname]=(name, dirname)
+    return
+
 
 # Read the fanac.org fanzine directory and produce a list of all issues present
 fanacFanzineDirectories=ReadClassicModernPages()
