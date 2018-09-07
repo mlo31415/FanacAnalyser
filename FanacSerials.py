@@ -85,6 +85,13 @@ class FanacSerial:
                 self.Suffix=m.groups()[1]
             return self
 
+        # Now look for trailing Roman numerals
+        p=re.compile("^.*?\s+([IVXLC]+)\s*$")  # Leading stuff + mandatory whitespace + roman numeral characters + optional trailing whitespace
+        m=p.match(s)
+        if m is not None and len(m.groups()) == 1:
+            self.Num=roman.fromRoman(m.groups()[0])
+            return self
+
         # No good, return failure
         return self
 
