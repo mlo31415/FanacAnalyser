@@ -43,6 +43,18 @@ class FanacSerial:
                 self.Suffix=m.groups()[2]
             return self
 
+        p=re.compile("^.*"+    # Leading stuff
+                    "V[oO][lL]\s*([0-9]+),?\s*"+  # Vol (or VOL) + optional space + nnn + optional comma + optional space
+                    "#([0-9]+)([a-zA-Z]?)" #     + #nnn + optional single alphabetic character suffix
+                    "\s*$")    # optional whitespace
+        m=p.match(s)
+        if m is not None and len(m.groups()) in [2, 3]:
+            self.Vol=int(m.groups()[0])
+            self.Num=int(m.groups()[1])
+            if len(m.groups()) == 3:
+                self.Suffix=m.groups()[2]
+            return self
+
         # Now look for nnn nnn/nnn
         p=re.compile("^.*?([0-9]+)\s+([0-9]+)/([0-9]+)\s*$")    # Leading stuff + nnn + mandatory whitespace + nnn + slash + nnn * optional whitespace
         m=p.match(s)
