@@ -47,6 +47,46 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
     return
 
 
+#================================================================================
+# Generate html for a chronological table
+def WriteHTMLFile(name, fanacIssueList, selector):
+    f=open(name, "w+")
+    f.write('<table border="2" cellspacing="4">\n')  # Begin the main table
+    monthYear=""
+    for fz in fanacIssueList:
+        if fz.URL is None or fz.Date.YearInt == 0:
+            continue
+
+        if selector is not None and not selector(fz):
+            continue
+
+        # Start the row
+        # Put the month & year in the first column of the table only if it changes.
+        month=fz.Date.MonthInt
+        if month == 0:
+            month=1
+        newMonthYear=FanacDates.FormatDate2(fz.Date.YearInt, month, None)
+        if newMonthYear != monthYear:
+            if monthYear != "":  # Is this the first month box?
+                f.write('</table></td></tr>\n')  # No.  So end the previous month box
+
+            f.write('<tr><td><table>')  # Start a new month box
+            monthYear=newMonthYear
+            f.write('    <tr><td width="120">\n'+newMonthYear+'</td>\n')
+        else:
+            f.write('    <tr><td width="120">&nbsp;</td>\n')  # Add an empty month box
+
+        # The hyperlink goes in column 2
+        url=fz.DirectoryURL+"/"+fz.URL
+        f.write('        <td width="250">'+'<a href="'+url+'">'+fz.FanzineIssueName+'</a>'+'</td>\n')
+
+        # And end the row
+        f.write('  </tr>\n')
+    f.write("</table></td></tr>\n")
+    f.write('</table>\n')
+    f.close()
+
+
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
@@ -113,41 +153,14 @@ for fz in fanacIssueList:
         f.write("   "+fz.FanzineIssueName+"\n")
 f.close()
 
-# Generate html for a chronological table
-f=open("Chronological Listing of Fanzines.html", "w+")
-f.write('<table border="2" cellspacing="4">\n') # Begin the main table
 
-monthYear=""
-for fz in fanacIssueList:
-    if fz.URL is None  or fz.Date.YearInt == 0:
-        continue
+WriteHTMLFile("Chronological Listing of Fanzines.html", fanacIssueList, None)
 
-    # Start the row
-    # Put the month & year in the first column of the table only if it changes.
-    month=fz.Date.MonthInt
-    if month == 0:
-        month=1
-    newMonthYear= FanacDates.FormatDate2(fz.Date.YearInt, month, None)
-    if newMonthYear != monthYear:
-        if monthYear != "":   # Is this the first month box?
-            f.write('</table></td></tr>\n')  # No.  So end the previous month box
-
-        f.write('<tr><td><table>')    # Start a new month box
-        monthYear=newMonthYear
-        f.write('    <tr><td width="120">\n' + newMonthYear + '</td>\n')
-    else:
-        f.write('    <tr><td width="120">&nbsp;</td>\n')        # Add an empty month box
-
-    # The hyperlink goes in column 2
-    url=fz.DirectoryURL+"/"+fz.URL
-    f.write('        <td width="250">' + '<a href="'+url+'">'+fz.FanzineIssueName+'</a>' + '</td>\n')
-
-    # And end the row
-    f.write('  </tr>\n')
-
-f.write("</table></td></tr>\n")
-f.write('</table>\n')
+f=open("Newszine list.txt", "r")
+listOfNewszines=[x.strip() for x in f.readlines()]
 f.close()
+
+WriteHTMLFile("Chronological Listing of Newszines.html", fanacIssueList, lambda fx: fx.FanzineName in listOfNewszines)
 
 # Produce a list of fanzines by title
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
