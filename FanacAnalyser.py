@@ -87,6 +87,23 @@ def WriteHTMLFile(name, fanacIssueList, selector):
     f.close()
 
 
+#================================================================================
+# Header, headerText and bodyText are all lambdas
+#   header is the item used to decide when to start a new subsection
+#   headerText is used to title the subsection
+#   bodyText is what is listed in the subsection
+def WriteTextFile(filename, fanacIssueList, header, headerText, bodyText):
+    f=open(filename, "w+")
+    lastHeader=None
+    for fz in fanacIssueList:
+        if fz.URL is not None:
+            if lastHeader != header(fz):
+                f.write("\n"+ headerText(fz)+"\n")
+                lastHeader=header(fz)
+            f.write("   "+bodyText(fz)+"\n")
+    f.close()
+
+
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
@@ -112,7 +129,6 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
 # Read the fanac.org fanzine directory and produce a list of all issues present
 fanacFanzineDirectories=ReadClassicModernPages()
 fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
-
 
 Helpers.LogClose()
 
@@ -143,39 +159,19 @@ f.close()
 # Produce a list of fanzines listed by date
 fanacIssueList.sort(key=lambda elem: elem.Date)
 
-f=open("Chronological Listing of Fanzines.txt", "w+")
-monthYear=(-1, -1)
-for fz in fanacIssueList:
-    if fz.URL is not None:
-        if monthYear != (fz.Date.MonthInt, fz.Date.YearInt):
-            f.write("\n"+ FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None)+"\n")
-            monthYear=(fz.Date.MonthInt, fz.Date.YearInt)
-        f.write("   "+fz.FanzineIssueName+"\n")
-f.close()
-
-
+WriteTextFile("Chronological Listing of Fanzines.txt", fanacIssueList, lambda fz: (fz.Date.MonthInt, fz.Date.YearInt), lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None), lambda fz: fz.FanzineIssueName)
 WriteHTMLFile("Chronological Listing of Fanzines.html", fanacIssueList, None)
 
-f=open("Newszine list.txt", "r")
-listOfNewszines=[x.strip() for x in f.readlines()]
-f.close()
+# Get the names of the newszines as a list
+with open("Newszine list.txt", "r") as f:
+    listOfNewszines=[x.strip() for x in f.readlines()]  # Need strip() to get rid of trailing /n (at least)
 
 WriteHTMLFile("Chronological Listing of Newszines.html", fanacIssueList, lambda fx: fx.FanzineName in listOfNewszines)
 
 # Produce a list of fanzines by title
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
-
-f=open("Alphabetical Listing of Fanzines.txt", "w+")
-fmz=""
-for fz in fanacIssueList:
-    if fz.URL is not None:
-        if fmz != fz.FanzineName:
-            f.write("\n"+fz.FanzineName+"\n")
-            fmz=fz.FanzineName
-        f.write("   "+fz.FanzineIssueName+"    "+fz.Serial.FormatSerial()+"   "+fz.Date.FormatDate()+"\n")
-f.close()
-
+WriteTextFile("Alphabetical Listing of Fanzines.txt", fanacIssueList, lambda fz: fz.FanzineName, lambda fz: fz.FanzineName, lambda fz: fz.Serial.FormatSerial()+"   "+fz.Date.FormatDate())
 
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
