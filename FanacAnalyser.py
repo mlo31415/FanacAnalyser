@@ -92,14 +92,14 @@ def WriteHTMLFile(name, fanacIssueList, selector):
 #   header is the item used to decide when to start a new subsection
 #   headerText is used to title the subsection
 #   bodyText is what is listed in the subsection
-def WriteTextFile(filename, fanacIssueList, header, headerText, bodyText):
+def WriteTextFile(filename, fanacIssueList, headerText, bodyText):
     f=open(filename, "w+")
     lastHeader=None
     for fz in fanacIssueList:
         if fz.URL is not None:
-            if lastHeader != header(fz):
+            if lastHeader != headerText(fz):
                 f.write("\n"+ headerText(fz)+"\n")
-                lastHeader=header(fz)
+                lastHeader=headerText(fz)
             f.write("   "+bodyText(fz)+"\n")
     f.close()
 
@@ -159,7 +159,7 @@ f.close()
 # Produce a list of fanzines listed by date
 fanacIssueList.sort(key=lambda elem: elem.Date)
 
-WriteTextFile("Chronological Listing of Fanzines.txt", fanacIssueList, lambda fz: (fz.Date.MonthInt, fz.Date.YearInt), lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None), lambda fz: fz.FanzineIssueName)
+WriteTextFile("Chronological Listing of Fanzines.txt", fanacIssueList, lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None), lambda fz: fz.FanzineIssueName)
 WriteHTMLFile("Chronological Listing of Fanzines.html", fanacIssueList, None)
 
 # Get the names of the newszines as a list
@@ -171,7 +171,7 @@ WriteHTMLFile("Chronological Listing of Newszines.html", fanacIssueList, lambda 
 # Produce a list of fanzines by title
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
-WriteTextFile("Alphabetical Listing of Fanzines.txt", fanacIssueList, lambda fz: fz.FanzineName, lambda fz: fz.FanzineName, lambda fz: fz.Serial.FormatSerial()+"   "+fz.Date.FormatDate())
+WriteTextFile("Alphabetical Listing of Fanzines.txt", fanacIssueList, lambda fz: fz.FanzineName, lambda fz: fz.FanzineIssueName+":   "+fz.Date.FormatDate())
 
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
