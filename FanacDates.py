@@ -90,7 +90,10 @@ class FanacDate:
             Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
 
     #--------------------------------
-    # Format a FanacDate for printing
+    # Format a FanacDate for printing using one of the the preferred formats:
+    #   1969
+    #   July 1969
+    #   July 20, 1969
     def FormatDate(self):
 
         # If we have a raw form of the date, just return it.
@@ -120,7 +123,7 @@ class FanacDate:
         if y is not None:
             if d is not None:
                 out=out+","
-            if out != " ":
+            if len(out) > 0:
                 out=out+" "
             out=out+y
 
