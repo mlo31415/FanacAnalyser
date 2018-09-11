@@ -162,7 +162,7 @@ issueCount=0
 f=open("Test - Items with No Page Count.txt", "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
-        pageCount=pageCount+fz.Pages if fz.Pages > 0 else 1
+        pageCount=pageCount+(fz.Pages if fz.Pages > 0 else 1)
         issueCount=issueCount+1
         if fz.Pages == 0:
             f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
