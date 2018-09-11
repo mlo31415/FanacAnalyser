@@ -147,10 +147,10 @@ file.close()
 # Get a count of issues and pages
 pageCount=0
 issueCount=0
-f=open("Items with No Page Count.txt", "w+")
+f=open("Test - Items with No Page Count.txt", "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
-        pageCount=pageCount+fz.Pages
+        pageCount=pageCount+fz.Pages if fz.Pages > 0 else 1
         issueCount=issueCount+1
         if fz.Pages == 0:
             f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
@@ -164,9 +164,27 @@ WriteHTMLFile("Chronological Listing of Fanzines.html", fanacIssueList, None)
 
 # Get the names of the newszines as a list
 with open("Newszine list.txt", "r") as f:
-    listOfNewszines=[x.strip() for x in f.readlines()]  # Need strip() to get rid of trailing /n (at least)
+    listOfNewszines=[x.strip().lower() for x in f.readlines()]  # Need strip() to get rid of trailing /n (at least)
 
-WriteHTMLFile("Chronological Listing of Newszines.html", fanacIssueList, lambda fx: fx.FanzineName in listOfNewszines)
+nonnewszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() not in listOfNewszines]
+nonnewszines=sorted(list(set(nonnewszines)))
+
+newszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() in listOfNewszines]
+newszines=sorted(list(set(newszines)))
+
+unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
+unusedLines=[x+"\n" for x in unusedLines]
+
+newszines=[x+"\n" for x in newszines]
+with open("Test - Newszines.txt", "w+") as f:
+    f.writelines(newszines)
+with open("Test - Unused lines.txt", "w+") as f:
+    f.writelines(unusedLines)
+nonnewszines=[x+"\n" for x in nonnewszines]
+with open("Test - Non-newzines.txt", "w+") as f:
+    f.writelines(nonnewszines)
+
+WriteHTMLFile("Chronological Listing of Newszines.html", fanacIssueList, lambda fx: fx.FanzineName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
