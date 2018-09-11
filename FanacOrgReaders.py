@@ -29,7 +29,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
         Helpers.Log(dirname+",      '"+title+"'", True)
 
         unskippers=[
-            "Ansible",
+            "fanews",
         ]
         skippers=[
             #"Australian Science Fiction Bullsheet, The",
@@ -47,6 +47,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
             continue
 
         #if dirname not in unskippers:  continue
+        #if not dirname.lower().startswith("fanews"): continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL

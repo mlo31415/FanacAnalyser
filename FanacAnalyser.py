@@ -77,7 +77,19 @@ def WriteHTMLFile(name, fanacIssueList, selector):
             f.write('    <tr><td width="120">&nbsp;</td>\n')  # Add an empty month box
 
         # The hyperlink goes in column 2
-        url=fz.DirectoryURL+"/"+fz.URL
+        # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+        # The former are easy, but the latter need to be processed
+        if "/" not in fz.URL:
+            url=fz.DirectoryURL+"/"+fz.URL
+        else:
+            # There are two possibilities: This is a reference to somewhere else in fanzines or this is a reference elsewhere.
+            # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
+            parts=fz.URL.split("/")
+            if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
+                url=fz.DirectoryURL+"/../"+"/".join(parts[-2:])
+            else:
+                url=fz.URL
+
         f.write('        <td width="250">'+'<a href="'+url+'">'+fz.FanzineIssueName+'</a>'+'</td>\n')
 
         # And end the row
