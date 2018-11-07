@@ -148,11 +148,16 @@ Helpers.LogClose()
 fanacIssueList.sort(key=lambda elem: elem.Date)
 fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower())  # Sorts in place on fanzine name
 
-file=open("1943 Fanzines.txt", "w+")
+def NoNone(str):
+    if str is None:
+        return ""
+    return str
+
+file=open("1943 fanac.org Fanzines.txt", "w+")
 count1943=0
 for fz in fanacIssueList:
     if fz.Date.YearInt == 1943:
-        file.write(fz.FanzineIssueName+"  ("+fz.Date.FormatDate()+")\n")
+        file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
         count1943=count1943+1
 file.close()
 
