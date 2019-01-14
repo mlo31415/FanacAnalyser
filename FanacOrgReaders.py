@@ -208,42 +208,33 @@ def ExtractHrefAndTitle(columnHeaders, row):
 FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Serial  DirectoryURL URL Date Pages")
 
 
-#-------------------------------------------------
-def ReadList(filename):
-    if not os.path.exists(filename):
-        print("ReadList can't open "+filename)
-        return None
-    f=open(filename, "r")
-    list=f.readlines()
-    f.close()
-    list=[l.strip() for l in list]
-    return list
-
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList):
     global g_browser
-    global singletons, weirdos, specialBiggies
 
     print("   ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
+    global singletons   # Not actually used anywhere else, but for performance sake, should be read once and retained
     try:
         singletons
     except NameError:
-        singleton=ReadList("singletons.txt")
+        singletons=Helpers.ReadList("singletons.txt")
 
+    global weirdos   # Not actually used anywhere else, but for performance sake, should be read once and retained
     try:
         weirdos
     except NameError:
-        weirdos=ReadList("weirdos.txt")
+        weirdos=Helpers.ReadList("weirdos.txt")
 
     # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
     # If this is the root of one of them...
+    global specialBiggies   # Not actually used anywhere else, but for performance sake, should be read once and retained
     try:
         specialBiggies
     except NameError:
-        specialBiggies=ReadList("specialBiggies.txt")
+        specialBiggies=Helpers.ReadList("specialBiggies.txt")
     if fanzineName in specialBiggies:
         ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
         return

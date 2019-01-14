@@ -18,10 +18,9 @@ def ReadClassicModernPages():
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectories=[]
-
-    ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Classic_Fanzines.html")
-    ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Modern_Fanzines.html")
-    ReadModernOrClassicTable(fanacFanzineDirectories, "http://www.fanac.org/fanzines/Electronic_Fanzines.html")
+    directories=Helpers.ReadList("topleveldirectories.txt")
+    for dirs in directories:
+        ReadModernOrClassicTable(fanacFanzineDirectories, dirs)
 
     print("----Done reading Classic and Modern tables")
     return fanacFanzineDirectories
@@ -179,11 +178,11 @@ WriteTextFile("Chronological Listing of Fanzines.txt", fanacIssueList, lambda fz
 WriteHTMLFile("Chronological Listing of Fanzines.html", fanacIssueList, None)
 
 # Get the names of the newszines as a list
-with open("Newszine list.txt", "r") as f:
-    listOfNewszines=[x.strip().lower() for x in f.readlines()]  # Need strip() to get rid of trailing /n (at least)
+listOfNewszines=Helpers.ReadList("Newszine list.txt")
+listOfNewszines=[x.lower() for x in listOfNewszines]  # Need strip() to get rid of trailing /n (at least)
 
-nonnewszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() not in listOfNewszines]
-nonnewszines=sorted(list(set(nonnewszines)))
+nonNewszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() not in listOfNewszines]
+nonNewszines=sorted(list(set(nonNewszines)))
 
 newszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() in listOfNewszines]
 newszines=sorted(list(set(newszines)))
@@ -196,9 +195,9 @@ with open("Test - Newszines.txt", "w+") as f:
     f.writelines(newszines)
 with open("Test - Unused lines.txt", "w+") as f:
     f.writelines(unusedLines)
-nonnewszines=[x+"\n" for x in nonnewszines]
+nonNewszines=[x+"\n" for x in nonNewszines]
 with open("Test - Non-newzines.txt", "w+") as f:
-    f.writelines(nonnewszines)
+    f.writelines(nonNewszines)
 
 WriteHTMLFile("Chronological Listing of Newszines.html", fanacIssueList, lambda fx: fx.FanzineName.lower() in listOfNewszines)
 

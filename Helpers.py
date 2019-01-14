@@ -222,3 +222,19 @@ def IsNumeric(arg):
         return True
     except:
         return False
+
+
+
+# =============================================================================
+# Read a list of lines in from a file
+# Strip leading and trailing whitespace and ignore lines which begin with a '#'
+def ReadList(filename):
+    if not os.path.exists(filename):
+        print("ReadList can't open "+filename)
+        return None
+    f=open(filename, "r")
+    list=f.readlines()
+    f.close()
+    list=[l.strip() for l in list]
+    list=[l for l in list if len(l)>0 and l[0]!= "#"]
+    return list
