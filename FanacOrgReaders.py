@@ -4,7 +4,7 @@ import requests
 import collections
 import Helpers
 import re
-import roman
+import os
 import FanacDates
 from FanacDates import FanacDate
 import FanacSerials
@@ -207,24 +207,43 @@ def ExtractHrefAndTitle(columnHeaders, row):
 
 FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Serial  DirectoryURL URL Date Pages")
 
+
+#-------------------------------------------------
+def ReadList(filename):
+    if not os.path.exists(filename):
+        print("ReadList can't open "+filename)
+        return None
+    f=open(filename, "r")
+    list=f.readlines()
+    f.close()
+    list=[l.strip() for l in list]
+    return list
+
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList):
     global g_browser
+    global singletons, weirdos, specialBiggies
 
     print("   ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
-    singletons=["Ah_Sweet_Idiocy", "BNF_of_IZ", "Chanticleer", "Cosmag", "emu", "Enchanted_Duplicator", "Entropy", "Fan-Fare", "FanToSee", "Flight of the Kangaroo, The",
-                "Leaflet", "LeeHoffman", "Mallophagan", "Masque", "Monster",
-                "NOSFAn", "Planeteer", "Sense_FAPA", "SF_Digest", "SF_Digest_2", "SFSFS", "SpaceDiversions", "SpaceFlight", "SpaceMagazine",
-                "Starlight", "SunSpots", "Tails_of_Fandom", "Tomorrow", "Toto", "Vanations", "Vertigo", "WildHair", "Willis_Papers", "Yandro"]
+    try:
+        singletons
+    except NameError:
+        singleton=ReadList("singletons.txt")
 
-    weirdos=["Legal Rules, The", "NEOSFS Newsletter, Issue 3, The"]
+    try:
+        weirdos
+    except NameError:
+        weirdos=ReadList("weirdos.txt")
 
     # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
     # If this is the root of one of them...
-    specialBiggies=["Australian Science Fiction Bullsheet, The", "MT Void, The"]
+    try:
+        specialBiggies
+    except NameError:
+        specialBiggies=ReadList("specialBiggies.txt")
     if fanzineName in specialBiggies:
         ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
         return

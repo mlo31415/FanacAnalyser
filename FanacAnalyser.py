@@ -4,7 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 import FanacDates
 
-
 Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
 
 # ====================================================================================

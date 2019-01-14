@@ -8,6 +8,7 @@ Barsoomian Times
 Bay Area News
 Bloomington Newsletter
 Chat
+Checkpoint
 Chronicle
 Convention
 Don't Panic
@@ -20,10 +21,13 @@ FFF Fanewscard
 Fantasy News
 fantasy news - new series
 Fantasy Newsletter
+Fantasy Reporter
 Fantasy Times
 Fiawol
 File 770
+The Filking Times
 Focal Point
+Futurian News
 Futurian Observer
 Jane's Fighting Smofs
 Karass
@@ -38,13 +42,18 @@ Newfangles
 Norstrilian News
 Organlegger
 Phan
+PSFS News
 QX the Cardzine
 Rally
 Ratatosk
+report
 Sanders
 Saturday Morning Gazette
+scantle
 Science Fantasy News
+science fantasy news (uk)
 Science Fantasy Review
+science fiction international news
 science fiction news (australia)
 science fiction news (us)
 Science Fiction Newscope
@@ -55,7 +64,10 @@ Science Fiction Weekly
 Science Fiction World, the
 Scream
 SF Weekly
+SF_Journalen
 SFinctor
+SFTimes
+SFTimes (German)
 Shards of Babel
 Skyrack
 Spang Blah
@@ -65,9 +77,10 @@ STEFNEWS
 Stfanews
 Straight Up
 Sweetness and Light
-Sweetness and Light
+Swefanac
 sydney futurian, the
 Sylmarillion
+The Filking Times
 Thyme
 Tympany
 Winnie
