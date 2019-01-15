@@ -279,7 +279,7 @@ class FanacSerial:
                     if wholeInt is None:
                         wholeInt=ser.Num
                     if wholeInt != ser.Num:
-                        print("***Inconsistent serial designations."+str(wholeInt)+"!="+str(ser.Num))
+                        print("***Inconsistent serial designations: "+str(wholeInt)+"!="+str(ser.Num))
 
                 if ser.Whole is not None:
                     wholeInt=ser.Whole
