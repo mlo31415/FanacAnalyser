@@ -1,4 +1,6 @@
-# These are two fanzines which have special formats and must be handled separately
+# These are two fanzines which have special formats and must be handled separately in the code
+# They *are* supported
+# ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
 Australian Science Fiction Bullsheet, The
 MT Void, The

@@ -1,4 +1,6 @@
-# These are fanzines where we have a single issue, in a variety of formats which we do not presently support
+# These are fanzines where we have a single issue, in a variety of formats
+# They are read using special code
+# ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
 Ah_Sweet_Idiocy
 BNF_of_IZ

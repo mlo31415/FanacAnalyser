@@ -1,4 +1,5 @@
 # A list of newszines to go into the newszine index
+# ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
 anglofanac
 Ansible
