@@ -175,13 +175,11 @@ def Log(text, isError=False):
     global g_logFile
     global g_errorFile
     global g_logFanzine
-    global g_lastLogFanzine
+    global g_newLogFanzine
 
     logtitle=None
-    if g_logFanzine is not None and (g_lastLogFanzine is None or g_logFanzine != g_lastLogFanzine):
+    if g_newLogFanzine:
         logtitle=g_logFanzine
-
-    g_lastLogFanzine=g_logFanzine
 
     print(text)
     print(text, file=g_logFile)
@@ -194,9 +192,15 @@ def Log(text, isError=False):
         if logtitle is not None:
             print("\n"+logtitle, file=g_errorFile)
 
+
 def LogSetFanzine(name):
     global g_logFanzine
+    global g_lastLogFanzine
+    global g_newLogFanzine
+    g_newLogFanzine=g_lastLogFanzine is None or g_lastLogFanzine != g_logFanzine
     g_logFanzine=name
+    g_lastLogFanzine=g_logFanzine
+
 
 def LogOpen(logfilename, errorfilename):
     global g_logFile
@@ -209,6 +213,8 @@ def LogOpen(logfilename, errorfilename):
     g_logFanzine=None
     global g_lastLogFanzine
     g_lastLogFanzine=None
+    global g_newLogFanzine
+    g_newLogFanzine=True
 
 def LogClose():
     global g_logFile
