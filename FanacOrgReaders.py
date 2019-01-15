@@ -34,11 +34,11 @@ def ReadFanacFanzineIssues(fanacDirectories):
         except NameError:
             skippers=Helpers.ReadList("control-skippers.txt")
         if dirname in skippers:
-            Helpers.Log(dirname+"      ***Skipping because it is in skippers", True)
+            Helpers.Log(dirname+"***Skipping because it is in skippers: "+dirname, True)
             continue
 
         if dirname.startswith("http://"):
-            Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
+            Helpers.Log("***skipped because the index page pointed to is not on fanac.org: "+dirname, True)
             continue
 
         # # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
@@ -54,11 +54,11 @@ def ReadFanacFanzineIssues(fanacDirectories):
         if url is None:
             continue
         if not url.startswith("http://www.fanac.org"):
-            Helpers.Log(url+"    ***skipped because not a fanac.org url", True)
+            Helpers.Log("***skipped because not a fanac.org url: "+url, True)
             continue
 
         if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-            Helpers.Log(url+"    ***skipped because in the fan_funds or fanzines/Miscellaneous directories", True)
+            Helpers.Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, True)
             continue
 
         ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo)
@@ -234,6 +234,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
         specialBiggies
     except NameError:
         specialBiggies=Helpers.ReadList("control-specialBiggies.txt")
+
     if fanzineName in specialBiggies:
         ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
         return
@@ -443,7 +444,7 @@ def LocateIndexTable(directoryUrl, soup):
     if table is not None:
         return table
 
-    Helpers.Log(directoryUrl+"***failed because BeautifulSoup found no index table in index.html", True)
+    Helpers.Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, True)
     return None
 
 
