@@ -1,0 +1,4 @@
+# These are two fanzines which have special formats and must be handled separately
+
+Australian Science Fiction Bullsheet, The
+MT Void, The

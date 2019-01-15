@@ -235,6 +235,10 @@ def ReadList(filename):
     f=open(filename, "r")
     list=f.readlines()
     f.close()
-    list=[l.strip() for l in list]
-    list=[l for l in list if len(l)>0 and l[0]!= "#"]
+
+    list=[l.strip() for l in list]  # Strip leading and trailing whitespace
+    list=[l for l in list if len(l)>0 and l[0]!= "#"]   # Drop empty lines and lines starting with "#"
+
+    list=[l for l in list if l.find(" #") == -1] + [l[:l.find(" #")].strip() for l in list if l.find(" #") > 0]    # (all members not containing " #") +(the rest with the trailing # stripped)
+
     return list

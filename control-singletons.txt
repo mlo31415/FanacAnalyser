@@ -1,3 +1,5 @@
+# These are fanzines where we have a single issue, in a variety of formats which we do not presently support
+
 Ah_Sweet_Idiocy
 BNF_of_IZ
 Chanticleer

@@ -18,7 +18,7 @@ def ReadClassicModernPages():
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectories=[]
-    directories=Helpers.ReadList("topleveldirectories.txt")
+    directories=Helpers.ReadList("control-topleveldirectories.txt")
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectories, dirs)
 
@@ -151,7 +151,7 @@ def NoNone(str):
         return ""
     return str
 
-file=open("1943 fanac.org Fanzines.txt", "w+")
+file=open("control-1943 fanac.org Fanzines.txt", "w+")
 count1943=0
 for fz in fanacIssueList:
     if fz.Date.YearInt == 1943:
@@ -178,7 +178,7 @@ WriteTextFile("Chronological Listing of Fanzines.txt", fanacIssueList, lambda fz
 WriteHTMLFile("Chronological Listing of Fanzines.html", fanacIssueList, None)
 
 # Get the names of the newszines as a list
-listOfNewszines=Helpers.ReadList("Newszine list.txt")
+listOfNewszines=Helpers.ReadList("control-newszines.txt")
 listOfNewszines=[x.lower() for x in listOfNewszines]  # Need strip() to get rid of trailing /n (at least)
 
 nonNewszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() not in listOfNewszines]

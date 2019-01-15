@@ -1,0 +1,4 @@
+# Fanzines which have an odd format and should be ignored for now
+
+Legal Rules, The        # This is off in the conventions directory
+NEOSFS Newsletter, Issue 3, The

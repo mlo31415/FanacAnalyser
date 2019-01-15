@@ -1,0 +1,5 @@
+# Directories which must be skipped for some reason
+
+Plokta
+Vapourware
+Wastebasket

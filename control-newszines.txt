@@ -1,3 +1,5 @@
+# A list of newszines to go into the newszine index
+
 anglofanac
 Ansible
 Australian SF News
