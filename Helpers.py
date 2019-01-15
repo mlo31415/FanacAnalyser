@@ -181,23 +181,24 @@ def Log(text, isError=False):
     if g_newLogFanzine:
         logtitle=g_logFanzine
 
-    print(text)
-    print(text, file=g_logFile)
     if logtitle is not None:
         print(logtitle)
         print("\n"+logtitle, file=g_logFile)
 
+    print(text)
+    print(text, file=g_logFile)
+
     if isError:
-        print(text, file=g_errorFile)
         if logtitle is not None:
-            print("\n"+logtitle, file=g_errorFile)
+            print("----\n"+logtitle, file=g_errorFile)
+        print(text, file=g_errorFile)
 
 
 def LogSetFanzine(name):
     global g_logFanzine
     global g_lastLogFanzine
     global g_newLogFanzine
-    g_newLogFanzine=g_lastLogFanzine is None or g_lastLogFanzine != g_logFanzine
+    g_newLogFanzine=g_lastLogFanzine is None or g_lastLogFanzine != name
     g_logFanzine=name
     g_lastLogFanzine=g_logFanzine
 
