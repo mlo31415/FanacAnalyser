@@ -31,13 +31,12 @@ def ReadFanacFanzineIssues(fanacDirectories):
         unskippers=[
             "fanews",
         ]
-        skippers=[
-            #"Australian Science Fiction Bullsheet, The",
-            #"Bullsheet",
-            "Plokta",
-            "Vapourware",
-            "Wastebasket"
-        ]
+
+        global skippers  # Not actually used anywhere else, but for performance sake, should be read once and retained
+        try:
+            skippers
+        except NameError:
+            skippers=Helpers.ReadList("control-skippers.txt")
         if dirname in skippers:
             Helpers.Log(dirname+"      ***Skipping because it is in skippers", True)
             continue
@@ -220,13 +219,13 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
     try:
         singletons
     except NameError:
-        singletons=Helpers.ReadList("singletons.txt")
+        singletons=Helpers.ReadList("control-singletons.txt")
 
     global weirdos   # Not actually used anywhere else, but for performance sake, should be read once and retained
     try:
         weirdos
     except NameError:
-        weirdos=Helpers.ReadList("weirdos.txt")
+        weirdos=Helpers.ReadList("control-weirdos.txt")
 
     # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
     # If this is the root of one of them...
@@ -234,7 +233,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
     try:
         specialBiggies
     except NameError:
-        specialBiggies=Helpers.ReadList("specialBiggies.txt")
+        specialBiggies=Helpers.ReadList("control-specialBiggies.txt")
     if fanzineName in specialBiggies:
         ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
         return
