@@ -26,6 +26,13 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
+        # # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
+        # unskippers=[
+        #     "Bullsheet",
+        # ]
+        # if dirname not in unskippers:  continue
+        # # if not dirname.lower().startswith("fanews"): continue
+
         Helpers.LogSetFanzine("'"+dirname+"'      '"+title+"'")
 
         global skippers  # Not actually used anywhere else, but for performance sake, should be read once and retained
@@ -40,13 +47,6 @@ def ReadFanacFanzineIssues(fanacDirectories):
         if dirname.startswith("http://"):
             Helpers.Log("***skipped because the index page pointed to is not on fanac.org: "+dirname, True)
             continue
-
-        # # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
-        # unskippers=[
-        #     "fanews",
-        # ]
-        # if dirname not in unskippers:  continue
-        # if not dirname.lower().startswith("fanews"): continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
@@ -212,7 +212,8 @@ FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIss
 def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList):
     global g_browser
 
-    print("   ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
+    Helpers.Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
+
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
     global singletons   # Not actually used anywhere else, but for performance sake, should be read once and retained
