@@ -48,7 +48,7 @@ def FindBracketedText(s, b):
         return "", ""
     l1=strlower.find(">", l1)
     if l1 == -1:
-        print("***Error: no terminating '>' found in "+strlower+"'")
+        Log("***Error: no terminating '>' found in "+strlower+"'", True)
         return "", ""
     l2=strlower.find("</"+b.lower()+">", l1+1)
     if l2 == -1:
@@ -174,18 +174,41 @@ def CompareCompressedName(n1, n2):
 def Log(text, isError=False):
     global g_logFile
     global g_errorFile
+    global g_logFanzine
+    global g_lastLogFanzine
+
+    logtitle=None
+    if g_logFanzine is not None and (g_lastLogFanzine is None or g_logFanzine != g_lastLogFanzine):
+        logtitle=g_logFanzine
+
+    g_lastLogFanzine=g_logFanzine
 
     print(text)
     print(text, file=g_logFile)
+    if logtitle is not None:
+        print(logtitle)
+        print("\n"+logtitle, file=g_logFile)
 
     if isError:
         print(text, file=g_errorFile)
+        if logtitle is not None:
+            print("\n"+logtitle, file=g_errorFile)
+
+def LogSetFanzine(name):
+    global g_logFanzine
+    g_logFanzine=name
 
 def LogOpen(logfilename, errorfilename):
     global g_logFile
     g_logFile=open(logfilename, "w+")
+
     global g_errorFile
     g_errorFile=open(errorfilename, "w+")
+
+    global g_logFanzine
+    g_logFanzine=None
+    global g_lastLogFanzine
+    g_lastLogFanzine=None
 
 def LogClose():
     global g_logFile

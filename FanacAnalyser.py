@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import FanacDates
 
-Helpers.LogOpen("Fanac Analysis Log.txt", "Fanac Error Log.txt")
+Helpers.LogOpen("Fanac Analyzer Detailed Analysis Log.txt", "Fanac Analyzer Error Log.txt")
 
 # ====================================================================================
 # Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html

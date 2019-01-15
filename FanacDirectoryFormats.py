@@ -1,4 +1,5 @@
 import collections
+import Helpers
 
 # ============================================================================================
 global g_FanacFanzineDirectoryFormats
@@ -51,7 +52,7 @@ class FanacDirectoryFormats:
             # We apparently have a data line. Split it into tokens. Remove leading and trailing blanks, but not internal blanks.
             spl=line.split(",")
             if len(spl)<3:  # There has to be at least three tokens (the two numbers and at least one directory name)
-                print("***Something's wrong with "+line)
+                Helpers.Log("***Something's wrong with "+line, True)
                 continue
             nums=spl[:2]
             spl=spl[2:]

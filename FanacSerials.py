@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import roman
+import Helpers
 import re
 
 @dataclass()
@@ -202,7 +203,7 @@ class FanacSerial:
                 wholeInt=int(wholeText)
             except:
                 if wholeText is not None and len(wholeText)>0:
-                    print("*** Uninterpretable Whole number: '"+str(wholeText)+"'")
+                    Helpers.Log("*** Uninterpretable Whole number: '"+str(wholeText)+"'", True)
                 wholeInt=None
 
         if volNumText is not None:
@@ -221,7 +222,7 @@ class FanacSerial:
                     volInt=roman.fromRoman(volText.upper())
                 except:
                     if volText is not None and len(volText)>0:
-                        print("*** Uninterpretable Vol number: '"+str(volText)+"'")
+                        Helpers.Log("*** Uninterpretable Vol number: '"+str(volText)+"'", True)
                     volInt=None
 
         # If there's no vol, anything under "Num", etc., must actually be a whole number
@@ -239,7 +240,7 @@ class FanacSerial:
                 numInt=int(numText)
             except:
                 if numText is not None and len(numText)>0:
-                    print("*** Uninterpretable Num number: '"+str(numText)+"'")
+                    Helpers.Log("*** Uninterpretable Num number: '"+str(numText)+"'", True)
                 numInt=None
 
         # OK, now figure out the vol, num and whole.
@@ -274,12 +275,12 @@ class FanacSerial:
                     if numInt is None:
                         numInt=ser.Num
                     if volInt != ser.Vol or numInt != ser.Num:
-                        print("***Inconsistent serial designations: "+str(volInt)+"!="+str(ser.Vol)+"  or  "+str(numInt)+"!="+str(ser.Num))
+                        Helpers.Log("***Inconsistent serial designations: "+str(volInt)+"!="+str(ser.Vol)+"  or  "+str(numInt)+"!="+str(ser.Num), True)
                 elif ser.Num is not None:
                     if wholeInt is None:
                         wholeInt=ser.Num
                     if wholeInt != ser.Num:
-                        print("***Inconsistent serial designations: "+str(wholeInt)+"!="+str(ser.Num))
+                        Helpers.Log("***Inconsistent serial designations: "+str(wholeInt)+"!="+str(ser.Num), True)
 
                 if ser.Whole is not None:
                     wholeInt=ser.Whole

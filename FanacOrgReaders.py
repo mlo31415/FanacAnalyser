@@ -26,11 +26,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
-        Helpers.Log(dirname+",      '"+title+"'", True)
-
-        unskippers=[
-            "fanews",
-        ]
+        Helpers.LogSetFanzine("'"+dirname+"'      '"+title+"'")
 
         global skippers  # Not actually used anywhere else, but for performance sake, should be read once and retained
         try:
@@ -45,8 +41,12 @@ def ReadFanacFanzineIssues(fanacDirectories):
             Helpers.Log(dirname+"      ***skipped because the index page pointed to is not on fanac.org", True)
             continue
 
-        #if dirname not in unskippers:  continue
-        #if not dirname.lower().startswith("fanews"): continue
+        # # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
+        # unskippers=[
+        #     "fanews",
+        # ]
+        # if dirname not in unskippers:  continue
+        # if not dirname.lower().startswith("fanews"): continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
