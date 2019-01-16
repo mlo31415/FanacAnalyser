@@ -26,11 +26,11 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
-        # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
-        unskippers=[
-            "FightingSmofs",
-        ]
-        if dirname not in unskippers:  continue
+        # # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
+        # unskippers=[
+        #     "SF_Advertiser",
+        # ]
+        # if dirname not in unskippers:  continue
         # if not dirname.lower().startswith("fanews"): continue
 
         Helpers.LogSetFanzine("'"+dirname+"'      '"+title+"'")
@@ -308,7 +308,7 @@ def OpenSoup(directoryUrl):
         try:
             h=requests.get(directoryUrl)
         except:
-            Helpers.Log(directoryUrl+"***failed because it didn't load", True)
+            Helpers.Log("***failed because it didn't load: "+directoryUrl, True)
             return None
 
     # Next, parse the page looking for the body
@@ -447,6 +447,3 @@ def LocateIndexTable(directoryUrl, soup):
 
     Helpers.Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, True)
     return None
-
-
-
