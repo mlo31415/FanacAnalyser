@@ -4,6 +4,5 @@
 
 Memoirs_of_a_Superflous_Fan     # BeautifulSoup found no index table in index.html
 NOLAzine                        # BeautifulSoup found no index table in index.html
-Plokta                          # Not stored on fanac.org
 Smorgasbord                     # BeautifulSoup found no index table in index.html
 Vapourware                      # BeautifulSoup found no index table in index.html

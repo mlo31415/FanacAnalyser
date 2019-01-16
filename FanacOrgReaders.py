@@ -41,11 +41,22 @@ def ReadFanacFanzineIssues(fanacDirectories):
         except NameError:
             skippers=Helpers.ReadList("control-skippers.txt")
         if dirname in skippers:
-            Helpers.Log(dirname+"***Skipping because it is in skippers: "+dirname, True)
+            Helpers.Log(dirname+"***Skipping because it is in skippers: "+dirname, isError=True)
             continue
 
+        # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
+        global offsite  # Not actually used anywhere else, but for performance sake, should be read once and retained
+        try:
+            offsite
+        except NameError:
+            offsite=Helpers.ReadList("control-offsite.txt")
+        if dirname in offsite:
+            Helpers.Log(dirname+"***Skipping because it is in offsite: "+dirname)
+            continue
+
+        # Besides the offsite table, we try to detect references which are offsite from their URLs
         if dirname.startswith("http://"):
-            Helpers.Log("***skipped because the index page pointed to is not on fanac.org: "+dirname, True)
+            Helpers.Log("***skipped because the index page pointed to is not on fanac.org: "+dirname, isError=True)
             continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
@@ -54,11 +65,11 @@ def ReadFanacFanzineIssues(fanacDirectories):
         if url is None:
             continue
         if not url.startswith("http://www.fanac.org"):
-            Helpers.Log("***skipped because not a fanac.org url: "+url, True)
+            Helpers.Log("***skipped because not a fanac.org url: "+url, isError=True)
             continue
 
         if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-            Helpers.Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, True)
+            Helpers.Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
             continue
 
         ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo)
@@ -277,7 +288,7 @@ def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
     # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
 
     # Scan for flagged tables on this page
-    table=LocateIndexTable(directoryUrl, soup)
+    table=LocateIndexTable(directoryUrl, soup, silence=True)
     if table is not None:
         ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table)
 
@@ -421,7 +432,7 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
 
 #===============================================================================
 # Locate a fanzine index table.
-def LocateIndexTable(directoryUrl, soup):
+def LocateIndexTable(directoryUrl, soup, silence=False):
     global g_browser
 
     # Because the structures of the pages are so random, we need to search the body for the table.
@@ -445,5 +456,6 @@ def LocateIndexTable(directoryUrl, soup):
     if table is not None:
         return table
 
-    Helpers.Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, True)
+    if not silence:
+        Helpers.Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, True)
     return None
