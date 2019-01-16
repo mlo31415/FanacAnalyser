@@ -319,7 +319,7 @@ def OpenSoup(directoryUrl):
         try:
             h=requests.get(directoryUrl)
         except:
-            Helpers.Log("***failed because it didn't load: "+directoryUrl, True)
+            Helpers.Log("***failed because it didn't load: "+directoryUrl, isError=True)
             return None
 
     # Next, parse the page looking for the body
@@ -337,7 +337,7 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
             found=stuff
             break
     if found is None:
-        Helpers.Log("***Failed to find date in '"+directoryUrl+"' which is a singleton.", True)
+        Helpers.Log("***Failed to find date in singleton '"+directoryUrl+"'", isError=True)
         return
     content=[str(e) for e in found.contents if type(e) is NavigableString]
     # The name is content[0] (usually!)
@@ -427,7 +427,7 @@ def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
                 urlT="*No URL*"
             Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  ["+fi.Serial.FormatSerial()+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
         else:
-            Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, True)
+            Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, isError=True)
 
 
 #===============================================================================
@@ -457,5 +457,5 @@ def LocateIndexTable(directoryUrl, soup, silence=False):
         return table
 
     if not silence:
-        Helpers.Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, True)
+        Helpers.Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, isError=True)
     return None

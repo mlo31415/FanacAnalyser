@@ -273,7 +273,7 @@ def InterpretYear(yearText):
         except:
             pass
 
-    Helpers.Log("   ***Year conversion failed: '"+yearText+"'", True)
+    Helpers.Log("   ***Year conversion failed: '"+yearText+"'", isError=True)
     return None
 
 
@@ -295,7 +295,7 @@ def InterpretDay(dayData):
     try:
         day=int(dayData)
     except:
-        Helpers.Log("   ***Day conversion failed: '"+dayData+"'", True)
+        Helpers.Log("   ***Day conversion failed: '"+dayData+"'", isError=True)
         day=None
     return day
 
@@ -335,7 +335,7 @@ def InterpretMonth(monthData):
 
     monthInt=MonthToInt(monthData)
     if monthInt is None:
-        Helpers.Log("   ***Month conversion failed: "+monthData, True)
+        Helpers.Log("   ***Month conversion failed: "+monthData, isError=True)
         monthInt=None
 
     return monthInt
