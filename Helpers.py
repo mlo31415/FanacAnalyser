@@ -1,4 +1,5 @@
 import os
+import re
 from bs4 import NavigableString
 import urllib
 
@@ -246,6 +247,18 @@ def ChangeFileInURL(url, newFileName):
     return urllib.parse.urlunparse(u)
 
 
+# =============================================================================
+# Check to see if an argument (int, float or string) is a number
+def IsInt(arg):
+    if type(arg) is int:
+        return True
+
+    try:
+        x=int(arg)  # We throw away the result -- all we're interested in is if the conversation can be done without throwing an error
+        return True
+    except:
+        return False
+
 
 # =============================================================================
 # Check to see if an argument (int, float or string) is a number
@@ -278,3 +291,40 @@ def ReadList(filename):
     list=[l for l in list if l.find(" #") == -1] + [l[:l.find(" #")].strip() for l in list if l.find(" #") > 0]    # (all members not containing " #") +(the rest with the trailing # stripped)
 
     return list
+
+
+# =============================================================================
+# Try to interpret a string as an integer
+#   nnn
+#   nnn-nnn
+#   nnn.nnn
+#   nnnaaa
+def InterpretNumber(inputstring):
+    value=None
+    if inputstring is not None:
+        inputstring=inputstring.strip()
+        if IsInt(inputstring):  # Simple integer
+            value=int(inputstring)
+        if value is None:
+            # nn-nn (Hyphenated integers which usually means a range of numbers)
+            p=re.compile("^([0-9]+)-([0-9]+)$")  # nnn + dash + nnn
+            m=p.match(inputstring)
+            if m is not None and len(m.groups()) == 2:
+                value=int(m.groups()[0])  # We just sorta ignore n2...
+        if value is None:
+            # nn.nn (Decimal number)
+            p=re.compile("^([0-9]+).([0-9]+)$")  # nnn.nnn
+            m=p.match(inputstring)
+            if m is not None and len(m.groups()) == 2:
+                value=int(m.groups()[0])  # We just sorta ignore n2...
+        if value is None:
+            # nnaa (integer followed by letter)
+            p=re.compile("^([0-9]+)\s?([a-zA-Z]+)$")  # nnn + optional space + nnn
+            m=p.match(inputstring)
+            if m is not None and len(m.groups()) == 2:
+                value=int(m.groups()[0])
+        if value is None:
+            if inputstring is not None and len(inputstring) > 0:
+                Log("*** Uninterpretable number: '"+str(inputstring)+"'", True)
+            value=None
+    return value

@@ -56,7 +56,7 @@ class FanacSerial:
                 self.Suffix=m.groups()[2]
             return self
 
-        # Now look for nnn nnn/nnn
+        # Now look for nnn nnn/nnn (fractions!)
         p=re.compile("^.*?([0-9]+)\s+([0-9]+)/([0-9]+)\s*$")    # Leading stuff + nnn + mandatory whitespace + nnn + slash + nnn * optional whitespace
         m=p.match(s)
         if m is not None and len(m.groups()) == 3:
@@ -197,14 +197,8 @@ class FanacSerial:
         maybeWholeInt=None
         suffix=None
 
-        # TODO: Need to deal with hyphenated volume and issue numbers, e.g.,  3-4
         if wholeText is not None:
-            try:
-                wholeInt=int(wholeText)
-            except:
-                if wholeText is not None and len(wholeText)>0:
-                    Helpers.Log("*** Uninterpretable Whole number: '"+str(wholeText)+"'", True)
-                wholeInt=None
+            wholeInt=Helpers.InterpretNumber(wholeText)
 
         if volNumText is not None:
             ser=FanacSerial().InterpretSerial(volNumText)
@@ -214,16 +208,7 @@ class FanacSerial:
                 suffix=ser.Suffix
 
         if volText is not None:
-            try:
-                volInt=int(volText)
-            except:
-                # Maybe it's in Roman numerals?
-                try:
-                    volInt=roman.fromRoman(volText.upper())
-                except:
-                    if volText is not None and len(volText)>0:
-                        Helpers.Log("*** Uninterpretable Vol number: '"+str(volText)+"'", True)
-                    volInt=None
+            volInt=Helpers.InterpretNumber(volText)
 
         # If there's no vol, anything under "Num", etc., must actually be a whole number
         if volText is None:
@@ -236,12 +221,7 @@ class FanacSerial:
 
         # But if the *is* a volume specified, than any number not labelled "whole" must be a number within the volume
         if volText is not None and numText is not None:
-            try:
-                numInt=int(numText)
-            except:
-                if numText is not None and len(numText)>0:
-                    Helpers.Log("*** Uninterpretable Num number: '"+str(numText)+"'", True)
-                numInt=None
+            numInt=Helpers.InterpretNumber(numText)
 
         # OK, now figure out the vol, num and whole.
         # First, if a Vol is present, and an unambigious num is absent, the an ambigious Num must be the Vol's num
@@ -292,3 +272,4 @@ class FanacSerial:
         self.Whole=wholeInt
         self.Suffix=suffix
         return self
+
