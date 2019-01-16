@@ -233,12 +233,6 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
     except NameError:
         singletons=Helpers.ReadList("control-singletons.txt")
 
-    global weirdos   # Not actually used anywhere else, but for performance sake, should be read once and retained
-    try:
-        weirdos
-    except NameError:
-        weirdos=Helpers.ReadList("control-weirdos.txt")
-
     # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
     # If this is the root of one of them...
     global specialBiggies   # Not actually used anywhere else, but for performance sake, should be read once and retained
@@ -249,10 +243,6 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
 
     if fanzineName in specialBiggies:
         ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
-        return
-
-    # Ignore weirdos for now
-    if fanzineName in weirdos:
         return
 
     # It looks like this is a single level directory.

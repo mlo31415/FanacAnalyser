@@ -1,5 +1,0 @@
-# Fanzines which have an odd format
-# They are ignored for now, but really ought to be fixed.  Maybe on fanac.org, maybe in the code
-# ("#" marks a comment and everything from the # to the end of the lis is ignored)
-
-Legal Rules, The        # This is off in the conventions directory
