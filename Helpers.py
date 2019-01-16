@@ -2,6 +2,7 @@ import os
 import re
 from bs4 import NavigableString
 import urllib
+import roman
 
 
 #-------------------------------------------------------------
@@ -324,7 +325,11 @@ def InterpretNumber(inputstring):
             if m is not None and len(m.groups()) == 2:
                 value=int(m.groups()[0])
         if value is None:
+            p=re.compile("^([IVXLC]+)$")  # roman numeral characters
+            m=p.match(inputstring)
+            if m is not None and len(m.groups()) == 1:
+                value=roman.fromRoman(m.groups()[0])
+        if value is None:
             if inputstring is not None and len(inputstring) > 0:
                 Log("*** Uninterpretable number: '"+str(inputstring)+"'", True)
-            value=None
     return value

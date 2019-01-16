@@ -75,7 +75,7 @@ class FanacSerial:
         p=re.compile("^\s*([IVXLC]+)/([0-9]+)\s*$")  # Leading whitespace + roman numeral characters + slash + nnn + whitespace
         m=p.match(s)
         if m is not None and len(m.groups()) == 2:
-            self.Vol=roman.fromRoman(int(m.groups()[0]))
+            self.Vol=roman.fromRoman(m.groups()[0])
             self.Num=int(m.groups()[1])
             return self
 
