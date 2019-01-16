@@ -1,0 +1,17 @@
+# Directories which do not appear in our indexes because there is no index table on fanac.org
+
+http://news.ansible.co.uk
+http://www.efanzines.com/Apparatchik
+http://www.baryon-online.com        # Baryon Magazine
+http://efanzines.com/eFNAC
+http://www.emcit.com        # Emerald City
+http://home.westman.wave.ca/~hillmans/erbmg101.htm      # ERBzine
+http://www.mindspring.com/~huntzinger       # Fully Caffeinated
+http://www.rightword.com.au/ptero           # Grilled Pterodactyl
+http://www.bidalaka.com/picofarad       # Picofarad
+http://www.planetarystories.com
+Plokta
+http://www.panix.com/~vr/quipu.htm      # Quipu
+http://efanzines.com/RSNG           # Royal Swiss Navy Gazette, The
+http://groups.yahoo.com/group/WOSSNAME
+http://www.wsfa.org/journal
