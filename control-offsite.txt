@@ -1,4 +1,5 @@
 # Directories which do not appear in our indexes because there is no index table on fanac.org
+# ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
 http://news.ansible.co.uk
 http://www.efanzines.com/Apparatchik

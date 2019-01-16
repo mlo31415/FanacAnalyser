@@ -2,7 +2,5 @@
 # These probably need to be dealt with on the fanac.org side of things
 # ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
-Memoirs_of_a_Superflous_Fan     # BeautifulSoup found no index table in index.html
 NOLAzine                        # BeautifulSoup found no index table in index.html
 Smorgasbord                     # BeautifulSoup found no index table in index.html
-Vapourware                      # BeautifulSoup found no index table in index.html

@@ -3,4 +3,3 @@
 # ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
 Legal Rules, The        # This is off in the conventions directory
-NEOSFS Newsletter, Issue 3, The

@@ -1,38 +1,18 @@
-# These are fanzines where we have a single issue, in a variety of formats
+# These are fanzines where we have a single issue, in a variety of formats.  They do *not* have an issue index
 # They are read using special code
 # ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
-Ah_Sweet_Idiocy
 BNF_of_IZ
-Chanticleer
-Cosmag
 emu
 Enchanted_Duplicator
 Entropy
-Fan-Fare
-FanToSee
 Flight of the Kangaroo, The
 Leaflet
 LeeHoffman
-Mallophagan
-Masque
+Memoirs_of_a_Superflous_Fan
 Monster
-NOSFAn
-Planeteer
 Sense_FAPA
 SF_Digest
-SF_Digest_2
 SFSFS
-SpaceDiversions
 SpaceFlight
-SpaceMagazine
-Starlight
-SunSpots
-Tails_of_Fandom
-Tomorrow
-Toto
-Vanations
-Vertigo
-WildHair
 Willis_Papers
-Yandro
