@@ -261,13 +261,18 @@ class FanacSerial:
                         volInt=ser.Vol
                     if numInt is None:
                         numInt=ser.Num
-                    if volInt != ser.Vol or numInt != ser.Num:
-                        Helpers.Log("***Inconsistent serial designations: Either due to Volume='"+str(volInt)+"' which is not '"+str(ser.Vol)+"'  or due to Number='"+str(numInt)+"' which is not '"+str(ser.Num)+"'", isError=True)
+
+                    if volInt != ser.Vol:
+                        Helpers.Log("***Inconsistent serial designations: Volume='"+str(volInt)+"' which is not Vol='"+str(ser.Vol)+"'", isError=True)
+                    if numInt != ser.Num:
+                        Helpers.Log("***Inconsistent serial designations: Number='"+str(numInt)+"' which is not Num='"+str(ser.Num)+"'", isError=True)
+
                 elif ser.Num is not None:
                     if wholeInt is None:
                         wholeInt=ser.Num
+
                     if wholeInt != ser.Num:
-                        Helpers.Log("***Inconsistent serial designations: Whole Number='"+str(wholeInt)+"'  while Number='"+str(ser.Num)+"'", isError=True)
+                        Helpers.Log("***Inconsistent serial designations: Whole='"+str(wholeInt)+"'  which is not Num='"+str(ser.Num)+"'", isError=True)
 
                 if ser.Whole is not None:
                     wholeInt=ser.Whole
