@@ -311,13 +311,13 @@ def InterpretNumber(inputstring):
             p=re.compile("^([0-9]+)-([0-9]+)$")  # nnn + dash + nnn
             m=p.match(inputstring)
             if m is not None and len(m.groups()) == 2:
-                value=int(m.groups()[0])  # We just sorta ignore n2...
+                value=int(m.groups()[0])        # We just sorta ignore n2...
         if value is None:
             # nn.nn (Decimal number)
-            p=re.compile("^([0-9]+).([0-9]+)$")  # nnn.nnn
+            p=re.compile("^([0-9]+.[0-9]+)$")   # nnn.nnn
             m=p.match(inputstring)
-            if m is not None and len(m.groups()) == 2:
-                value=int(m.groups()[0])  # We just sorta ignore n2...
+            if m is not None and len(m.groups()) == 1:
+                value=float(m.groups()[0])      # Note that this returns a float
         if value is None:
             # nnaa (integer followed by letter)
             p=re.compile("^([0-9]+)\s?([a-zA-Z]+)$")  # nnn + optional space + nnn
@@ -325,7 +325,7 @@ def InterpretNumber(inputstring):
             if m is not None and len(m.groups()) == 2:
                 value=int(m.groups()[0])
         if value is None:
-            p=re.compile("^([IVXLC]+)$")  # roman numeral characters
+            p=re.compile("^([IVXLC]+)$")        # roman numeral characters
             m=p.match(inputstring)
             if m is not None and len(m.groups()) == 1:
                 value=roman.fromRoman(m.groups()[0])
