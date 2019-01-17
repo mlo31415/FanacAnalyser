@@ -3,6 +3,8 @@ import FanacOrgReaders
 import requests
 from bs4 import BeautifulSoup
 import FanacDates
+from tkinter import *
+from tkinter import messagebox
 
 Helpers.LogOpen("Fanac Analyzer Detailed Analysis Log.txt", "Fanac Analyzer Error Log.txt")
 
@@ -209,3 +211,8 @@ WriteTextFile("Alphabetical Listing of Fanzines.txt", fanacIssueList, lambda fz:
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
 print("1943 Fanzines: "+str(count1943))
+
+# Display a message box (needed only for the built/packaged version
+root = Tk()
+messagebox.showinfo(title=None, message="Finished!")
+root.withdraw()
