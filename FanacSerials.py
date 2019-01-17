@@ -79,6 +79,13 @@ class FanacSerial:
             self.Num=int(m.groups()[1])
             return self
 
+        # Next look for nnn-nnn (which is a range of issue numbers; only the start is returned)
+        p=re.compile("^.*?([0-9]+)-([0-9]+)\s*$")    # Leading stuff + nnn + dash + nnn * optional whitespace
+        m=p.match(s)
+        if m is not None and len(m.groups()) == 2:
+            self.Whole=int(m.groups()[0])
+            return self
+
         # Now look for a trailing decimal number
         p=re.compile("^.*?([0-9]+\.[0-9]+)\s*$")    # Leading characters + single non-digit + nnn + dot + nnn + whitespace
                                                     # the ? makes * a non-greedy quantifier
