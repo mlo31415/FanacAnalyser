@@ -26,11 +26,11 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
-        # # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
-        # unskippers=[
-        #     "SF_Advertiser",
-        # ]
-        # if dirname not in unskippers:  continue
+        # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
+        unskippers=[
+            #"Fanscient",
+        ]
+        if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
         # if not dirname.lower().startswith("fanews"): continue
 
         Helpers.LogSetFanzine("'"+dirname+"'      '"+title+"'")
