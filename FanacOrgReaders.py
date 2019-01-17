@@ -41,7 +41,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
         except NameError:
             skippers=Helpers.ReadList("control-skippers.txt")
         if dirname in skippers:
-            Helpers.Log(dirname+"***Skipping because it is in skippers: "+dirname, isError=True)
+            Helpers.Log("***Skipping because it is in skippers: "+dirname, isError=True)
             continue
 
         # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
@@ -51,7 +51,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
         except NameError:
             offsite=Helpers.ReadList("control-offsite.txt")
         if dirname in offsite:
-            Helpers.Log(dirname+"***Skipping because it is in offsite: "+dirname)
+            Helpers.Log("***Skipping because it is in offsite: "+dirname)
             continue
 
         # Besides the offsite table, we try to detect references which are offsite from their URLs
