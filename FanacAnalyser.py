@@ -174,6 +174,7 @@ for fz in fanacIssueList:
 f.close()
 
 # Produce a list of fanzines listed by date
+fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower(), reverse=True)  # Sorts in place on fanzine's name
 fanacIssueList.sort(key=lambda elem: elem.Date)
 
 WriteTextFile("Chronological Listing of Fanzines.txt", fanacIssueList, lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None), lambda fz: fz.FanzineIssueName)
