@@ -212,7 +212,8 @@ print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
 print("1943 Fanzines: "+str(count1943))
 
-# Display a message box (needed only for the built/packaged version
-root = Tk()
-messagebox.showinfo(title=None, message="Finished!")
-root.withdraw()
+# Display a message box (needed only for the built/packaged version)
+if sys.gettrace() is not None:      # This is an incantation which detects the presence of a debugger
+    root = Tk()
+    messagebox.showinfo(title=None, message="Finished!")
+    root.withdraw()
