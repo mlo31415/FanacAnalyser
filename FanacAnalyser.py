@@ -2,6 +2,7 @@ import Helpers
 import FanacOrgReaders
 import requests
 from bs4 import BeautifulSoup
+import os
 import FanacDates
 from tkinter import *
 from tkinter import messagebox
@@ -49,6 +50,10 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
 
 #================================================================================
 # Generate html for a chronological table
+# The overall strategy here is to use nested tables.
+# We have one giant table with just one column for the whole thing
+# Each month is a table occupying the singel cell in a row in the uber-table
+# The month table consists of two columns and of as many rows as needed. The individual lines consist of a usually-blank first cell and a second cell containing the fanzine info
 def WriteHTMLFile(name, fanacIssueList, selector):
     f=open(name, "w+")
     f.write('<table border="2" cellspacing="4">\n')  # Begin the main table
@@ -94,8 +99,73 @@ def WriteHTMLFile(name, fanacIssueList, selector):
 
         # And end the row
         f.write('  </tr>\n')
+    # And end everything
     f.write("</table></td></tr>\n")
     f.write('</table>\n')
+    f.close()
+
+
+
+#================================================================================
+# fRowHeaderText and fRowBodyText and fSelector are all lambdas
+#   fSelector decides if this fanzines is to be listed and returns True for fanzines to be listed, and False for ones to be skipped
+#   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
+#   fRowHeaderText is the item used to decide when to start a new subsection
+#   fRowBodyText is what is listed in the subsection
+def WriteHtmlFile2(filename, fanacIssueList, fRowHeaderText, fRowBodyText, fSelector):
+    f=open(filename, "w+")
+
+    # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
+    html=os.path.splitext(filename)[1].lower() == ".html"
+    if html: f.write('<table border="2" cellspacing="4">\n')  # Begin the main table
+
+    lastRowHeader=None
+    for fz in fanacIssueList:
+        # Do we skip this fanzine
+        if not fSelector(fz):
+            continue
+        if html and fz.URL is None:
+            continue
+
+        # Deal with Column 1
+        if lastRowHeader != fRowHeaderText(fz):
+            if lastRowHeader is not None:  # Is this the first sub-box?
+                if html: f.write('</table></td></tr>\n')  # No.  So we must end the previous sub-box
+
+            if html: f.write('<tr><td><table>')  # Start a new sub-box
+            lastRowHeader=fRowHeaderText(fz)
+            # Since this is a new sub-box, we write the header in col 1
+            if html: f.write('    <tr><td width="120">\n'+lastRowHeader+'</td>\n')
+            else: f.write("\n"+fRowHeaderText(fz)+"\n")
+        else:
+            # Otherwise, we put an empty cell there
+            if html: f.write('    <tr><td width="120">&nbsp;</td>\n')  # Add an empty sub-box
+
+        # Deal with Column 2
+        # The hyperlink goes in column 2
+        # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+        # The former are easy, but the latter need to be processed
+        if html:
+            if "/" not in fz.URL:
+                url=fz.DirectoryURL+"/"+fz.URL
+            else:
+                # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
+                # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
+                parts=fz.URL.split("/")
+                if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
+                    url=fz.DirectoryURL+"/../"+"/".join(parts[-2:])
+                else:
+                    url=fz.URL
+            f.write('        <td width="250">'+'<a href="'+url+'">'+fz.FanzineIssueName+'</a>'+'</td>\n')
+        else:
+            f.write("   "+fRowBodyText(fz)+"\n")
+
+        # And end the row
+        if html: f.write('  </tr>\n')
+
+    # And end everything
+    if html: f.write("</table></td></tr>\n")
+    if html: f.write('</table>\n')
     f.close()
 
 
@@ -108,11 +178,14 @@ def WriteTextFile(filename, fanacIssueList, fHeaderText, fBodyText):
     f=open(filename, "w+")
     lastHeader=None
     for fz in fanacIssueList:
-        if fz.URL is not None:
-            if lastHeader != fHeaderText(fz):
-                f.write("\n"+fHeaderText(fz)+"\n")
-                lastHeader=fHeaderText(fz)
-            f.write("   "+fBodyText(fz)+"\n")
+        if fz.URL is None:
+            continue
+        if lastHeader != fHeaderText(fz):
+            # This is the start of a new box
+            f.write("\n"+fHeaderText(fz)+"\n")
+            lastHeader=fHeaderText(fz)
+        # And write a line in the current box
+        f.write("   "+fBodyText(fz)+"\n")
     f.close()
 
 
@@ -179,6 +252,8 @@ fanacIssueList.sort(key=lambda elem: elem.Date)
 
 WriteTextFile("Chronological Listing of Fanzines.txt", fanacIssueList, lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None), lambda fz: fz.FanzineIssueName)
 WriteHTMLFile("Chronological Listing of Fanzines.html", fanacIssueList, None)
+WriteHtmlFile2("Chronological Listing of Fanzines #2.html", fanacIssueList, lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None), lambda fz: fz.FanzineIssueName, lambda fz: True)
+WriteHtmlFile2("Chronological Listing of Fanzines #2.txt", fanacIssueList, lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None), lambda fz: fz.FanzineIssueName, lambda fz: True)
 
 # Get the names of the newszines as a list
 listOfNewszines=Helpers.ReadList("control-newszines.txt")
