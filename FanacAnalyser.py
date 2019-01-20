@@ -89,7 +89,7 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=Tr
     lastBLS=None
     for fz in fanacIssueList:
         # Do we skip this fanzine
-        if fSelector is not None and fSelector(fz):
+        if fSelector is not None and not fSelector(fz):
             continue
         if html and fz.URL is None:
             continue
@@ -255,7 +255,7 @@ WriteTable("Chronological Listing of Newszines.html",
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
-           lambda fx: fx.FanzineName.lower() in listOfNewszines)
+           fSelector=lambda fx: fx.FanzineName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
@@ -270,6 +270,14 @@ WriteTable("Alphabetical Listing of Fanzines.html",
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
            isDate=False)
+
+# Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
+WriteTable("Report - Fanzines with odd names.txt",
+           fanacIssueList,
+           lambda fz: fz.FanzineName,
+           lambda fz: fz.FanzineIssueName,
+           isDate=False,
+           fSelector=lambda fx: fx.FanzineIssueName[:3] != fx.FanzineName[:3])
 
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
