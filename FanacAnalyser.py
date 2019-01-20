@@ -54,20 +54,53 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
-def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, fSelector=None):
+def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=True, fSelector=None):
     f=open(filename, "w+")
 
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
     html=os.path.splitext(filename)[1].lower() == ".html"
+
+    # If we have an HTML header, we need to create a set of jump buttons.
+    # If it's alpha, the buttons are by 1st letter; if date it's by decade
+    # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
+    if html:
+        headers=set()
+        for fz in fanacIssueList:
+            if isDate:
+                headers.add(fRowHeaderText(fz)[-4:-1]+"0s")
+            else:
+                headers.add(fRowHeaderText(fz)[:1])
+
+        headerlist=list(headers)
+        headerlist.sort()
+        buttonlist=""
+        for item in headerlist:
+            if len(buttonlist) > 0:
+                buttonlist=buttonlist+" -- "
+            buttonlist=buttonlist+'<a href="#' + item + '">' + item + '</a>'
+
+        # Write out the button bar
+        f.write(buttonlist+"<p><p>")
+
+    # Start the table if this is HTML
     if html: f.write('<table border="2" cellspacing="4">\n')  # Begin the main table
 
     lastRowHeader=None
+    lastBLS=None
     for fz in fanacIssueList:
         # Do we skip this fanzine
         if fSelector is not None and fSelector(fz):
             continue
         if html and fz.URL is None:
             continue
+
+        # Get the button link string
+        bls=""
+        if html:
+            if isDate:
+                bls=fRowHeaderText(fz)[-4:-1]+"0s"
+            else:
+                bls=fRowHeaderText(fz)[:1]
 
         # Deal with Column 1
         if lastRowHeader != fRowHeaderText(fz):
@@ -77,8 +110,14 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, fSelector
             if html: f.write('<tr><td><table>')  # Start a new sub-box
             lastRowHeader=fRowHeaderText(fz)
             # Since this is a new sub-box, we write the header in col 1
-            if html: f.write('    <tr><td width="120">\n'+lastRowHeader+'</td>\n')
-            else: f.write("\n"+fRowHeaderText(fz)+"\n")
+            if html:
+                f.write('    <tr><td width="120">\n'+lastRowHeader)
+                if bls != lastBLS:
+                    f.write('<a name="#'+bls+'"></a>')
+                    lastBLS=bls
+                f.write('</td>\n')
+            else:
+                f.write("\n"+fRowHeaderText(fz)+"\n")
         else:
             # Otherwise, we put an empty cell there
             if html: f.write('    <tr><td width="120">&nbsp;</td>\n')  # Add an empty sub-box
@@ -215,8 +254,13 @@ fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place
 WriteTable("Alphabetical Listing of Fanzines.txt",
            fanacIssueList,
            lambda fz: fz.FanzineName,
-           lambda fz: fz.FanzineIssueName)
-WriteTable("Alphabetical Listing of Fanzines.html", fanacIssueList, lambda fz: fz.FanzineName, lambda fz: fz.FanzineIssueName)
+           lambda fz: fz.FanzineIssueName,
+           isDate=False)
+WriteTable("Alphabetical Listing of Fanzines.html",
+           fanacIssueList,
+           lambda fz: fz.FanzineName,
+           lambda fz: fz.FanzineIssueName,
+           isDate=False)
 
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
