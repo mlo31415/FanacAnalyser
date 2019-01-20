@@ -4,4 +4,3 @@
 
 Legal Rules, The                # This is off in the conventions directory
 NOLAzine                        # BeautifulSoup found no index table in index.html
-Smorgasbord                     # BeautifulSoup found no index table in index.html
