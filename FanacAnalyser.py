@@ -174,9 +174,7 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
 
 # Read the fanac.org fanzine directory and produce a list of all issues present
 fanacFanzineDirectories=ReadClassicModernPages()
-fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
-
-Helpers.LogClose()
+(fanacIssueList, newszinesFromH2)=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
 # Print a list of all fanzines found for 1943 sorted by fanzine name, then date
 fanacIssueList.sort(key=lambda elem: elem.Date)
@@ -224,6 +222,13 @@ WriteTable("Chronological Listing of Fanzines.txt",
 listOfNewszines=Helpers.ReadList("control-newszines.txt")
 listOfNewszines=[x.lower() for x in listOfNewszines]  # Need strip() to get rid of trailing /n (at least)
 
+# Now add in the newszines discovered in the <h2> blocks
+listOfNewszines=listOfNewszines+newszinesFromH2
+
+# This results in a lot of duplication.  Get rid of duplicates by turning listOfNewszines into a set and back again.
+# Note that this scrambles the order.
+listOfNewszines=list(set(listOfNewszines))
+
 nonNewszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() not in listOfNewszines]
 nonNewszines=sorted(list(set(nonNewszines)))
 
@@ -236,11 +241,15 @@ unusedLines=[x+"\n" for x in unusedLines]
 newszines=[x+"\n" for x in newszines]
 with open("Test - Newszines.txt", "w+") as f:
     f.writelines(newszines)
-with open("Test - Unused lines.txt", "w+") as f:
+with open("Test - Unused lines in newszines.txt", "w+") as f:
     f.writelines(unusedLines)
 nonNewszines=[x+"\n" for x in nonNewszines]
 with open("Test - Non-newzines.txt", "w+") as f:
     f.writelines(nonNewszines)
+
+newszinesFromH2=[x+"\n" for x in newszinesFromH2]
+with open("Test - newzines found by H2 tags.txt", "w+") as f:
+    f.writelines(newszinesFromH2)
 
 WriteTable("Chronological Listing of Newszines.html",
            fanacIssueList,
@@ -265,6 +274,8 @@ WriteTable("Alphabetical Listing of Fanzines.html",
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
 print("1943 Fanzines: "+str(count1943))
+
+Helpers.LogClose()
 
 # Display a message box (needed only for the built/packaged version)
 if sys.gettrace() is None:      # This is an incantation which detects the presence of a debugger

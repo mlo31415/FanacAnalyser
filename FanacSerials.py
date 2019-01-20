@@ -197,7 +197,7 @@ class FanacSerial:
     #==============================================================================
     # Given the contents of various table columns, attempt to extract serial information
     # This uses InterpretSerial for detailed decoding
-    def ExtractSerial(self, volText, numText, wholeText, volNumText, titleText):
+    def ExtractSerialNumber(self, volText, numText, wholeText, volNumText, titleText):
         wholeInt=None
         volInt=None
         numInt=None

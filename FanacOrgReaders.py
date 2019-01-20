@@ -23,12 +23,14 @@ def ReadFanacFanzineIssues(fanacDirectories):
     global g_browser
     g_browser=None
     fanacIssueInfo=[]
+    newszineList=[]
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
         unskippers=[
-            "Le_Zombie",
+            #"Focal_Point",
+            #"Karass",
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -71,14 +73,14 @@ def ReadFanacFanzineIssues(fanacDirectories):
             Helpers.Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
             continue
 
-        ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo)
+        ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo, newszineList)
 
     # Now fanacIssueList is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
     print("----Done reading index.html files on fanac.org")
     if g_browser is not None:
         g_browser.quit()
 
-    return fanacIssueInfo
+    return (fanacIssueInfo, newszineList)
 
 
 #=============================================================================================
@@ -150,7 +152,7 @@ def ExtractSerial(columnHeaders, row):
 
     titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
 
-    return FanacSerial().ExtractSerial(volText, numText, wholeText, volNumText, titleText)
+    return FanacSerial().ExtractSerialNumber(volText, numText, wholeText, volNumText, titleText)
 
 
 
@@ -219,7 +221,7 @@ FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIss
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList):
+def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList, newszineList):
     global g_browser
 
     Helpers.Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
@@ -260,7 +262,14 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
     if table is None:
         return
 
-    ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table)
+    # Check to see if this is marked as a Newszine
+    temp=soup.h2
+    if temp.text.find("Newszine") > -1:
+        print(">>>>>> Newszine added: '"+fanzineName+"'")
+        newszineList.append(fanzineName)
+
+    # Walk the table and extract the fanzines in it
+    ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, table)
     return
 
 
@@ -279,7 +288,7 @@ def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
     # Scan for flagged tables on this page
     table=LocateIndexTable(directoryUrl, soup, silence=True)
     if table is not None:
-        ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table)
+        ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, table)
 
     # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
     links=soup.find_all("a")
@@ -351,7 +360,7 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ReadFanzineIndexTable(directoryUrl, fanzineIssueList, fanzineName, table):
+def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, table):
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
