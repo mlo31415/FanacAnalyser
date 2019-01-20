@@ -274,6 +274,9 @@ WriteTable("Alphabetical Listing of Fanzines.html",
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
 print("1943 Fanzines: "+str(count1943))
+with open("Statistics.txt", "w+") as f:
+    print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount), file=f)
+    print("1943 Fanzines: "+str(count1943), file=f)
 
 Helpers.LogClose()
 
