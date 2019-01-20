@@ -1,4 +1,5 @@
 import os
+import os
 import re
 from bs4 import NavigableString
 import urllib
@@ -83,7 +84,7 @@ def RemoveHTMLDebris(str):
 #=====================================================================================
 # Function to generate the proper kind of path.  (This may change depending on the target location of the output.)
 def RelPathToURL(relPath):
-    if relPath == None:
+    if relPath is None:
         return None
     if relPath.startswith("http"):  # We don't want to mess with foreign URLs
         return None
@@ -127,7 +128,7 @@ def LookForTable(soup, flags):
     for table in tables:
         ok=True
         for key in flags.keys():
-            if key not in table.attrs or table.attrs[key]== None or table.attrs[key] != flags[key]:
+            if key not in table.attrs or table.attrs[key] is None or table.attrs[key] != flags[key]:
                 ok=False
                 break
         if ok:
