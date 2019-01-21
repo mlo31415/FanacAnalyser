@@ -272,12 +272,20 @@ WriteTable("Alphabetical Listing of Fanzines.html",
            isDate=False)
 
 # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
+def OddNames(n1, n2):
+    n1=n1.lower()
+    if n1[:4] == "the ":
+        n1=n1[4:]+", the"
+    n2=n2.lower()
+    if n2[:4] == "the ":
+        n2=n2[4:]+", the"
+    return n1[:3] != n2[:3]
 WriteTable("Report - Fanzines with odd names.txt",
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
            isDate=False,
-           fSelector=lambda fx: fx.FanzineIssueName[:3] != fx.FanzineName[:3])
+           fSelector=lambda fx: OddNames(fx.FanzineIssueName,  fx.FanzineName))
 
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
