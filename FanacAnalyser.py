@@ -7,7 +7,7 @@ import FanacDates
 from tkinter import *
 from tkinter import messagebox
 
-Helpers.LogOpen("Fanac Analyzer Detailed Analysis Log.txt", "Fanac Analyzer Error Log.txt")
+Helpers.LogOpen("Report - Fanac Analyzer Detailed Analysis Log.txt", "Report - Fanac Analyzer Error Log.txt")
 
 # ====================================================================================
 # Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html
@@ -271,15 +271,25 @@ WriteTable("Alphabetical Listing of Fanzines.html",
            lambda fz: fz.FanzineIssueName,
            isDate=False)
 
+def RemoveArticles(name):
+    if name[:4] == "The ":
+        return name[4:]
+    if name[:2] == "a ":
+        return name[2:]
+    # It's harder to find a trailing ', The'
+    if name.find(", The") > 0:
+        return name.replace(", The", "")
+    return name
+
 # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
 def OddNames(n1, n2):
-    n1=n1.lower()
-    if n1[:4] == "the ":
-        n1=n1[4:]+", the"
-    n2=n2.lower()
-    if n2[:4] == "the ":
-        n2=n2[4:]+", the"
-    return n1[:3] != n2[:3]
+    n1=RemoveArticles(n1).lower().strip()
+    n2=RemoveArticles(n2).lower().strip()
+
+    # We'd like them to match to the length of the shorter name
+    length=min(len(n1), len(n2))
+    return n1[:length] != n2[:length]
+
 WriteTable("Report - Fanzines with odd names.txt",
            fanacIssueList,
            lambda fz: fz.FanzineName,
@@ -290,7 +300,7 @@ WriteTable("Report - Fanzines with odd names.txt",
 print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
 print("1943 Fanzines: "+str(count1943))
-with open("Statistics.txt", "w+") as f:
+with open("Report - Statistics.txt", "w+") as f:
     print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount), file=f)
     print("1943 Fanzines: "+str(count1943), file=f)
 
