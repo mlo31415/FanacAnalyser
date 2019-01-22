@@ -191,7 +191,7 @@ def NoNone(str):
         return ""
     return str
 
-file=open("control-1943 fanac.org Fanzines.txt", "w+")
+file=open("Report - 1943 fanac.org Fanzines.txt", "w+")
 count1943=0
 for fz in fanacIssueList:
     if fz.Date.YearInt == 1943:
@@ -199,16 +199,21 @@ for fz in fanacIssueList:
         count1943=count1943+1
 file.close()
 
-# Get a count of issues and pages
+# Get a count of issues, pdfs, and pages
 pageCount=0
 issueCount=0
-f=open("Test - Items with No Page Count.txt", "w+")
+pdfcount=0
+f=open("Test - Items (not PDFs) with No Page Count.txt", "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
-        pageCount=pageCount+(fz.Pages if fz.Pages > 0 else 1)
-        issueCount=issueCount+1
-        if fz.Pages == 0:
-            f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
+        if os.path.split(fz.URL)[1] == ".pdf":
+            pdfcount+=1
+            pageCount+=1
+        else:
+            pageCount+=(fz.Pages if fz.Pages > 0 else 1)
+            issueCount+=1
+            if fz.Pages == 0:
+                f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
 f.close()
 
 # Produce a list of fanzines listed by date
@@ -307,7 +312,7 @@ print("\n")
 print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
 print("1943 Fanzines: "+str(count1943))
 with open("Report - Statistics.txt", "w+") as f:
-    print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount), file=f)
+    print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfcount), file=f)
     print("1943 Fanzines: "+str(count1943), file=f)
 
 Helpers.LogClose()
