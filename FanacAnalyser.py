@@ -207,7 +207,7 @@ f=open("Test - Items (not PDFs) with No Page Count.txt", "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
         issueCount+=1
-        if os.path.split(fz.URL)[1] == ".pdf":
+        if os.path.splitext(fz.URL)[1] == ".pdf":
             pdfCount+=1
             pageCount+=1
         else:
