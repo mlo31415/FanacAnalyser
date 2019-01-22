@@ -178,6 +178,9 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
     return
 
 
+#===========================================================================
+#===========================================================================
+# Main
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
 (fanacIssueList, newszinesFromH2)=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
@@ -191,12 +194,17 @@ def NoNone(str):
         return ""
     return str
 
-file=open("Report - 1943 fanac.org Fanzines.txt", "w+")
-count1943=0
+
+# Read the control-year.txt file to get the year to be dumped out
+text=Helpers.ReadList("control-year.txt")
+selectedYear=Helpers.InterpretNumber(text[0])
+
+file=open("Report - "+str(selectedYear)+" fanac.org Fanzines.txt", "w+")
+countSelectedYear=0
 for fz in fanacIssueList:
-    if fz.Date.YearInt == 1943:
+    if fz.Date.YearInt == selectedYear:
         file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
-        count1943=count1943+1
+        countSelectedYear+=1
 file.close()
 
 # Get a count of issues, pdfs, and pages
@@ -323,11 +331,11 @@ WriteTable("Report - Fanzines with odd names.txt",
 print("\n")
 print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
 print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
-print("1943 Fanzines: "+str(count1943))
+print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
 with open("Report - Statistics.txt", "w+") as f:
     print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
     print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
-    print("1943 Fanzines: "+str(count1943), file=f)
+    print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
 
 Helpers.LogClose()
 
