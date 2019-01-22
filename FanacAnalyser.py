@@ -59,6 +59,9 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=Tr
 
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
     html=os.path.splitext(filename)[1].lower() == ".html"
+    #if html: f.write('<iframe src="header.html"></iframe>')
+    if html:
+        f.write('<OBJECT data="header.html">\nWarning: file_to_include.html could not be included.</OBJECT>')
 
     # If we have an HTML header, we need to create a set of jump buttons.
     # If it's alpha, the buttons are by 1st letter; if date it's by decade
@@ -83,7 +86,8 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=Tr
         f.write(buttonlist+"<p><p>")
 
     # Start the table if this is HTML
-    if html: f.write('<table border="2" cellspacing="4">\n')  # Begin the main table
+    if html:
+        f.write('<table border="2" cellspacing="4">\n')  # Begin the main table
 
     lastRowHeader=None
     lastBLS=None
@@ -145,8 +149,10 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=Tr
         if html: f.write('  </tr>\n')
 
     # And end everything
-    if html: f.write("</table></td></tr>\n")
-    if html: f.write('</table>\n')
+    if html:
+        f.write("</table></td></tr>\n")
+        f.write('</table>\n')
+        f.write('<iframe src="footer.html" seamless></iframe>')
     f.close()
 
 
