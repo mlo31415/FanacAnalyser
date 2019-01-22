@@ -230,6 +230,13 @@ class FanacDate:
         return self
 
 
+    # =================================================================================
+    # Returns True for a FanaDate which is internally None
+    # Returns False if any of the internal state is set to a value
+    def IsEmpty(self):
+        return self.YearText is None and self.YearInt is None and self.MonthText is None and self.MonthInt is None and self.DayText is None and self.DayInt is None and self.Raw is None and self.Date is None
+
+
 # =================================================================================
 # Convert 2-digit years to four digit years
 # We accept 2-digit years from 1933 to 2032

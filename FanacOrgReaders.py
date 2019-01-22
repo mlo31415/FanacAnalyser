@@ -4,7 +4,6 @@ import requests
 import collections
 import Helpers
 import re
-import os
 import FanacDates
 from FanacDates import FanacDate
 import FanacSerials
@@ -29,8 +28,10 @@ def ReadFanacFanzineIssues(fanacDirectories):
     for title, dirname in fanacDirectories:
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
         unskippers=[
-            #"Focal_Point",
-            #"Karass",
+            #"MT_Void",
+            #"Opuntia",
+            #"Leaflet",
+            #"Irish_Fandom",
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -329,29 +330,25 @@ def OpenSoup(directoryUrl):
 # Read a singleton-format fanzine page
 def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
     # Usually, a singleton has the information in the first h2 block
-    found=None
-    for stuff in soup:
-        if stuff.name=="h2":
-            found=stuff
-            break
-    if found is None:
-        Helpers.Log("***Failed to find date in singleton '"+directoryUrl+"'", isError=True)
+    if soup.h2 is None:
+        Helpers.Log("***Failed to find <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
-    content=[str(e) for e in found.contents if type(e) is NavigableString]
-    # The name is content[0] (usually!)
+
+    content=[str(e) for e in soup.h2.contents if type(e) is NavigableString]
+
+    # The title is the first line
+    title=content[0]
+
     # The date is the first line that looks like a date
     date=None
     for c in content:
-        if Helpers.InterpretDateString(c) is not None:
-            date=Helpers.InterpretDateString(c)
+        date=FanacDate().Parse(c)
+        if not date.IsEmpty():
             break
-    y=m=d=None
-    if date is not None:
-        y=date.year
-        m=date.month
-        d=date.day
-    date=FanacDate()
-    date.Set(str(y), y, str(m), m, str(d), d)
+    if date.IsEmpty():
+        Helpers.Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
+        return
+
     fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Serial=FanacSerial(), Pages=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
@@ -394,6 +391,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, ta
                 newRow.append(cellval)
         tableRows.append(newRow)
 
+#TODO: We need to skip entries which point to a directory: E.g., Axe in Irish_Fandom
     # Now we process the table rows, extracting the information for each fanzine issue.
     for i in range(0, len(tableRows)):
         # We need to skip the column headers
