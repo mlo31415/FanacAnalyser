@@ -202,16 +202,16 @@ file.close()
 # Get a count of issues, pdfs, and pages
 pageCount=0
 issueCount=0
-pdfcount=0
+pdfCount=0
 f=open("Test - Items (not PDFs) with No Page Count.txt", "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
+        issueCount+=1
         if os.path.split(fz.URL)[1] == ".pdf":
-            pdfcount+=1
+            pdfCount+=1
             pageCount+=1
         else:
             pageCount+=(fz.Pages if fz.Pages > 0 else 1)
-            issueCount+=1
             if fz.Pages == 0:
                 f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
 f.close()
@@ -245,6 +245,18 @@ nonNewszines=sorted(list(set(nonNewszines)))
 
 newszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() in listOfNewszines]
 newszines=sorted(list(set(newszines)))
+
+newsPageCount=0
+newsIssueCount=0
+newsPdfCount=0
+for fz in fanacIssueList:
+    if fz.FanzineName in listOfNewszines and fz.URL != None:
+        newsIssueCount+=1
+        if os.path.split(fz.URL)[1].lower() == ".pdf":
+            newsPdfCount+=1
+            newsPageCount+=1
+        else:
+            newsPageCount+=(fz.Pages if fz.Pages > 0 else 1)
 
 unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
 unusedLines=[x+"\n" for x in unusedLines]
@@ -309,10 +321,12 @@ WriteTable("Report - Fanzines with odd names.txt",
            fSelector=lambda fx: OddNames(fx.FanzineIssueName,  fx.FanzineName))
 
 print("\n")
-print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount))
+print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
+print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
 print("1943 Fanzines: "+str(count1943))
 with open("Report - Statistics.txt", "w+") as f:
-    print("Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfcount), file=f)
+    print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
+    print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
     print("1943 Fanzines: "+str(count1943), file=f)
 
 Helpers.LogClose()
