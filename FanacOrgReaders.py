@@ -6,17 +6,16 @@ import Helpers
 import re
 import FanacDates
 from FanacDates import FanacDate
+import urllib.parse
 import FanacSerials
 from FanacSerials import FanacSerial
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories):
     # Read index.html files on fanac.org
-    # We have a dictionary containing the names and URLs of the 1942 fanzines.
-    # The next step is to figure out what 1942 issues of each we have on the website
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
-    # Loop over the list of all 1942 fanzines, building up a list of those on fanac.org
+    # Loop over the list of all fanzines, building up a list of those on fanac.org
     print("----Begin reading index.html files on fanac.org")
 
     global g_browser
@@ -29,8 +28,8 @@ def ReadFanacFanzineIssues(fanacDirectories):
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
         unskippers=[
             #"MT_Void",
-            #"Opuntia",
-            #"Leaflet",
+            #"Classifications",
+            #"FAPA-Misc",
             #"Irish_Fandom",
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
@@ -70,9 +69,9 @@ def ReadFanacFanzineIssues(fanacDirectories):
             Helpers.Log("***skipped because not a fanac.org url: "+url, isError=True)
             continue
 
-        if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-            Helpers.Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
-            continue
+        # if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
+        #     Helpers.Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
+        #     continue
 
         ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo, newszineList)
 
@@ -81,7 +80,28 @@ def ReadFanacFanzineIssues(fanacDirectories):
     if g_browser is not None:
         g_browser.quit()
 
+    fanacIssueInfo=RemoveDuplicates(fanacIssueInfo)
+
     return (fanacIssueInfo, newszineList)
+
+
+#=============================================================================================
+# Remove the duplicates from a fanzine list
+def RemoveDuplicates(fanzineList):
+    # Sort in place on fanzine's Directory's URL followed by file name
+    fanzineList.sort(key=lambda fz: fz.URL if fz.URL is not None else "")
+    fanzineList.sort(key=lambda fz: fz.DirectoryURL if fz.DirectoryURL is not None else "")
+
+    # Any duplicates will be adjacent, so search for adjacent directoryURL+URL
+    last=""
+    dedupedList=[]
+    for fz in fanzineList:
+        this=fz.DirectoryURL+fz.URL if fz.URL is not None else ""
+        if this != last:
+            dedupedList.append(fz)
+        last=this
+    return dedupedList
+
 
 
 #=============================================================================================
@@ -406,6 +426,23 @@ def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, ta
         ser=ExtractSerial(columnHeaders, tableRow)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
+
+        # Sometimes we have a reference in one directory be to a fanzine in another. (Sometimes these are duplicate, but this will be taken care of elsewhere.)
+        # If the href is a complete fanac.org URL and not relative (i.e, 'http://www.fanac.org/fanzines/FAPA-Misc/FAPA-Misc24-01.html' and not 'FAPA-Misc24-01.html'),
+        # we need to check to see if it has directoryURL as a prefix (in which case we delete the prefix) or it has a *different* fanac.org URL, in which case we
+        # change the value of directoryURL for this fanzine.
+        if href is not None:
+            if href.startswith(directoryUrl):
+                href=href.replace(directoryUrl, "")
+                if href[0] == "/":
+                    href=href[1:]   # Delete any remnant leading "/"
+            else:
+                if href.startswith("http://www.fanac.org/"):
+                    # OK, this is a fanac URL.  Divide it into a file and a path
+                    fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
+                    path=href.replace("/"+fname, "")
+                    href=fname
+                    directoryUrl=path
 
         # And save the results
         fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=date, Serial=ser, Pages=pages)
