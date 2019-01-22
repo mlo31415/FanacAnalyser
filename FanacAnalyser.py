@@ -178,11 +178,11 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
     return
 
 
-# Read the fanac.org fanzine directory and produce a list of all issues present
+# Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
 (fanacIssueList, newszinesFromH2)=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
-# Print a list of all fanzines found for 1943 sorted by fanzine name, then date
+# Print a list of all fanzines sorted by fanzine name, then date
 fanacIssueList.sort(key=lambda elem: elem.Date)
 fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower())  # Sorts in place on fanzine name
 
