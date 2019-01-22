@@ -75,7 +75,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
         ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo, newszineList)
 
-    # Now fanacIssueList is a list of all the issues of fanzines on fanac.org which have at least one 1942 issue.(Not all of the issues are 1942.)
+    # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
     print("----Done reading index.html files on fanac.org")
     if g_browser is not None:
         g_browser.quit()
