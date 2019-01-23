@@ -421,6 +421,7 @@ def InterpretNamedDay(dayString):
         "new year's day": (1, 1),
         "edgar allen poe's birthday": (1, 19),
         "edgar allan poe's birthday": (1, 19),
+        "edgar alan poe's birthday": (1, 19),
         "groundhog day": (2, 4),
         "daniel yergin day": (2, 6),
         "canadian national flag day": (2, 15),
