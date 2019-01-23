@@ -239,7 +239,7 @@ def ChangeFileInURL(url, newFileName):
     p=u[2].split("/")   # Split the path (which may include a filename) into components
     f=p[-1:][0].split(".")     # Split the last component of the path (which may be a filename) into stuff plus an extension
     if len(f) > 1:
-        # If there is an extension, then the last compoent of the path is a filename to be replaced.
+        # If there is an extension, then the last component of the path is a filename to be replaced.
         p="/".join(p[:-1])+"/"+newFileName
     else:
         # Otherwise, we just tack on the new filename
