@@ -141,7 +141,7 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=Tr
                     url=fz.DirectoryURL+"/../"+"/".join(parts[-2:])
                 else:
                     url=fz.URL
-            f.write('        <td width="250">'+'<a href="'+url+'">'+fz.FanzineIssueName+'</a>'+'</td>\n')
+            f.write('        <td width="350">'+'<a href="'+url+'">'+fz.FanzineIssueName+'</a>'+'</td>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
