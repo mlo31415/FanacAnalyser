@@ -7,7 +7,6 @@ import re
 import FanacDates
 from FanacDates import FanacDate
 import urllib.parse
-import FanacSerials
 from FanacSerials import FanacSerial
 
 # ============================================================================================
@@ -28,9 +27,9 @@ def ReadFanacFanzineIssues(fanacDirectories):
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
         unskippers=[
             #"MT_Void",
-            #"Classifications",
-            #"FAPA-Misc",
-            #"Irish_Fandom",
+            #"Booklist",
+            "Axe",
+            "Irish_Fandom",
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -436,13 +435,15 @@ def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, ta
                 href=href.replace(directoryUrl, "")
                 if href[0] == "/":
                     href=href[1:]   # Delete any remnant leading "/"
-            else:
-                if href.startswith("http://www.fanac.org/"):
-                    # OK, this is a fanac URL.  Divide it into a file and a path
-                    fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
-                    path=href.replace("/"+fname, "")
-                    href=fname
-                    directoryUrl=path
+            elif href.startswith("http://www.fanac.org/") or href.startswith("http://fanac.org/"):
+                # OK, this is a fanac URL.  Divide it into a file and a path
+                fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
+                if len(fname) == 0:
+                    Helpers.Log("***FanacOrgReaders: href='"+href+"' on page '"+directoryUrl+"' has no filename. Skipped", isError=True)
+                    continue
+                path=href.replace("/"+fname, "")
+                href=fname
+                directoryUrl=path
 
         # And save the results
         fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=date, Serial=ser, Pages=pages)
