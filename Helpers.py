@@ -15,6 +15,7 @@ def CannonicizeColumnHeaders(header):
                         "zine" : "issue",
                         "fanzine" : "issue",
                         "mo." : "month",
+                        "mon" : "month",
                         "quartermonth" : "month",
                         "quarter" : "month",
                         "season" : "month",
