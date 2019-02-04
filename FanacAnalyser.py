@@ -121,7 +121,7 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=Tr
             if html:
                 f.write('    <tr><td width="120">\n'+lastRowHeader)
                 if bls != lastBLS:
-                    f.write('<a name="#'+bls+'"></a>')
+                    f.write('<a name="'+bls+'"></a>')
                     lastBLS=bls
                 f.write('</td>\n')
             else:
