@@ -28,8 +28,8 @@ def ReadFanacFanzineIssues(fanacDirectories):
         unskippers=[
             #"MT_Void",
             #"Booklist",
-            "Axe",
-            "Irish_Fandom",
+            #"Axe",
+            #"Irish_Fandom",
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -177,6 +177,7 @@ def ExtractSerial(columnHeaders, row):
 
 
 #============================================================================================
+# Find the cell containing the page count and return its value
 def ExtractPageCount(columnHeaders, row):
 
     pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])
@@ -190,7 +191,7 @@ def ExtractPageCount(columnHeaders, row):
 
 
 # ============================================================================================
-# Fine the cell contaning the issue name
+# Find the cell containing the issue name
 def FindIssueCell(columnHeaders, row):
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
     issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
