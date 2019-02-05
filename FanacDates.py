@@ -234,7 +234,7 @@ class FanacDate:
     # Returns True for a FanaDate which is internally None
     # Returns False if any of the internal state is set to a value
     def IsEmpty(self):
-        return self.YearText is None and self.YearInt is None and self.MonthText is None and self.MonthInt is None and self.DayText is None and self.DayInt is None and self.Raw is None and self.Date is None
+        return self.YearText is None and self.YearInt is None and self.MonthText is None and self.MonthInt is None and self.DayText is None and self.DayInt is None and (self.Raw is None or self.Raw == "")  and self.Date is None
 
 
 # =================================================================================

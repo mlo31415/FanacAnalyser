@@ -235,13 +235,14 @@ f.close()
 # Produce a list of fanzines listed by date
 fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower(), reverse=True)  # Sorts in place on fanzine's name
 fanacIssueList.sort(key=lambda elem: elem.Date)
+datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 WriteTable("Chronological Listing of Fanzines.html",
-           fanacIssueList,
+           datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName)
 WriteTable("Chronological Listing of Fanzines.txt",
-           fanacIssueList,
+           datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName)
 
