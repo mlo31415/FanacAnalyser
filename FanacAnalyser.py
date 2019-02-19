@@ -294,11 +294,11 @@ with open("Test - Newszines.txt", "w+") as f:
 with open("Test - Unused lines in newszines.txt", "w+") as f:
     f.writelines(unusedLines)
 nonNewszines=[x+"\n" for x in nonNewszines]
-with open("Test - Non-newzines.txt", "w+") as f:
+with open("Test - Non-newszines.txt", "w+") as f:
     f.writelines(nonNewszines)
 
 newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open("Test - newzines found by H2 tags.txt", "w+") as f:
+with open("Test - newzsines found by H2 tags.txt", "w+") as f:
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
