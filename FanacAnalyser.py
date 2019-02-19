@@ -271,6 +271,7 @@ nonNewszines=sorted(list(set(nonNewszines)))
 newszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() in listOfNewszines]
 newszines=sorted(list(set(newszines)))
 
+# Count the number of issue and pages of all fanzines and just newszines
 newsPageCount=0
 newsIssueCount=0
 newsPdfCount=0
@@ -283,6 +284,7 @@ for fz in fanacIssueList:
         else:
             newsPageCount+=(fz.Pages if fz.Pages > 0 else 1)
 
+# Look for lines in the list of newszines which don't match actual newszines ont he site.
 unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
 unusedLines=[x+"\n" for x in unusedLines]
 
