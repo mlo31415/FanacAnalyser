@@ -54,7 +54,7 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
-def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=True, fSelector=None):
+def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, headerText, isDate=True, fSelector=None):
     f=open(filename, "w+")
 
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
@@ -65,6 +65,11 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, isDate=Tr
                 f.writelines(f2.readlines())
         except:
             pass    # Except nothing, really.  If the file's not there, we ignore the whole thing.
+
+    if headerText is not None:
+        if html:
+            headerText="<p>"+headerText+"<p>"
+        f.write(headerText)
 
 
     # If we have an HTML header, we need to create a set of jump buttons.
@@ -237,14 +242,17 @@ fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower(), reverse=True
 fanacIssueList.sort(key=lambda elem: elem.Date)
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
+headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
 WriteTable("Chronological Listing of Fanzines.html",
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
-           lambda fz: fz.FanzineIssueName)
+           lambda fz: fz.FanzineIssueName,
+           headerText)
 WriteTable("Chronological Listing of Fanzines.txt",
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
-           lambda fz: fz.FanzineIssueName)
+           lambda fz: fz.FanzineIssueName,
+           headerText)
 
 # Get the names of the newszines as a list
 listOfNewszines=Helpers.ReadList("control-newszines.txt")
@@ -291,24 +299,29 @@ newszinesFromH2=[x+"\n" for x in newszinesFromH2]
 with open("Test - newzines found by H2 tags.txt", "w+") as f:
     f.writelines(newszinesFromH2)
 
+headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
 WriteTable("Chronological Listing of Newszines.html",
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
+           headerText,
            fSelector=lambda fx: fx.FanzineName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
+headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
 WriteTable("Alphabetical Listing of Fanzines.txt",
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
+           headerText,
            isDate=False)
 WriteTable("Alphabetical Listing of Fanzines.html",
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
+           headerText,
            isDate=False)
 
 def RemoveArticles(name):
@@ -334,6 +347,7 @@ WriteTable("Report - Fanzines with odd names.txt",
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
+           None,
            isDate=False,
            fSelector=lambda fx: OddNames(fx.FanzineIssueName,  fx.FanzineName))
 
