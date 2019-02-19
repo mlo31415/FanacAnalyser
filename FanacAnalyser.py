@@ -224,7 +224,7 @@ file.close()
 pageCount=0
 issueCount=0
 pdfCount=0
-f=open("Test - Items (not PDFs) with No Page Count.txt", "w+")
+f=open("Report - Items (not PDFs) with No Page Count.txt", "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
         issueCount+=1
