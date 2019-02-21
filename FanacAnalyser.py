@@ -78,10 +78,11 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, headerTex
     if html:
         headers=set()
         for fz in fanacIssueList:
-            if isDate:
-                headers.add(fRowHeaderText(fz)[-4:-1]+"0s")
-            else:
-                headers.add(fRowHeaderText(fz)[:1])
+            if fRowHeaderText is not None:
+                if isDate:
+                    headers.add(fRowHeaderText(fz)[-4:-1]+"0s")
+                else:
+                    headers.add(fRowHeaderText(fz)[:1])
 
         headerlist=list(headers)
         headerlist.sort()
@@ -110,13 +111,14 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, headerTex
         # Get the button link string
         bls=""
         if html:
-            if isDate:
-                bls=fRowHeaderText(fz)[-4:-1]+"0s"
-            else:
-                bls=fRowHeaderText(fz)[:1]
+            if fRowHeaderText is not None:
+                if isDate:
+                    bls=fRowHeaderText(fz)[-4:-1]+"0s"
+                else:
+                    bls=fRowHeaderText(fz)[:1]
 
         # Deal with Column 1
-        if lastRowHeader != fRowHeaderText(fz):
+        if fRowHeaderText is not None and lastRowHeader != fRowHeaderText(fz):
             if lastRowHeader is not None:  # Is this the first sub-box?
                 if html: f.write('</table></td></tr>\n')  # No.  So we must end the previous sub-box
 
@@ -162,7 +164,7 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, headerTex
         f.write("</table></td></tr>\n")
         f.write('</table>\n')
         try:
-            with open("control-Header.html", "r") as f2:
+            with open("control-Footer.html", "r") as f2:
                 f.writelines(f2.readlines())
         except:
             pass  # Except nothing, really.  If the file's not there, we ignore the whole thing.
@@ -240,6 +242,7 @@ f.close()
 # Produce a list of fanzines listed by date
 fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower(), reverse=True)  # Sorts in place on fanzine's name
 fanacIssueList.sort(key=lambda elem: elem.Date)
+undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
@@ -251,6 +254,11 @@ WriteTable("Chronological Listing of Fanzines.html",
 WriteTable("Chronological Listing of Fanzines.txt",
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
+           lambda fz: fz.FanzineIssueName,
+           headerText)
+WriteTable("Report - Undated Fanzine Issues.html",
+           undatedList,
+           None,
            lambda fz: fz.FanzineIssueName,
            headerText)
 
