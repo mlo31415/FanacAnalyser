@@ -205,8 +205,6 @@ if not os.path.isdir(outputDir):
     os.mkdir(outputDir)
 if not os.path.isdir(os.path.join(outputDir, "Reports")):
     os.mkdir(os.path.join(outputDir, "Reports"))
-if not os.path.isdir(os.path.join(outputDir, "Test")):
-    os.mkdir(os.path.join(outputDir, "Test"))
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
@@ -309,16 +307,16 @@ unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
 unusedLines=[x+"\n" for x in unusedLines]
 
 newszines=[x+"\n" for x in newszines]
-with open(os.path.join(outputDir, "Test", "Newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Newszines.txt"), "w+") as f:
     f.writelines(newszines)
-with open(os.path.join(outputDir, "Test", "Unused lines in newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Unused lines in newszines.txt"), "w+") as f:
     f.writelines(unusedLines)
 nonNewszines=[x+"\n" for x in nonNewszines]
-with open(os.path.join(outputDir, "Test", "Non-newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Non-newszines.txt"), "w+") as f:
     f.writelines(nonNewszines)
 
 newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open(os.path.join(outputDir, "Test", "Newzsines found by H2 tags.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Newzsines found by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
