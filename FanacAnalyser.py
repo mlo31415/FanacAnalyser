@@ -7,7 +7,7 @@ import FanacDates
 from tkinter import *
 from tkinter import messagebox
 
-Helpers.LogOpen("Report - Fanac Analyzer Detailed Analysis Log.txt", "Report - Fanac Analyzer Error Log.txt")
+Helpers.LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
 
 # ====================================================================================
 # Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html
@@ -198,9 +198,15 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
 # Main
 
 # Read the command line arguments
-reportDir="."
+outputDir="."
 if len(sys.argv) > 1:
-    reportDir=sys.argv[1]
+    outputDir=sys.argv[1]
+if not os.path.isdir(outputDir):
+    os.mkdir(outputDir)
+if not os.path.isdir(os.path.join(outputDir, "Reports")):
+    os.mkdir(os.path.join(outputDir, "Reports"))
+if not os.path.isdir(os.path.join(outputDir, "Test")):
+    os.mkdir(os.path.join(outputDir, "Test"))
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
@@ -220,7 +226,7 @@ def NoNone(str):
 text=Helpers.ReadList("control-year.txt")
 selectedYear=Helpers.InterpretNumber(text[0])
 
-file=open(os.path.join(reportDir, "Report - "+str(selectedYear)+" fanac.org Fanzines.txt"), "w+")
+file=open(os.path.join(outputDir, "Reports", str(selectedYear)+" fanac.org Fanzines.txt"), "w+")
 countSelectedYear=0
 for fz in fanacIssueList:
     if fz.Date.YearInt == selectedYear:
@@ -232,7 +238,7 @@ file.close()
 pageCount=0
 issueCount=0
 pdfCount=0
-f=open(os.path.join(reportDir, "Report - Items (not PDFs) with No Page Count.txt"), "w+")
+f=open(os.path.join(outputDir, "Reports", "Items (not PDFs) with No Page Count.txt"), "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
         issueCount+=1
@@ -252,17 +258,17 @@ undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
-WriteTable(os.path.join(reportDir, "Chronological Listing of Fanzines.html"),
+WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
            headerText)
-WriteTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
+WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
            headerText)
-WriteTable(os.path.join(reportDir, "Report - Undated Fanzine Issues.html"),
+WriteTable(os.path.join(outputDir, "Reports", "Undated Fanzine Issues.html"),
            undatedList,
            None,
            lambda fz: fz.FanzineIssueName,
@@ -303,20 +309,20 @@ unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
 unusedLines=[x+"\n" for x in unusedLines]
 
 newszines=[x+"\n" for x in newszines]
-with open(os.path.join(reportDir, "Test - Newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Test", "Newszines.txt"), "w+") as f:
     f.writelines(newszines)
-with open(os.path.join(reportDir, "Test - Unused lines in newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Test", "Unused lines in newszines.txt"), "w+") as f:
     f.writelines(unusedLines)
 nonNewszines=[x+"\n" for x in nonNewszines]
-with open(os.path.join(reportDir, "Test - Non-newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Test", "Non-newszines.txt"), "w+") as f:
     f.writelines(nonNewszines)
 
 newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open(os.path.join(reportDir, "Test - newzsines found by H2 tags.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Test", "Newzsines found by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
-WriteTable(os.path.join(reportDir, "Chronological Listing of Newszines.html"),
+WriteTable(os.path.join(outputDir, "Chronological Listing of Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
@@ -327,13 +333,13 @@ WriteTable(os.path.join(reportDir, "Chronological Listing of Newszines.html"),
 headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
-WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
+WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
            headerText,
            isDate=False)
-WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.html"),
+WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.html"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
@@ -359,7 +365,7 @@ def OddNames(n1, n2):
     length=min(len(n1), len(n2))
     return n1[:length] != n2[:length]
 
-WriteTable("Report - Fanzines with odd names.txt",
+WriteTable(os.path.join(outputDir, "Reports", "Fanzines with odd names.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
@@ -371,7 +377,7 @@ print("\n")
 print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
 print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
 print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
-with open(os.path.join(reportDir, "Report - Statistics.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Statistics.txt"), "w+") as f:
     print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
     print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
     print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
