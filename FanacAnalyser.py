@@ -237,6 +237,8 @@ pageCount=0
 issueCount=0
 pdfCount=0
 f=open(os.path.join(outputDir, "Reports", "Items (not PDFs) with No Page Count.txt"), "w+")
+ignorePageCountErrors=Helpers.ReadList("control-Ignore Page Count Errors.txt")
+
 for fz in fanacIssueList:
     if fz.URL != None:
         issueCount+=1
@@ -245,7 +247,7 @@ for fz in fanacIssueList:
             pageCount+=1
         else:
             pageCount+=(fz.Pages if fz.Pages > 0 else 1)
-            if fz.Pages == 0:
+            if fz.Pages == 0 and fz.FanzineName not in ignorePageCountErrors:
                 f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
 f.close()
 
