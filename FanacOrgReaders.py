@@ -182,6 +182,11 @@ def ExtractPageCount(columnHeaders, row):
 
     pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])
     if pageText is None:
+        # If there's no column labelled for page count, check to see if there's a "Type" column with value "CARD".
+        # These are newscards and are by definition a single page.
+        pageText=GetCellValueByColHeader(columnHeaders, row, ["Type"])
+        if pageText is not None and pageText.lower() == "card":
+            return 1    # All cards have a pagecount of 1
         return 0
 
     try:
