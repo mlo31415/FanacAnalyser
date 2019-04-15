@@ -196,6 +196,12 @@ def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
 #===========================================================================
 #===========================================================================
 # Main
+
+# Read the command line arguments
+reportDir="."
+if len(sys.argv) > 1:
+    reportDir=sys.argv[1]
+
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
 (fanacIssueList, newszinesFromH2)=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
@@ -214,7 +220,7 @@ def NoNone(str):
 text=Helpers.ReadList("control-year.txt")
 selectedYear=Helpers.InterpretNumber(text[0])
 
-file=open("Report - "+str(selectedYear)+" fanac.org Fanzines.txt", "w+")
+file=open(os.path.join(reportDir, "Report - "+str(selectedYear)+" fanac.org Fanzines.txt"), "w+")
 countSelectedYear=0
 for fz in fanacIssueList:
     if fz.Date.YearInt == selectedYear:
@@ -226,7 +232,7 @@ file.close()
 pageCount=0
 issueCount=0
 pdfCount=0
-f=open("Report - Items (not PDFs) with No Page Count.txt", "w+")
+f=open(os.path.join(reportDir, "Report - Items (not PDFs) with No Page Count.txt"), "w+")
 for fz in fanacIssueList:
     if fz.URL != None:
         issueCount+=1
@@ -246,17 +252,17 @@ undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
-WriteTable("Chronological Listing of Fanzines.html",
+WriteTable(os.path.join(reportDir, "Chronological Listing of Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
            headerText)
-WriteTable("Chronological Listing of Fanzines.txt",
+WriteTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
            headerText)
-WriteTable("Report - Undated Fanzine Issues.html",
+WriteTable(os.path.join(reportDir, "Report - Undated Fanzine Issues.html"),
            undatedList,
            None,
            lambda fz: fz.FanzineIssueName,
@@ -297,20 +303,20 @@ unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
 unusedLines=[x+"\n" for x in unusedLines]
 
 newszines=[x+"\n" for x in newszines]
-with open("Test - Newszines.txt", "w+") as f:
+with open(os.path.join(reportDir, "Test - Newszines.txt"), "w+") as f:
     f.writelines(newszines)
-with open("Test - Unused lines in newszines.txt", "w+") as f:
+with open(os.path.join(reportDir, "Test - Unused lines in newszines.txt"), "w+") as f:
     f.writelines(unusedLines)
 nonNewszines=[x+"\n" for x in nonNewszines]
-with open("Test - Non-newszines.txt", "w+") as f:
+with open(os.path.join(reportDir, "Test - Non-newszines.txt"), "w+") as f:
     f.writelines(nonNewszines)
 
 newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open("Test - newzsines found by H2 tags.txt", "w+") as f:
+with open(os.path.join(reportDir, "Test - newzsines found by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
-WriteTable("Chronological Listing of Newszines.html",
+WriteTable(os.path.join(reportDir, "Chronological Listing of Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
@@ -321,13 +327,13 @@ WriteTable("Chronological Listing of Newszines.html",
 headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
-WriteTable("Alphabetical Listing of Fanzines.txt",
+WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
            headerText,
            isDate=False)
-WriteTable("Alphabetical Listing of Fanzines.html",
+WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.html"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
@@ -365,7 +371,7 @@ print("\n")
 print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
 print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
 print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
-with open("Report - Statistics.txt", "w+") as f:
+with open(os.path.join(reportDir, "Report - Statistics.txt"), "w+") as f:
     print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
     print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
     print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
