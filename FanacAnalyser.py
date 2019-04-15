@@ -385,8 +385,8 @@ with open(os.path.join(outputDir, "Reports", "Statistics.txt"), "w+") as f:
 Helpers.LogClose()
 
 # Display a message box (needed only for the built/packaged version)
-if sys.gettrace() is None:      # This is an incantation which detects the presence of a debugger
-    root = Tk()
-    root.withdraw()
-    messagebox.showinfo(title=None, message="Finished!")
+# if sys.gettrace() is None:      # This is an incantation which detects the presence of a debugger
+#    root = Tk()
+#    root.withdraw()
+#    messagebox.showinfo(title=None, message="Finished!")
 
