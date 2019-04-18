@@ -389,7 +389,7 @@ nzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList if fz.FanzineNa
 
 print("\n")
 print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
-print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount)
+print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
 print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
     print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
