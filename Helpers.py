@@ -236,7 +236,7 @@ def LogClose():
 def LogFailureAndRaiseIfMissing(fname: str):
     if not os.path.exists(fname):
         Log("Fatal error: Can't find "+fname, isError=True)
-        raise(FileNotFoundError)
+        raise FileNotFoundError
 
 # =============================================================================
 #   Change the filename in a URL
@@ -289,7 +289,7 @@ def ReadList(filename: str, isFatal=False):
     if not os.path.exists(filename):
         if isFatal:
             Log("Fatal error: Can't find "+filename, isError=True)
-            raise (FileNotFoundError)
+            raise FileNotFoundError
         print("ReadList can't open "+filename)
         return None
     f=open(filename, "r")
