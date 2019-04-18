@@ -385,7 +385,7 @@ print("\n")
 print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
 print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
 print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
-with open(os.path.join(outputDir, "Reports", "Statistics.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
     print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
     print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
     print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
