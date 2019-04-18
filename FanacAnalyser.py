@@ -63,7 +63,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, head
     html=os.path.splitext(filename)[1].lower() == ".html"
     if html:
         try:
-            with open("control-Header.html", "r") as f2:
+            with open("control-AllFanzinesHeader.html", "r") as f2:
                 f.writelines(f2.readlines())
         except:
             pass    # Except nothing, really.  If the file's not there, we ignore the whole thing.
