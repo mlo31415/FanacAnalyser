@@ -381,13 +381,19 @@ WriteTable(os.path.join(outputDir, "Reports", "Fanzines with odd names.txt"),
            isDate=False,
            fSelector=lambda fx: OddNames(fx.FanzineIssueName,  fx.FanzineName))
 
+# Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
+# Create a set of all fanzines run names (the set to eliminate suploicates) and then get its size.
+fzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList]))
+nzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList if fz.FanzineName.lower() in listOfNewszines]))
+
+
 print("\n")
-print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
-print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
+print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
+print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount)
 print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
-    print("All fanzines: Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
-    print("Newszines: Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
+    print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
+    print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
     print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
 
 Helpers.LogClose()
