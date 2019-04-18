@@ -23,6 +23,7 @@ def ReadClassicModernPages():
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectories=[]
+    Helpers.LogFailureAndRaiseIfMissing("control-topleveldirectories.txt")
     directories=Helpers.ReadList("control-topleveldirectories.txt")
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectories, dirs)
@@ -166,6 +167,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, head
         f.write("</table></td></tr>\n")
         f.write('</table>\n')
         try:
+            Helpers.LogFailureAndRaiseIfMissing("control-Footer.html")
             with open("control-Footer.html", "r") as f2:
                 f.writelines(f2.readlines())
         except:
@@ -222,16 +224,18 @@ def NoNone(s: str):
 
 
 # Read the control-year.txt file to get the year to be dumped out
-text=Helpers.ReadList("control-year.txt")
-selectedYear=Helpers.InterpretNumber(text[0])
+selectedYear=None
+if os.path.exists("control-year.txt"):
+    text=Helpers.ReadList("control-year.txt")
+    selectedYear=Helpers.InterpretNumber(text[0])
 
-file=open(os.path.join(outputDir, "Reports", str(selectedYear)+" fanac.org Fanzines.txt"), "w+")
-countSelectedYear=0
-for fz in fanacIssueList:
-    if fz.Date.YearInt == selectedYear:
-        file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
-        countSelectedYear+=1
-file.close()
+    file=open(os.path.join(outputDir, "Reports", str(selectedYear)+" fanac.org Fanzines.txt"), "w+")
+    countSelectedYear=0
+    for fz in fanacIssueList:
+        if fz.Date.YearInt == selectedYear:
+            file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
+            countSelectedYear+=1
+    file.close()
 
 # Get a count of issues, pdfs, and pages
 pageCount=0
@@ -248,7 +252,7 @@ for fz in fanacIssueList:
             pageCount+=1
         else:
             pageCount+=(fz.Pages if fz.Pages > 0 else 1)
-            if fz.Pages == 0 and fz.FanzineName not in ignorePageCountErrors:
+            if fz.Pages == 0 and ignorePageCountErrors is not None and fz.FanzineName not in ignorePageCountErrors:
                 f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
 f.close()
 
@@ -259,6 +263,7 @@ undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
+Helpers.LogFailureAndRaiseIfMissing("control-AllFanzinesHeader.html")
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
@@ -279,7 +284,8 @@ WriteTable(os.path.join(outputDir, "Reports", "Undated Fanzine Issues.html"),
            "control-AllFanzinesHeader.html")
 
 # Get the names of the newszines as a list
-listOfNewszines=Helpers.ReadList("control-newszines.txt")
+Helpers.LogFailureAndRaiseIfMissing("control-newszines.txt")
+listOfNewszines=Helpers.ReadList("control-newszines.txt", isFatal=True)
 listOfNewszines=[x.lower() for x in listOfNewszines]  # Need strip() to get rid of trailing /n (at least)
 
 # Now add in the newszines discovered in the <h2> blocks
@@ -326,6 +332,7 @@ with open(os.path.join(outputDir, "Reports", "Newzsines found by H2 tags.txt"), 
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
+Helpers.LogFailureAndRaiseIfMissing("control-NewszinesHeader.html")
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
@@ -390,11 +397,13 @@ nzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList if fz.FanzineNa
 print("\n")
 print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
 print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
-print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
+if selectedYear is not None:
+    print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
     print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
     print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
-    print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
+    if selectedYear is not None:
+        print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
 
 Helpers.LogClose()
 

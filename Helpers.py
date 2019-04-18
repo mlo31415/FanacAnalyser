@@ -232,6 +232,12 @@ def LogClose():
     global g_errorFile
     g_errorFile.close()
 
+
+def LogFailureAndRaiseIfMissing(fname: str):
+    if not os.path.exists(fname):
+        Log("Fatal error: Can't find "+fname, isError=True)
+        raise(FileNotFoundError)
+
 # =============================================================================
 #   Change the filename in a URL
 def ChangeFileInURL(url: str, newFileName: str):
@@ -279,8 +285,11 @@ def IsNumeric(arg):
 # =============================================================================
 # Read a list of lines in from a file
 # Strip leading and trailing whitespace and ignore lines which begin with a '#'
-def ReadList(filename: str):
+def ReadList(filename: str, isFatal=False):
     if not os.path.exists(filename):
+        if isFatal:
+            Log("Fatal error: Can't find "+filename, isError=True)
+            raise (FileNotFoundError)
         print("ReadList can't open "+filename)
         return None
     f=open(filename, "r")
