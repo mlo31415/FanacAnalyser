@@ -81,7 +81,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
     fanacIssueInfo=RemoveDuplicates(fanacIssueInfo)
 
-    return (fanacIssueInfo, newszineList)
+    return fanacIssueInfo, newszineList
 
 
 #=============================================================================================

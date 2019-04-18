@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import roman
 import Helpers
 import re
@@ -6,8 +6,8 @@ import re
 @dataclass()
 class FanacSerial:
     Vol: int = None
-    Num: int = None
-    Whole: int = None
+    Num: float = None
+    Whole: float = None
     Suffix: str = None
 
     #=============================================================================================
@@ -146,35 +146,35 @@ class FanacSerial:
     # Return a tuple of Volume and Number
     # If there's no volume specified, Volume is None and Number is the whole number
     # If we can't make sense of it, return (None, None), so if the 2nd member of the tuple is None, conversion failed.
-    def DecodeIssueDesignation(self, str):
+    def DecodeIssueDesignation(self, s: str):
         try:
-            return (None, int(str))
+            return None, int(s)
         except:
-            i=0  # A dummy statement since all we want to do with an exception is move on to the next option.
+            pass  # A dummy statement since all we want to do with an exception is move on to the next option.
 
         # Ok, it's not a simple number.  Drop leading and trailing spaces and see if it of the form #nn
-        s=str.strip().lower()
+        s=s.strip().lower()
         if len(s) == 0:
-            return (None, None)
+            return None, None
         if s[0] == "#":
             s=s[1:]
             if len(s) == 0:
-                return (None, None)
+                return None, None
             try:
-                return (None, int(s))
+                return None, int(s)
             except:
-                i=0  # A dummy statement since all we want to do with an exception is move on to the next option.
+                pass  # A dummy statement since all we want to do with an exception is move on to the next option.
 
         # This exhausts the single number possibilities
         # Maybe it's of the form Vnn, #nn (or Vnn.nn or Vnn,#nn)
 
         # Strip any leading 'v'
         if len(s) == 0:
-            return (None, None)
+            return None, None
         if s[0]=="v":
             s=s[1:]
             if len(s) == 0:
-                return (None, None)
+                return None, None
 
         # The first step is to see if there's at least one of the characters ' ', '.', and '#' in the middle
         # We split the string in two by a span of " .#"
@@ -182,22 +182,22 @@ class FanacSerial:
         # Since we've dropped any leading 'v', we kno we must be of the form nn< .#>nnn
         # So if the first character is not a digit, we give up.
         if not s[0].isdigit():
-            return (None, None)
+            return None, None
 
         # Now, the only legitimate character other than digits are the three delimiters, so translate them all to blanks and then split into the two digit strings
         spl=s.replace(".", " ").replace("#", " ").split()
         if len(spl) != 2:
-            return (None, None)
+            return None, None
         try:
-            return (int(spl[0]), int(spl[1]))
+            return int(spl[0]), int(spl[1])
         except:
-            return (None, None)
+            return None, None
 
 
     #==============================================================================
     # Given the contents of various table columns, attempt to extract serial information
     # This uses InterpretSerial for detailed decoding
-    def ExtractSerialNumber(self, volText, numText, wholeText, volNumText, titleText):
+    def ExtractSerialNumber(self, volText: str, numText: str, wholeText: str, volNumText: str, titleText: str):
         wholeInt=None
         volInt=None
         numInt=None

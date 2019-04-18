@@ -1,3 +1,5 @@
+from typing import TextIO
+
 import Helpers
 import FanacOrgReaders
 import requests
@@ -5,7 +7,7 @@ from bs4 import BeautifulSoup
 import os
 import FanacDates
 from tkinter import *
-from tkinter import messagebox
+#from tkinter import messagebox
 
 Helpers.LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
 
@@ -54,8 +56,8 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
-def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, headerText, isDate=True, fSelector=None):
-    f=open(filename, "w+")
+def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, headerText: str, isDate=True, fSelector=None):
+    f: TextIO=open(filename, "w+")
 
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
     html=os.path.splitext(filename)[1].lower() == ".html"
@@ -174,8 +176,7 @@ def WriteTable(filename, fanacIssueList, fRowHeaderText, fRowBodyText, headerTex
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacFanzineDirectories, name, dirname):
-    isDup=False
+def AddFanacDirectory(fanacFanzineDirectories, name: str, dirname: str):
 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectories if e2 == dirname]
@@ -214,10 +215,10 @@ fanacFanzineDirectories=ReadClassicModernPages()
 fanacIssueList.sort(key=lambda elem: elem.Date)
 fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower())  # Sorts in place on fanzine name
 
-def NoNone(str):
-    if str is None:
+def NoNone(s: str):
+    if s is None:
         return ""
-    return str
+    return s
 
 
 # Read the control-year.txt file to get the year to be dumped out
@@ -240,7 +241,7 @@ f=open(os.path.join(outputDir, "Reports", "Items (not PDFs) with No Page Count.t
 ignorePageCountErrors=Helpers.ReadList("control-Ignore Page Count Errors.txt")
 
 for fz in fanacIssueList:
-    if fz.URL != None:
+    if fz.URL is not None:
         issueCount+=1
         if os.path.splitext(fz.URL)[1] == ".pdf":
             pdfCount+=1
@@ -296,7 +297,7 @@ newsPageCount=0
 newsIssueCount=0
 newsPdfCount=0
 for fz in fanacIssueList:
-    if fz.FanzineName in listOfNewszines and fz.URL != None:
+    if fz.FanzineName in listOfNewszines and fz.URL is not None:
         newsIssueCount+=1
         if os.path.split(fz.URL)[1].lower() == ".pdf":
             newsPdfCount+=1

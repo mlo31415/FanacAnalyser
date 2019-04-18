@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import datetime
 import dateutil.parser
 import Helpers
@@ -68,11 +68,11 @@ class FanacDate:
         self.DayInt=BoundDay(dayInt, monthInt)
 
         if yearInt is None or monthInt is None:
-            Date=None
+            self.Date=None
         elif dayInt is None:
-            Date=datetime.datetime(self.YearInt, self.MonthInt, 1)
+            self.Date=datetime.datetime(self.YearInt, self.MonthInt, 1)
         else:
-            Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
+            self.Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
 
     #--------------------------------
     def Set6(self, yearText, yearInt, monthText, monthInt, dayText, dayInt):
@@ -83,11 +83,11 @@ class FanacDate:
         self.DayText=dayText
         self.DayInt=BoundDay(dayInt, monthInt)
         if yearInt is None or monthInt is None:
-            Date=None
+            self.Date=None
         elif dayInt is None:
-            Date=datetime.datetime(self.YearInt, self.MonthInt, 1)
+            self.Date=datetime.datetime(self.YearInt, self.MonthInt, 1)
         else:
-            Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
+            self.Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
 
     #--------------------------------
     # Format a FanacDate for printing using one of the the preferred formats:
@@ -197,7 +197,7 @@ class FanacDate:
             except:
                 y=None
             if y is not None and m is not None:
-                if y > 1860 and y < 2100:  # Outside this range it can't be a fannish-relevant year (the range is oldest fan birth date to middle-future)
+                if 1860 < y < 2100:  # Outside this range it can't be a fannish-relevant year (the range is oldest fan birth date to middle-future)
                     self.Set6(ytext, y, mtext, m, None, None)
                     self.Raw=dateText
                     return self
@@ -511,7 +511,7 @@ def MonthName(month):
     if month is None:
         return None
 
-    if month > 0 and month < 13:
+    if 0 < month < 13:
         m=["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][month-1]  # -1 is to deal with zero-based indexing...
     else:
         m="<invalid: "+str(month)+">"

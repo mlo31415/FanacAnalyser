@@ -1,5 +1,4 @@
 import os
-import os
 import re
 from bs4 import NavigableString
 import urllib
@@ -73,18 +72,18 @@ def GetHrefAndTextFromTag(tag):
         except:
             return tag, None
 
-    return (tag.contents[0].string, href)
+    return tag.contents[0].string, href
 
 
 #=====================================================================================
 # Remove certain strings which amount to whitespace
-def RemoveHTMLDebris(str):
-    return str.replace("<br>", "").replace("<BR>", "")
+def RemoveHTMLDebris(s: str):
+    return s.replace("<br>", "").replace("<BR>", "")
 
 
 #=====================================================================================
 # Function to generate the proper kind of path.  (This may change depending on the target location of the output.)
-def RelPathToURL(relPath):
+def RelPathToURL(relPath: str):
     if relPath is None:
         return None
     if relPath.startswith("http"):  # We don't want to mess with foreign URLs
@@ -113,11 +112,11 @@ def RemoveNewlineRows(tags):
 
 #=====================================================================================
 # Function to find the index of a string in a list of strings
-def FindIndexOfStringInList(list, str):
-    for i in range(0, len(list) - 1):
-        if list[i] == str:
-            return i
-
+def FindIndexOfStringInList(lst: list, s: str):
+    try:
+        return lst.index(s)
+    except:
+        return None
 
 #=====================================================================================
 # Function to search recursively for the table containing the fanzines listing
@@ -138,13 +137,13 @@ def LookForTable(soup, flags):
 
 
 #==================================================================================
-def CreateFanacOrgAbsolutePath(fanacDir, str):
-    return "http://www.fanac.org/fanzines/"+fanacDir+"/"+str
+def CreateFanacOrgAbsolutePath(fanacDir: str, s: str):
+    return "http://www.fanac.org/fanzines/"+fanacDir+"/"+s
 
 
 #==================================================================================
 # Return a properly formatted link
-def FormatLink(name, url):
+def FormatLink(name: str, url: str):
     # TODO: Do we need to deal with turning blanks into %20 whatsits?
     return '<a href='+url+'>'+name+'</a>'
 
@@ -175,7 +174,7 @@ def CompareCompressedName(n1, n2):
 #=============================================================================
 # Print the text to a log file open by the main program
 # If isError is set also print it to the error file.
-def Log(text, isError=False):
+def Log(text: str, isError=False):
     global g_logFile
     global g_errorFile
     global g_logHeader
@@ -201,7 +200,7 @@ def Log(text, isError=False):
 
 # Set the header for any subsequent log entries
 # Note that this header will only be printed once, and then only if there has been a log entry
-def LogSetFanzine(name):
+def LogSetFanzine(name: str):
     global g_logHeader
     global g_logErrorHeader
     global g_logLastFanzine
@@ -212,7 +211,7 @@ def LogSetFanzine(name):
         g_logLastFanzine=name
 
 
-def LogOpen(logfilename, errorfilename):
+def LogOpen(logfilename: str, errorfilename: str):
     global g_logFile
     g_logFile=open(logfilename, "w+")
 
@@ -235,7 +234,7 @@ def LogClose():
 
 # =============================================================================
 #   Change the filename in a URL
-def ChangeFileInURL(url, newFileName):
+def ChangeFileInURL(url: str, newFileName: str):
     u=urllib.parse.urlparse(url)
     p=u[2].split("/")   # Split the path (which may include a filename) into components
     f=p[-1:][0].split(".")     # Split the last component of the path (which may be a filename) into stuff plus an extension
@@ -280,20 +279,20 @@ def IsNumeric(arg):
 # =============================================================================
 # Read a list of lines in from a file
 # Strip leading and trailing whitespace and ignore lines which begin with a '#'
-def ReadList(filename):
+def ReadList(filename: str):
     if not os.path.exists(filename):
         print("ReadList can't open "+filename)
         return None
     f=open(filename, "r")
-    list=f.readlines()
+    lst=f.readlines()
     f.close()
 
-    list=[l.strip() for l in list]  # Strip leading and trailing whitespace
-    list=[l for l in list if len(l)>0 and l[0]!= "#"]   # Drop empty lines and lines starting with "#"
+    lst=[l.strip() for l in lst]  # Strip leading and trailing whitespace
+    lst=[l for l in lst if len(l)>0 and l[0]!= "#"]   # Drop empty lines and lines starting with "#"
 
-    list=[l for l in list if l.find(" #") == -1] + [l[:l.find(" #")].strip() for l in list if l.find(" #") > 0]    # (all members not containing " #") +(the rest with the trailing # stripped)
+    lst=[l for l in lst if l.find(" #") == -1] + [l[:l.find(" #")].strip() for l in lst if l.find(" #") > 0]    # (all members not containing " #") +(the rest with the trailing # stripped)
 
-    return list
+    return lst
 
 
 # =============================================================================
@@ -302,7 +301,7 @@ def ReadList(filename):
 #   nnn-nnn
 #   nnn.nnn
 #   nnnaaa
-def InterpretNumber(inputstring):
+def InterpretNumber(inputstring: str):
     value=None
     if inputstring is not None:
         inputstring=inputstring.strip()
