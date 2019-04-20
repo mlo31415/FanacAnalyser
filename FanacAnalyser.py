@@ -210,11 +210,10 @@ if len(sys.argv) > 1:
 if not os.path.isdir(outputDir):
     os.mkdir(outputDir)
 
-# Delete the old report directory (if necessary) and create a new, empty one.
+# Create a Reports directory if needed.
 reportDir=os.path.join(outputDir, "Reports")
-if os.path.isdir(reportDir):
-    os.rmdir(reportDir)
-os.mkdir(reportDir)
+if not os.path.isdir(reportDir):
+    os.mkdir(reportDir)
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
