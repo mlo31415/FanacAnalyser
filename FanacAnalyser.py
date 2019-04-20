@@ -58,6 +58,9 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, headerText: str, htmlHeaderName: str, isDate=True, fSelector=None):
+    if htmlHeaderName is not None:
+        Helpers.LogFailureAndRaiseIfMissing(htmlHeaderName)
+
     f: TextIO=open(filename, "w+")
 
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
@@ -225,12 +228,12 @@ def NoNone(s: str):
 
 # Read the control-year.txt file to get the year to be dumped out
 selectedYear=None
+countSelectedYear=0
 if os.path.exists("control-year.txt"):
     text=Helpers.ReadList("control-year.txt")
     selectedYear=Helpers.InterpretNumber(text[0])
 
     file=open(os.path.join(outputDir, "Reports", str(selectedYear)+" fanac.org Fanzines.txt"), "w+")
-    countSelectedYear=0
     for fz in fanacIssueList:
         if fz.Date.YearInt == selectedYear:
             file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
@@ -263,7 +266,6 @@ undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
-Helpers.LogFailureAndRaiseIfMissing("control-AllFanzinesHeader.html")
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
@@ -332,7 +334,6 @@ with open(os.path.join(outputDir, "Reports", "Newszines found by H2 tags.txt"), 
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
-Helpers.LogFailureAndRaiseIfMissing("control-NewszinesHeader.html")
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
