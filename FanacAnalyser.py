@@ -210,10 +210,11 @@ if len(sys.argv) > 1:
 if not os.path.isdir(outputDir):
     os.mkdir(outputDir)
 
-# Delete the old reports directory (if any) and create a new, empty one.
-if os.path.isdir(os.path.join(outputDir, "Reports")):
-    os.remove(os.path.join(outputDir, "Reports"))
-os.mkdir(os.path.join(outputDir, "Reports"))
+# We really ought to delete the old contents of the reports directory (if any) and, if necessary, create a new, empty one.
+# But I can't get the permissions to work, so we'll let old reports accumulate
+reportDir=os.path.join(outputDir, "Reports")
+if not os.path.isdir(reportDir):
+    os.mkdir(reportDir)
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
@@ -230,24 +231,26 @@ def NoNone(s: str):
 
 
 # Read the control-year.txt file to get the year to be dumped out
-selectedYear=None
-countSelectedYear=0
+selectedYears=[]
 if os.path.exists("control-year.txt"):
-    text=Helpers.ReadList("control-year.txt")
-    selectedYear=Helpers.InterpretNumber(text[0])
+    years=Helpers.ReadList("control-year.txt")
+    for year in years:
+        file=open(os.path.join(reportDir, year+" fanac.org Fanzines.txt"), "w+")
+        year=Helpers.InterpretNumber(year)
+        yearCount=0
+        for fz in fanacIssueList:
+            if fz.Date.YearInt == year:
+                file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
+                yearCount+=1
+        file.close()
+        selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
 
-    file=open(os.path.join(outputDir, "Reports", str(selectedYear)+" fanac.org Fanzines.txt"), "w+")
-    for fz in fanacIssueList:
-        if fz.Date.YearInt == selectedYear:
-            file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
-            countSelectedYear+=1
-    file.close()
 
 # Get a count of issues, pdfs, and pages
 pageCount=0
 issueCount=0
 pdfCount=0
-f=open(os.path.join(outputDir, "Reports", "Items (not PDFs) with No Page Count.txt"), "w+")
+f=open(os.path.join(reportDir, "Items (not PDFs) with No Page Count.txt"), "w+")
 ignorePageCountErrors=Helpers.ReadList("control-Ignore Page Count Errors.txt")
 
 for fz in fanacIssueList:
@@ -281,7 +284,7 @@ WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            lambda fz: fz.FanzineIssueName,
            headerText,
            None)
-WriteTable(os.path.join(outputDir, "Reports", "Undated Fanzine Issues.html"),
+WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            undatedList,
            None,
            lambda fz: fz.FanzineIssueName,
@@ -324,16 +327,16 @@ unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
 unusedLines=[x+"\n" for x in unusedLines]
 
 newszines=[x+"\n" for x in newszines]
-with open(os.path.join(outputDir, "Reports", "Items identified as newszines.txt"), "w+") as f:
+with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as f:
     f.writelines(newszines)
-with open(os.path.join(outputDir, "Reports", "Unused lines in control-newszines.txt"), "w+") as f:
+with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
     f.writelines(unusedLines)
 nonNewszines=[x+"\n" for x in nonNewszines]
-with open(os.path.join(outputDir, "Reports", "Items identified as non-newszines.txt"), "w+") as f:
+with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
     f.writelines(nonNewszines)
 
 newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open(os.path.join(outputDir, "Reports", "Itens identified as newszines by H2 tags.txt"), "w+") as f:
+with open(os.path.join(reportDir, "Itens identified as newszines by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
@@ -384,7 +387,7 @@ def OddNames(n1, n2):
     length=min(len(n1), len(n2))
     return n1[:length] != n2[:length]
 
-WriteTable(os.path.join(outputDir, "Reports", "Fanzines with odd names.txt"),
+WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
@@ -398,17 +401,17 @@ WriteTable(os.path.join(outputDir, "Reports", "Fanzines with odd names.txt"),
 fzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList]))
 nzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList if fz.FanzineName.lower() in listOfNewszines]))
 
-
+# Print to the console and also the statistics file
 print("\n")
 print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
 print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
-if selectedYear is not None:
-    print(str(selectedYear)+" Fanzines: "+str(countSelectedYear))
+for selectedYear in selectedYears:
+    print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
     print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
     print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
-    if selectedYear is not None:
-        print(str(selectedYear)+" Fanzines: "+str(countSelectedYear), file=f)
+    for selectedYear in selectedYears:
+        print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]), file=f)
 
 Helpers.LogClose()
 
