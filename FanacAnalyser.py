@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import FanacDates
-from tkinter import *
+from tkinter import sys
 #from tkinter import messagebox
 
 Helpers.LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
@@ -210,11 +210,11 @@ if len(sys.argv) > 1:
 if not os.path.isdir(outputDir):
     os.mkdir(outputDir)
 
-# We really ought to delete the old contents of the reports directory (if any) and, if necessary, create a new, empty one.
-# But I can't get the permissions to work, so we'll let old reports accumulate
+# Delete the old report directory (if necessary) and create a new, empty one.
 reportDir=os.path.join(outputDir, "Reports")
-if not os.path.isdir(reportDir):
-    os.mkdir(reportDir)
+if os.path.isdir(reportDir):
+    os.rmdir(reportDir)
+os.mkdir(reportDir)
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
