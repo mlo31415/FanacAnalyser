@@ -364,8 +364,8 @@ def MonthToInt(text):
                           "nov": 11, "november": 11, "11": 11,
                           "dec": 12, "december": 12, "12": 12,
                           "1q": 1, "q1": 1,
-                          "4q": 4, "q2": 4,
-                          "7q": 7, "q3": 7,
+                          "4q": 4, "q2": 4, "2q": 4,
+                          "7q": 7, "q3": 7, "3q": 7,    # 4q, 7q, 10q is for some fapazines which are numbered by an odd mix of quarter and month.
                           "10q": 10, "q4": 10,
                           "spring": 4, "spr": 4,
                           "summer": 7, "sum": 7,
