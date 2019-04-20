@@ -321,16 +321,16 @@ unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
 unusedLines=[x+"\n" for x in unusedLines]
 
 newszines=[x+"\n" for x in newszines]
-with open(os.path.join(outputDir, "Reports", "Newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Items identified as newszines.txt"), "w+") as f:
     f.writelines(newszines)
 with open(os.path.join(outputDir, "Reports", "Unused lines in control-newszines.txt"), "w+") as f:
     f.writelines(unusedLines)
 nonNewszines=[x+"\n" for x in nonNewszines]
-with open(os.path.join(outputDir, "Reports", "Non-newszines.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Items identified as non-newszines.txt"), "w+") as f:
     f.writelines(nonNewszines)
 
 newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open(os.path.join(outputDir, "Reports", "Newszines found by H2 tags.txt"), "w+") as f:
+with open(os.path.join(outputDir, "Reports", "Itens identified as newszines by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
