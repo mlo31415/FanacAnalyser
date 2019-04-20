@@ -436,6 +436,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, ta
         # If the href is a complete fanac.org URL and not relative (i.e, 'http://www.fanac.org/fanzines/FAPA-Misc/FAPA-Misc24-01.html' and not 'FAPA-Misc24-01.html'),
         # we need to check to see if it has directoryURL as a prefix (in which case we delete the prefix) or it has a *different* fanac.org URL, in which case we
         # change the value of directoryURL for this fanzine.
+        dirUrl=directoryUrl
         if href is not None:
             if href.startswith(directoryUrl):
                 href=href.replace(directoryUrl, "")
@@ -449,10 +450,10 @@ def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, ta
                     continue
                 path=href.replace("/"+fname, "")
                 href=fname
-                directoryUrl=path
+                dirUrl=path
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=directoryUrl, URL=href, Date=date, Serial=ser, Pages=pages)
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=dirUrl, URL=href, Date=date, Serial=ser, Pages=pages)
         if fi.FanzineIssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
             Helpers.Log("   ****Skipping null table row: "+str(fi))
             continue
@@ -467,7 +468,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, ta
                 urlT="*No URL*"
             Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  ["+fi.Serial.FormatSerial()+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
         else:
-            Helpers.Log(fanzineName+"      ***Can't handle "+directoryUrl, isError=True)
+            Helpers.Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 
 
 #===============================================================================
