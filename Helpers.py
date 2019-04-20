@@ -261,6 +261,7 @@ def IsInt(arg):
     if type(arg) is int:
         return True
 
+    # It's not an integer type.  See if it can be converted into an integer.  E.g., it's a string representation of a number
     try:
         x=int(arg)  # We throw away the result -- all we're interested in is if the conversation can be done without throwing an error
         return True
@@ -274,6 +275,7 @@ def IsNumeric(arg):
     if type(arg) in [float, int]:
         return True
 
+    # It's not a numeric type.  See if it can be converted into a float.  E.g., it's a string representation of a number
     try:
         x=float(arg)    # We throw away the result -- all we're interested in is if the conversation can be done without throwing an error
         return True
