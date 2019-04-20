@@ -187,7 +187,7 @@ def Log(text: str, isError=False):
     g_logHeader=None
 
     if isError:
-        # If this and error entry and is the first error entry for this header, print it and then clear it so it's not printed again
+        # If this and error entry and is the first error entry for this header, print the header and then clear it so it's not printed again
         if g_logErrorHeader is not None:
             print("----\n"+g_logErrorHeader, file=g_errorFile)
         g_logErrorHeader=None
