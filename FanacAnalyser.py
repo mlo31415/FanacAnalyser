@@ -213,7 +213,11 @@ if not os.path.isdir(outputDir):
 # Create a Reports directory if needed.
 reportDir=os.path.join(outputDir, "Reports")
 if not os.path.isdir(reportDir):
-    os.mkdir(reportDir)
+    try:
+        os.mkdir(reportDir)
+    except Exception as e:
+        Helpers.Log("Fatal Error: Attempt to create directory "+reportDir+" yields execption: "+str(e), isError=True)
+        exit(1)
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
@@ -335,7 +339,7 @@ with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+"
     f.writelines(nonNewszines)
 
 newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open(os.path.join(reportDir, "Itens identified as newszines by H2 tags.txt"), "w+") as f:
+with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
 headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
