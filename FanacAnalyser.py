@@ -261,7 +261,10 @@ for fz in fanacIssueList:
         issueCount+=1
         if os.path.splitext(fz.URL)[1] == ".pdf":
             pdfCount+=1
-            pageCount+=1
+            if fz.Pages is not None and fz.Pages > 0:
+                pageCount+=fz.Pages
+            else:
+                pageCount+=1
         else:
             pageCount+=(fz.Pages if fz.Pages > 0 else 1)
             if fz.Pages == 0 and ignorePageCountErrors is not None and fz.FanzineName not in ignorePageCountErrors:
