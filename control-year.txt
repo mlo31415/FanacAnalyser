@@ -1,5 +1,6 @@
 # This selects a particular year or list of years (one per line)
 # for which to create a list of fanzines for that year
 # As always, # begins a comment
+1944
 1943
 1942
