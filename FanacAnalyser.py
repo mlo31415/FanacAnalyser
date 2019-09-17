@@ -253,22 +253,17 @@ if os.path.exists("control-year.txt"):
 pageCount=0
 issueCount=0
 pdfCount=0
-f=open(os.path.join(reportDir, "Items (not PDFs) with No Page Count.txt"), "w+")
+f=open(os.path.join(reportDir, "Items with No Page Count.txt"), "w+")
 ignorePageCountErrors=Helpers.ReadList("control-Ignore Page Count Errors.txt")
 
 for fz in fanacIssueList:
     if fz.URL is not None:
         issueCount+=1
+        pageCount+=(fz.Pages if fz.Pages > 0 else 1)
         if os.path.splitext(fz.URL)[1] == ".pdf":
             pdfCount+=1
-            if fz.Pages is not None and fz.Pages > 0:
-                pageCount+=fz.Pages
-            else:
-                pageCount+=1
-        else:
-            pageCount+=(fz.Pages if fz.Pages > 0 else 1)
-            if fz.Pages == 0 and ignorePageCountErrors is not None and fz.FanzineName not in ignorePageCountErrors:
-                f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
+        if fz.Pages == 0 and ignorePageCountErrors is not None and fz.FanzineName not in ignorePageCountErrors:
+            f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
 f.close()
 
 # Produce a list of fanzines listed by date
