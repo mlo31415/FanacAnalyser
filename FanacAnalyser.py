@@ -174,8 +174,8 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, head
         f.write("</table></td></tr>\n")
         f.write('</table>\n')
         try:
-            Helpers.LogFailureAndRaiseIfMissing("control-Footer.html")
-            with open("control-Footer.html", "r") as f2:
+            Helpers.LogFailureAndRaiseIfMissing("control-Default.Footer")
+            with open("control-Default.Footer", "r") as f2:
                 f.writelines(f2.readlines())
         except:
             pass  # Except nothing, really.  If the file's not there, we ignore the whole thing.
