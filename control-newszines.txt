@@ -1,4 +1,5 @@
 # A list of newszines to go into the newszine index
+# The list entries are the titles at the top of the fanzine index page
 # ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
 anglofanac
@@ -72,6 +73,7 @@ SFTimes
 SFTimes (German)
 Shards of Babel
 Skyrack
+Son of the WSFA Journal
 Spang Blah
 SpinDizzy
 Starspinkle
