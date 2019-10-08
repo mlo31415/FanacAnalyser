@@ -220,7 +220,7 @@ if not os.path.isdir(reportDir):
     try:
         os.mkdir(reportDir)
     except Exception as e:
-        Helpers.Log("Fatal Error: Attempt to create directory "+reportDir+" yields execption: "+str(e), isError=True)
+        Helpers.Log("Fatal Error: Attempt to create directory "+reportDir+" yields exception: "+str(e), isError=True)
         exit(1)
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
