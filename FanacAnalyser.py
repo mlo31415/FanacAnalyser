@@ -123,7 +123,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
         for item in headerlist:
             if len(buttonlist) > 0:
                 buttonlist=buttonlist+" &mdash; "
-            buttonlist=buttonlist+'<a href="#' + item + '">' + item + '</a>'
+            buttonlist=buttonlist+'<a href="#' + item + '">' + item + '</a>\n'
 
         # Write out the button bar
         f.write(buttonlist+"<p><p>")
