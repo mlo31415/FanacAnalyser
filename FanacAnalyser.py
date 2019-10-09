@@ -441,6 +441,21 @@ with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
     for selectedYear in selectedYears:
         print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]), file=f)
 
+# Generate a list of fanzines with odd page counts
+def OddPageCount(fz: FanacOrgReaders.FanacIssueInfo):
+    if fz.Pages > 250:
+        return True
+    return False
+
+WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
+           fanacIssueList,
+           lambda fz: fz.FanzineName,
+           lambda fz: fz.FanzineIssueName,
+           None,
+           None,
+           isDate=False,
+           fSelector=lambda fx: OddPageCount(fx))
+
 Helpers.LogClose()
 
 # Display a message box (needed only for the built/packaged version)
