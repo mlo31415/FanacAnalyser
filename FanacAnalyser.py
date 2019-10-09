@@ -51,35 +51,54 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
     return
 
 
+def ReadFile(filename):
+    try:
+        with open(filename, "r") as f2:
+            return f2.readlines()
+
+    except:
+        # If the expected control header is unavailable, use the default.
+        Helpers.LogFailureAndRaiseIfMissing(filename)
+    return None
+
 #================================================================================
 # fRowHeaderText and fRowBodyText and fSelector are all lambdas
 #   fSelector decides if this fanzines is to be listed and returns True for fanzines to be listed, and False for ones to be skipped. (If None, nothing will be skipped)
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
-def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, headerText: str, isDate=True, fSelector=None):
+def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, countText: str, headerFilename: str, isDate=True, fSelector=None):
     f: TextIO=open(filename, "w+")
 
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
     html=os.path.splitext(filename)[1].lower() == ".html"
     if html:
         # When we're generating HTML output, we need to include a header.
-        # It can be specific to the output or the default.
-        # If it's specific, it name name is "control-<filename>.header"
-        try:
-            htmlHeaderName="control-"+os.path.basename(filename)+".header"
-            with open(htmlHeaderName, "r") as f2:
-                f.writelines(f2.readlines())
-        except:
-            # If the expected control header is unavailable, use the default.
-            Helpers.LogFailureAndRaiseIfMissing("control-Default.header")
-            with open("control-Default.header", "r") as f2:
-                f.writelines(f2.readlines())
+        # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
+        headerText=ReadFile("control-Header (basic).html")
+        if headerText is None:
+            return
 
-    if headerText is not None:
+        specialText=ReadFile(headerFilename)
+        if specialText is not None:
+            specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
+            title=specialText[0]
+            del specialText[0]
+
+            # Do the substitutions
+            for i in range(0, len(headerText)):
+                if headerText[i].strip() == "<title>title</title>":
+                    headerText[i]="<title>" + title + "</title>"
+                if headerText[i].strip() == "<h1>title</h1>":
+                    headerText[i]="<h1>" + title + "</h1>"
+            headerText.extend(specialText)
+
+        f.writelines(headerText)
+
+    if countText is not None:
         if html:
-            headerText="<p>"+headerText+"<p>"
-        f.write(headerText)
+            countText="<p>"+countText+"<p>"
+        f.write(countText)
 
 
     # If we have an HTML header, we need to create a set of jump buttons.
@@ -276,22 +295,25 @@ fanacIssueList.sort(key=lambda elem: elem.Date)
 undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
-headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
+countText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
-           headerText)
+           countText,
+           'control-Header (Fanzine, chronological).html')
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
-           headerText)
+           countText,
+           None)
 WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            undatedList,
            None,
            lambda fz: fz.FanzineIssueName,
-           headerText)
+           "",
+           "control-Header (Fanzine, alphabetical).html")
 
 # Get the names of the newszines as a list
 Helpers.LogFailureAndRaiseIfMissing("control-newszines.txt")
@@ -341,29 +363,32 @@ newszinesFromH2=[x+"\n" for x in newszinesFromH2]
 with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
-headerText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
+countText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
-           headerText,
+           countText,
+           "control-Header (Newszine).html",
            fSelector=lambda fx: fx.FanzineName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
-headerText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
+countText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
-           headerText,
+           countText,
+           None,
            isDate=False)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
-           headerText,
+           countText,
+           "control-Header (Fanzine, alphabetical).html",
            isDate=False)
 
 def RemoveArticles(name):
@@ -390,6 +415,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
+           None,
            None,
            isDate=False,
            fSelector=lambda fx: OddNames(fx.FanzineIssueName,  fx.FanzineName))
