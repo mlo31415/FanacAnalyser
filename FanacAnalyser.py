@@ -97,7 +97,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
 
     if countText is not None:
         if html:
-            countText="<p>"+countText+"<p>"
+            countText="<p>"+countText+"<p>\n"
         f.write(countText)
 
 
@@ -107,9 +107,13 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
     if html:
         headers=set()
         for fz in fanacIssueList:
+            if fSelector is not None and not fSelector(fz):
+                continue
             if fRowHeaderText is not None:
                 if isDate:
-                    headers.add(fRowHeaderText(fz)[-4:-1]+"0s")
+                    date=fRowHeaderText(fz)
+                    if all(d in "0123456789" for d in date[-4:-1]):     # Only add all-numeric dates
+                        headers.add(fRowHeaderText(fz)[-4:-1]+"0s")
                 else:
                     headers.add(fRowHeaderText(fz)[:1])
 
@@ -118,7 +122,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
         buttonlist=""
         for item in headerlist:
             if len(buttonlist) > 0:
-                buttonlist=buttonlist+" -- "
+                buttonlist=buttonlist+" &mdash; "
             buttonlist=buttonlist+'<a href="#' + item + '">' + item + '</a>'
 
         # Write out the button bar
