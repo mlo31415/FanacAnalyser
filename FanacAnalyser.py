@@ -1,5 +1,5 @@
 from typing import TextIO
-
+from time import gmtime, strftime
 import Helpers
 import FanacOrgReaders
 import requests
@@ -97,7 +97,8 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
 
     if countText is not None:
         if html:
-            countText="<p>"+countText+"<p>\n"
+            countText=countText.replace("\n", "<p>")
+            countText="<p>"+countText+"</p>\n"
         f.write(countText)
 
 
@@ -126,7 +127,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
             buttonlist=buttonlist+'<a href="#' + item + '">' + item + '</a>\n'
 
         # Write out the button bar
-        f.write(buttonlist+"<p><p>")
+        f.write(buttonlist+"<p><p>\n")
 
     # Start the table if this is HTML
     if html:
@@ -299,24 +300,26 @@ fanacIssueList.sort(key=lambda elem: elem.Date)
 undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
+timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", gmtime())+" UTC"
+
 countText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
-           countText,
+           countText+"\n"+timestamp+"\n",
            'control-Header (Fanzine, chronological).html')
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
-           countText,
+           countText+"\n"+timestamp+"\n",
            None)
 WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            undatedList,
            None,
            lambda fz: fz.FanzineIssueName,
-           "",
+           timestamp,
            "control-Header (Fanzine, alphabetical).html")
 
 # Get the names of the newszines as a list
@@ -368,11 +371,12 @@ with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"
     f.writelines(newszinesFromH2)
 
 countText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
+
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
            lambda fz: fz.FanzineIssueName,
-           countText,
+           countText+"\n"+timestamp+"\n",
            "control-Header (Newszine).html",
            fSelector=lambda fx: fx.FanzineName.lower() in listOfNewszines)
 
@@ -384,14 +388,14 @@ WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
-           countText,
+           countText+"\n"+timestamp+"\n",
            None,
            isDate=False)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
-           countText,
+           countText+"\n"+timestamp+"\n",
            "control-Header (Fanzine, alphabetical).html",
            isDate=False)
 
@@ -419,7 +423,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
-           None,
+           timestamp+"\n",
            None,
            isDate=False,
            fSelector=lambda fx: OddNames(fx.FanzineIssueName,  fx.FanzineName))
@@ -451,7 +455,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            fanacIssueList,
            lambda fz: fz.FanzineName,
            lambda fz: fz.FanzineIssueName,
-           None,
+           timestamp,
            None,
            isDate=False,
            fSelector=lambda fx: OddPageCount(fx))
