@@ -94,7 +94,23 @@ class FanacDate:
     #   1969
     #   July 1969
     #   July 20, 1969
-    def FormatDate(self):
+    def FormatDate(self, numeric=False):
+
+        if numeric:
+            if self.YearInt is not None:
+                val=str(self.YearInt).zfill(4)
+            else:
+                val="0000"
+            if self.MonthInt is not None:
+                val=val+"-"+str(self.MonthInt).zfill(2)
+            else:
+                val=val+"-00"
+            if self.DayInt is not None:
+                val=val+"-"+str(self.DayInt).zfill(2)
+            else:
+                val=val+"-00"
+
+            return val
 
         # If we have a raw form of the date, just return it.
         if self.Raw is not None:

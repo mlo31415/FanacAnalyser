@@ -381,8 +381,10 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fSelector=lambda fx: fx.FanzineName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
+def DatePlusSortVal(fz: FanacOrgReaders.FanacIssueInfo):
+    return fz.Date.FormatDate(numeric=True)+"###"+str(fz.Serial.FormatSerial())
 countText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
-fanacIssueList.sort(key=lambda elem: elem.Date)  # Sorts in place on Date
+fanacIssueList.sort(key=lambda elem: DatePlusSortVal(elem))  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
