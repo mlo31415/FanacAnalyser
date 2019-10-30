@@ -265,6 +265,12 @@ def InterpretYear(yearText):
     if len(yearText) == 0:
         return None
 
+    # Drop trailing question mark(s)
+    if yearText[-1] == "?":
+        yearText=yearText[:-1]
+    if yearText[-1] == "?":
+        yearText=yearText[:-1]
+
     # Convert to int
     try:
         return YearAs4Digits(int(yearText))
