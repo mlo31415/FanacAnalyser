@@ -101,7 +101,18 @@ def RemoveDuplicates(fanzineList):
         last=this
     return dedupedList
 
+#----------------------------
+# Change"&nbsp;" to space
+def ChangeNBSPToSpace(s: str):
+    if s is None:
+        return None
+    if len(s) == 0:
+        return s
 
+    if isinstance(s,str):
+        return s.replace("&nbsp;", " ")
+
+    return tuple([c.replace("&nbsp;", " ") for c in s])
 
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
@@ -112,11 +123,11 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
         for i in range(0, len(columnHeaders)):
             for cn in cellnames:
                 if columnHeaders[i].lower() == cn.lower():
-                    return row[i]
+                    return ChangeNBSPToSpace(row[i])
     else:
         for i in range(0, len(columnHeaders)):
             if columnHeaders[i].lower() == cellnames.lower():
-                return row[i]
+                return ChangeNBSPToSpace(row[i])
 
     return None
 
