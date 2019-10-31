@@ -10,7 +10,7 @@ import urllib.parse
 from FanacSerials import FanacSerial
 
 # ============================================================================================
-def ReadFanacFanzineIssues(fanacDirectories):
+def ReadFanacFanzineIssues(fanacDirectories: list):
     # Read index.html files on fanac.org
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
@@ -86,7 +86,7 @@ def ReadFanacFanzineIssues(fanacDirectories):
 
 #=============================================================================================
 # Remove the duplicates from a fanzine list
-def RemoveDuplicates(fanzineList):
+def RemoveDuplicates(fanzineList: list):
     # Sort in place on fanzine's Directory's URL followed by file name
     fanzineList.sort(key=lambda fz: fz.URL if fz.URL is not None else "")
     fanzineList.sort(key=lambda fz: fz.DirectoryURL if fz.DirectoryURL is not None else "")
@@ -117,7 +117,7 @@ def ChangeNBSPToSpace(s: str):
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
 # If cellname is a list of names, try them all and return the first that hits
-def GetCellValueByColHeader(columnHeaders, row, cellnames):
+def GetCellValueByColHeader(columnHeaders: list, row: list, cellnames: str):
 
     if type(cellnames) is list:
         for i in range(0, len(columnHeaders)):
@@ -135,7 +135,7 @@ def GetCellValueByColHeader(columnHeaders, row, cellnames):
 #=============================================================================================
 # Extract a date from a table row
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
-def ExtractDate(columnHeaders, row):
+def ExtractDate(columnHeaders: list, row: list):
 
     # Does this have a Date column?
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
@@ -172,7 +172,7 @@ def ExtractDate(columnHeaders, row):
 # Some fanzines have a whole number --> returned as VolNone, Num=nnn
 # Others have a Volume and a number --> returned as Vol=nn, Num=nn
 # Sometimes the number is composite V2#3 and stored who-knows-where and we gotta find it.
-def ExtractSerial(columnHeaders, row):
+def ExtractSerial(columnHeaders: list, row: list):
 
     wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole")
     volText=GetCellValueByColHeader(columnHeaders, row, "Volume")
@@ -189,7 +189,7 @@ def ExtractSerial(columnHeaders, row):
 
 #============================================================================================
 # Find the cell containing the page count and return its value
-def ExtractPageCount(columnHeaders, row):
+def ExtractPageCount(columnHeaders: list, row: list):
 
     pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])
     if pageText is None:
@@ -208,7 +208,7 @@ def ExtractPageCount(columnHeaders, row):
 
 # ============================================================================================
 # Find the cell containing the issue name
-def FindIssueCell(columnHeaders, row):
+def FindIssueCell(columnHeaders: list, row: list):
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
     issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
     if issueCell is None:
@@ -221,7 +221,7 @@ def FindIssueCell(columnHeaders, row):
 
 # ============================================================================================
 # Scan the row and locate the issue cell, title and href and return them as a tuple
-def ExtractHrefAndTitle(columnHeaders, row):
+def ExtractHrefAndTitle(columnHeaders: list, row: list):
 
     issueCell=FindIssueCell(columnHeaders, row)
 
@@ -258,7 +258,7 @@ FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIss
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueList, newszineList):
+def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanzineIssueList: list, newszineList: list):
     global g_browser
 
     Helpers.Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
@@ -314,7 +314,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName, directoryUrl, fanzineIssueLi
 # The "special biggie" pages are few (only two at the time this ie being written) and need to be handled specially
 # The characteristic is that they are a tree of pages which may contain one or more *tagged* fanzine index tables on any level.
 # The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
-def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
+def ReadSpecialBiggie(directoryUrl: str, fanzineIssueList: list, fanzineName: str):
 
     soup=OpenSoup(directoryUrl)
     if soup is None:
@@ -343,7 +343,7 @@ def ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName):
 
 #======================================================================================
 # Open a directory's index webpage using BeautifulSoup
-def OpenSoup(directoryUrl):
+def OpenSoup(directoryUrl: str):
     # Download the index.html, which is
     # * The fanzine's Issue Index Table page
     # * A singleton page
@@ -364,7 +364,7 @@ def OpenSoup(directoryUrl):
 
 #======================================================================================
 # Read a singleton-format fanzine page
-def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
+def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, soup):
     # Usually, a singleton has the information in the first h2 block
     if soup.h2 is None:
         Helpers.Log("***Failed to find <h2> block in singleton '"+directoryUrl+"'", isError=True)
@@ -393,7 +393,7 @@ def ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup):
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, table):
+def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanzineName: str, table):
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -484,7 +484,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, ta
 
 #===============================================================================
 # Locate a fanzine index table.
-def LocateIndexTable(directoryUrl, soup, silence=False):
+def LocateIndexTable(directoryUrl: str, soup, silence: bool=False):
     global g_browser
 
     # Because the structures of the pages are so random, we need to search the body for the table.

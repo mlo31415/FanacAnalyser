@@ -102,7 +102,7 @@ def N(tag):
 
 #=====================================================================================
 # Function to compress newline elements from a list of Tags.
-def RemoveNewlineRows(tags):
+def RemoveNewlineRows(tags: list):
     compressedTags = []
     for row in tags:
         if not isinstance(row, NavigableString):
@@ -122,7 +122,7 @@ def FindIndexOfStringInList(lst: list, s: str):
 # Function to search recursively for the table containing the fanzines listing
 # flags is a dictionary of attributes and values to be matched, e.g., {"class" : "indextable", ...}
 # We must match all of them
-def LookForTable(soup, flags):
+def LookForTable(soup, flags: dict):
 
     tables=soup.find_all("table")
     for table in tables:
@@ -153,7 +153,7 @@ def FormatLink(name: str, url: str):
 # We make it all lower case
 # We move leading "The ", "A " and "An " to the rear
 # We remove spaces and certain punctuation
-def CompressName(name):
+def CompressName(name: str):
     name=name.lower()
     if name.startswith("the "):
         name=name[:4]+"the"
@@ -174,7 +174,7 @@ def CompareCompressedName(n1, n2):
 #=============================================================================
 # Print the text to a log file open by the main program
 # If isError is set also print it to the error file.
-def Log(text: str, isError=False):
+def Log(text: str, isError: bool=False):
     global g_logFile
     global g_errorFile
     global g_logHeader
@@ -287,7 +287,7 @@ def IsNumeric(arg):
 # =============================================================================
 # Read a list of lines in from a file
 # Strip leading and trailing whitespace and ignore lines which begin with a '#'
-def ReadList(filename: str, isFatal=False):
+def ReadList(filename: str, isFatal: bool=False):
     if not os.path.exists(filename):
         if isFatal:
             Log("Fatal error: Can't find "+filename, isError=True)

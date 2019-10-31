@@ -34,7 +34,7 @@ def ReadClassicModernPages():
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
-def ReadModernOrClassicTable(fanacFanzineDirectories, url):
+def ReadModernOrClassicTable(fanacFanzineDirectories: list, url: str):
     h=requests.get(url)
     s=BeautifulSoup(h.content, "html.parser")
     # We look for the first table that does not contain a "navbar"
@@ -51,7 +51,7 @@ def ReadModernOrClassicTable(fanacFanzineDirectories, url):
     return
 
 
-def ReadFile(filename):
+def ReadFile(filename: str):
     try:
         with open(filename, "r") as f2:
             return f2.readlines()
@@ -67,7 +67,7 @@ def ReadFile(filename):
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
-def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, countText: str, headerFilename: str, isDate=True, fSelector=None):
+def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText, countText: str, headerFilename: str, isDate=True, fSelector=None):
     f: TextIO=open(filename, "w+")
 
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
@@ -79,6 +79,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
         if headerText is None:
             return
 
+        # Read the specialized control.html file for this type of report
         specialText=ReadFile(headerFilename)
         if specialText is not None:
             specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
@@ -209,7 +210,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacFanzineDirectories, name: str, dirname: str):
+def AddFanacDirectory(fanacFanzineDirectories: list, name: str, dirname: str):
 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectories if e2 == dirname]
