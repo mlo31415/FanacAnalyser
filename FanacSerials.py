@@ -119,7 +119,7 @@ class FanacSerial:
     def Suf(self):
         return self.Suffix if self.Suffix is not None else ""
 
-    #=============================================================================
+    # =============================================================================
     # Format the Vol/Num/Whole information
     def FormatSerial(self):
         if self.Whole is not None and self.Vol is not None and self.Num is not None:
@@ -137,6 +137,28 @@ class FanacSerial:
             v=str(self.Vol)
         if self.Num is not None:
             n=str(self.Num)
+
+        return "V"+v+"#"+n+self.Suf()
+
+
+    #=============================================================================
+    # Format the Vol/Num/Whole information
+    def FormatSerialForSorting(self):
+        if self.Whole is not None and self.Vol is not None and self.Num is not None:
+            return "#"+"{0:7.2f}".format(self.Whole)+"  (V"+"{0:7.2f}".format(self.Vol)+"#"+"{0:7.2f}".format(self.Num)+")"+self.Suf()
+
+        if self.Whole is not None:
+            return "#"+"{0:7.2f}".format(self.Whole)+self.Suf()
+
+        if self.Vol is None and self.Num is None:
+            return "0000.00"
+
+        v="0000.00"
+        n="0000.00"
+        if self.Vol is not None:
+            v="{0:7.2f}".format(self.Vol)
+        if self.Num is not None:
+            n="{0:7.2f}".format(self.Num)
 
         return "V"+v+"#"+n+self.Suf()
 

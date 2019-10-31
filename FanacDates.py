@@ -94,24 +94,7 @@ class FanacDate:
     #   1969
     #   July 1969
     #   July 20, 1969
-    def FormatDate(self, numeric=False):
-
-        if numeric:
-            if self.YearInt is not None:
-                val=str(self.YearInt).zfill(4)
-            else:
-                val="0000"
-            if self.MonthInt is not None:
-                val=val+"-"+str(self.MonthInt).zfill(2)
-            else:
-                val=val+"-00"
-            if self.DayInt is not None:
-                val=val+"-"+str(self.DayInt).zfill(2)
-            else:
-                val=val+"-00"
-
-            return val
-
+    def FormatDate(self):
         # If we have a raw form of the date, just return it.
         if self.Raw is not None:
             return self.Raw
@@ -148,6 +131,22 @@ class FanacDate:
             out="(undated)"
 
         return out
+
+    def FormatDateForSorting(self):
+        if self.YearInt is not None:
+            val="{0:7.2f}".format(self.YearInt).zfill(4)
+        else:
+            val="0000.00"
+        if self.MonthInt is not None:
+            val=val+"-"+"{0:7.2f}".format(self.MonthInt).zfill(2)
+        else:
+            val=val+"-0000.00"
+        if self.DayInt is not None:
+            val=val+"-"+"{0:7.2f}".format(self.DayInt).zfill(2)
+        else:
+            val=val+"-0000.00"
+
+        return val
 
     #--------------------------------
     # Parse a string to find a date.  This tries to interpret the *whole* string.
