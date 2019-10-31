@@ -253,7 +253,7 @@ def ExtractHrefAndTitle(columnHeaders: list, row: list):
 
 
 
-FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Serial  DirectoryURL URL Date Pages")
+FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Serial  DirectoryURL URL Date Pages Sequence")
 
 
 # ============================================================================================
@@ -385,7 +385,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
         Helpers.Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
-    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Serial=FanacSerial(), Pages=0)
+    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Serial=FanacSerial(), Pages=0, Sequence=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -429,9 +429,9 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
 
 #TODO: We need to skip entries which point to a directory: E.g., Axe in Irish_Fandom
     # Now we process the table rows, extracting the information for each fanzine issue.
-    for i in range(0, len(tableRows)):
+    for iRow in range(len(tableRows)):
         # We need to skip the column headers
-        tableRow=tableRows[i]
+        tableRow=tableRows[iRow]
         if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
             continue
         print("   row="+str(tableRow))
@@ -464,7 +464,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
                 dirUrl=path
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=dirUrl, URL=href, Date=date, Serial=ser, Pages=pages)
+        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=dirUrl, URL=href, Date=date, Serial=ser, Pages=pages, Sequence=iRow)
         if fi.FanzineIssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
             Helpers.Log("   ****Skipping null table row: "+str(fi))
             continue
@@ -477,7 +477,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(i)+"  '"+str(fi.FanzineIssueName)+"'  ["+fi.Serial.FormatSerial()+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
+            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.FanzineIssueName)+"'  ["+fi.Serial.FormatSerial()+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
         else:
             Helpers.Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 
