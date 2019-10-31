@@ -83,7 +83,7 @@ def WriteTable(filename: str, fanacIssueList, fRowHeaderText, fRowBodyText, coun
         if specialText is not None:
             specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
             title=specialText[0]
-            del specialText[0]
+            #del specialText[0]
 
             # Do the substitutions
             for i in range(0, len(headerText)):
