@@ -70,6 +70,7 @@ def ReadFile(filename: str):
 def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText, countText: str, headerFilename: str, isDate=True, fSelector=None):
     f: TextIO=open(filename, "w+")
 
+    #....... Header .......
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
     html=os.path.splitext(filename)[1].lower() == ".html"
     if html:
@@ -103,6 +104,7 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
         f.write(countText)
 
 
+    #....... Jump buttons .......
     # If we have an HTML header, we need to create a set of jump buttons.
     # If it's alpha, the buttons are by 1st letter; if date it's by decade
     # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
@@ -130,9 +132,20 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
         # Write out the button bar
         f.write(buttonlist+"<p><p>\n")
 
+    #....... Main table .......
     # Start the table if this is HTML
+    # The structure is
+    #   <div class="row border">        # This starts a new bordered box (a fanzine, a month)
+    #       <div class=col_md_2> (1st col: box title) </div>
+    #       <div class=col_md_10> (1nd col, a list of fanzine issues)
+    #           <a>issue</a> <br>
+    #           <a>issue</a> <br>
+    #           <a>issue</a> <br>
+    #       </div>
+    #   </div>
+
     if html:
-        f.write('<table border="2" cellspacing="4">\n')  # Begin the main table
+        f.write('<div>\n')  # Begin the main table
 
     lastRowHeader=None
     lastBLS=None
@@ -143,7 +156,7 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
         if html and fz.URL is None:
             continue
 
-        # Get the button link string
+        # Get the button link string, to see if we have a new decade (or 1st letter) and need to new jump anchor
         bls=""
         if html:
             if fRowHeaderText is not None:
@@ -152,25 +165,25 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
                 else:
                     bls=fRowHeaderText(fz)[:1]
 
+        # Start a new row
         # Deal with Column 1
         if fRowHeaderText is not None and lastRowHeader != fRowHeaderText(fz):
-            if lastRowHeader is not None:  # Is this the first sub-box?
-                if html: f.write('</table></td></tr>\n')  # No.  So we must end the previous sub-box
-
-            if html: f.write('<tr><td><table>')  # Start a new sub-box
+            if lastRowHeader is not None:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
+                if html: f.write('    </div></div>\n')
             lastRowHeader=fRowHeaderText(fz)
+
             # Since this is a new sub-box, we write the header in col 1
             if html:
-                f.write('    <tr><td width="120">\n'+lastRowHeader)
                 if bls != lastBLS:
                     f.write('<a name="'+bls+'"></a>')
                     lastBLS=bls
-                f.write('</td>\n')
+                f.write('<div class="row border">\n')  # Start a new sub-box
+                # Write col 1
+                f.write('  <div class=col-md-3>'+lastRowHeader)
+                f.write('</div>\n')
+                f.write('    <div class=col-md-9>\n') # Start col 2
             else:
-                f.write("\n"+fRowHeaderText(fz)+"\n")
-        else:
-            # Otherwise, we put an empty cell there
-            if html: f.write('    <tr><td width="120">&nbsp;</td>\n')  # Add an empty sub-box
+                f.write("\n"+lastRowHeader+"\n")
 
         # Deal with Column 2
         # The hyperlink goes in column 2
@@ -187,17 +200,14 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
                     url=fz.DirectoryURL+"/../"+"/".join(parts[-2:])
                 else:
                     url=fz.URL
-            f.write('        <td width="350">'+'<a href="'+url+'">'+fz.FanzineIssueName.encode('ascii', 'xmlcharrefreplace').decode()+'</a>'+'</td>\n')
+            f.write('        <a href="'+url+'">'+fz.FanzineIssueName.encode('ascii', 'xmlcharrefreplace').decode()+'</a><br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
-        # And end the row
-        if html: f.write('  </tr>\n')
-
+    #....... Cleanup .......
     # And end everything
     if html:
-        f.write("</table></td></tr>\n")
-        f.write('</table>\n')
+        f.write('</div>\n</div>\n')
         try:
             Helpers.LogFailureAndRaiseIfMissing("control-Default.Footer")
             with open("control-Default.Footer", "r") as f2:
