@@ -348,17 +348,23 @@ def OpenSoup(directoryUrl: str):
     # * The fanzine's Issue Index Table page
     # * A singleton page
     # * The root of a tree with multiple Issue Index Pages
+    Helpers.Log("    opening "+directoryUrl, noNewLine=True)
     try:
-        h=requests.get(directoryUrl)
+        h=requests.get(directoryUrl, timeout=1)
     except:
-        try:
-            h=requests.get(directoryUrl)
+        try:    # Do first retry
+            h=requests.get(directoryUrl, timeout=2)
         except:
-            Helpers.Log("***failed because it didn't load: "+directoryUrl, isError=True)
-            return None
+            try:  # Do second retry
+                h=requests.get(directoryUrl, timeout=2)
+            except:
+                Helpers.Log("\n***OpenSoup failed because it didn't load: "+directoryUrl, isError=True)
+                return None
+    Helpers.Log("...loaded", noNewLine=True)
 
     # Next, parse the page looking for the body
-    soup=BeautifulSoup(h.content, "html.parser")
+    soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
+    Helpers.Log("...BeautifulSoup opened")
     return soup
 
 
