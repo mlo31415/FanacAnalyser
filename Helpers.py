@@ -174,11 +174,15 @@ def CompareCompressedName(n1, n2):
 #=============================================================================
 # Print the text to a log file open by the main program
 # If isError is set also print it to the error file.
-def Log(text: str, isError: bool=False):
+def Log(text: str, isError: bool=False, noNewLine: bool=False):
     global g_logFile
     global g_errorFile
     global g_logHeader
     global g_logErrorHeader
+
+    newlinechar="\n"
+    if noNewLine:
+        newlinechar=" "
 
     # If this is the first log entry for this header, print it and then clear it so it's not printed again
     if g_logHeader is not None:
@@ -193,10 +197,10 @@ def Log(text: str, isError: bool=False):
         g_logErrorHeader=None
 
     # Print the log entry itself
-    print(text)
-    print(text, file=g_logFile)
+    print(text, end=newlinechar)
+    print(text, file=g_logFile, end=newlinechar)
     if isError:
-        print(text, file=g_errorFile)
+        print(text, file=g_errorFile, end=newlinechar)
 
 # Set the header for any subsequent log entries
 # Note that this header will only be printed once, and then only if there has been a log entry
