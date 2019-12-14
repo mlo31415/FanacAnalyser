@@ -391,7 +391,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
         Helpers.Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
-    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="<URL>", Date=date, Serial=FanacSerial(), Pages=0, Sequence=0)
+    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="", Date=date, Serial=FanacSerial(), Pages=0, Sequence=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
