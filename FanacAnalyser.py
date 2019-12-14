@@ -76,8 +76,8 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
     if html:
         # When we're generating HTML output, we need to include a header.
         # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
-        headerText=ReadFile("control-Header (basic).html")
-        if headerText is None:
+        basicHeadertext=ReadFile("control-Header (basic).html")
+        if basicHeadertext is None:
             return
 
         # Read the specialized control.html file for this type of report
@@ -85,17 +85,17 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
         if specialText is not None:
             specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
             title=specialText[0]
-            #del specialText[0]
+            del specialText[0]
 
             # Do the substitutions
-            for i in range(0, len(headerText)):
-                if headerText[i].strip() == "<title>title</title>":
-                    headerText[i]="<title>" + title + "</title>"
-                if headerText[i].strip() == "<h1>title</h1>":
-                    headerText[i]="<h1>" + title + "</h1>"
-            headerText.extend(specialText)
+            for i in range(0, len(basicHeadertext)):
+                if basicHeadertext[i].strip() == "<title>title</title>":
+                    basicHeadertext[i]="<title>" + title + "</title>"
+                if basicHeadertext[i].strip() == "<h1>title</h1>":
+                    basicHeadertext[i]="<h1>" + title + "</h1>"
+            basicHeadertext.extend(specialText)
 
-        f.writelines(headerText)
+        f.writelines(basicHeadertext)
 
     if countText is not None:
         if html:
