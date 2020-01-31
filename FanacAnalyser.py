@@ -448,13 +448,13 @@ nzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList if fz.FanzineNa
 
 # Print to the console and also the statistics file
 print("\n")
-print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount))
-print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount))
+print("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfCount))
+print("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfCount))
 for selectedYear in selectedYears:
     print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
-    print("All fanzines: Titles: "+str(fzCount)+"  Issues: "+str(issueCount)+"  Pages: "+str(pageCount)+"  PDFs: "+str(pdfCount), file=f)
-    print("Newszines:  Titles: "+str(nzCount)+"  Issues: "+str(newsIssueCount)+"  Pages: "+str(newsPageCount)+"  PDFs: "+str(newsPdfCount), file=f)
+    print("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfCount), file=f)
+    print("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfCount), file=f)
     for selectedYear in selectedYears:
         print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]), file=f)
 
