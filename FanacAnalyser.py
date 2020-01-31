@@ -313,7 +313,7 @@ datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", gmtime())+" UTC"
 
-countText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
+countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
@@ -381,8 +381,7 @@ newszinesFromH2=[x+"\n" for x in newszinesFromH2]
 with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
     f.writelines(newszinesFromH2)
 
-countText=str(newsIssueCount)+" issues consisting of "+str(newsPageCount)+" pages."
-
+countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
@@ -394,7 +393,7 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
 # Produce a list of fanzines by title
 def DatePlusSortVal(fz: FanacOrgReaders.FanacIssueInfo):
     return fz.Date.FormatDateForSorting()+"###"+str(fz.Serial.FormatSerialForSorting())
-countText=str(issueCount)+" issues consisting of "+str(pageCount)+" pages."
+countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.Sequence)  # Sorts in place on Date
 fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
