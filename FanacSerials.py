@@ -121,7 +121,7 @@ class FanacSerial:
 
     # =============================================================================
     # Format the Vol/Num/Whole information
-    def FormatSerial(self):
+    def __str__(self):
         if self.Whole is not None and self.Vol is not None and self.Num is not None:
             return "#"+str(self.Whole)+"  (V"+str(self.Vol)+"#"+str(self.Num)+")"+self.Suf()
 

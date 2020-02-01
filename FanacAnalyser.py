@@ -302,7 +302,7 @@ for fz in fanacIssueList:
         if os.path.splitext(fz.URL)[1] == ".pdf":
             pdfCount+=1
         if fz.Pages == 0 and ignorePageCountErrors is not None and fz.FanzineName not in ignorePageCountErrors:
-            f.write(fz.FanzineName+"  "+fz.Serial.FormatSerial()+"\n")
+            f.write(fz.FanzineName+"  "+str(fz.Serial)+"\n")
 f.close()
 
 # Produce a list of fanzines listed by date

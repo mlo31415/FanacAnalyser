@@ -483,7 +483,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.FanzineIssueName)+"'  ["+fi.Serial.FormatSerial()+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
+            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.FanzineIssueName)+"'  ["+str(fi.Serial)+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
         else:
             Helpers.Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 
