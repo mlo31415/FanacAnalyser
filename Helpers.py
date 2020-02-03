@@ -143,9 +143,12 @@ def CreateFanacOrgAbsolutePath(fanacDir: str, s: str):
 
 #==================================================================================
 # Return a properly formatted link
-def FormatLink(name: str, url: str):
+def FormatLink(url: str, text: str):
     # TODO: Do we need to deal with turning blanks into %20 whatsits?
-    return '<a href='+url+'>'+name+'</a>'
+    # If the url points to a pdf, add '#view=Fit' to the end to force the PDF to scale to the page
+    if url.lower().endswith(".pdf"):
+        url+="#view=Fit"
+    return '<a href='+url+'>'+text+'</a>'
 
 
 #==================================================================================

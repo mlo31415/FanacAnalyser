@@ -30,6 +30,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
             #"MT_Void",
             #"Booklist",
             #"Axe",
+            #"Opuntia",
             #"Irish_Fandom",
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else

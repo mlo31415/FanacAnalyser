@@ -200,7 +200,7 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
                     url=fz.DirectoryURL+"/../"+"/".join(parts[-2:])
                 else:
                     url=fz.URL
-            f.write('        <a href="'+url+'">'+fz.FanzineIssueName.encode('ascii', 'xmlcharrefreplace').decode()+'</a><br>\n')
+            f.write('        '+Helpers.FormatLink(url, fz.FanzineIssueName.encode('ascii', 'xmlcharrefreplace').decode())+'<br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
