@@ -8,6 +8,7 @@ import FanacDates
 from FanacDates import FanacDate
 import urllib.parse
 from FanacSerials import FanacSerial
+import os
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories: list):
@@ -468,6 +469,14 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
                 path=href.replace("/"+fname, "")
                 href=fname
                 dirUrl=path
+
+        # In cases where there's a two-level index, the dirurl is actually the URL of an html file.
+        # We need to remove that filename before using it to form other URLs
+        u=urllib.parse.urlparse(dirUrl) # u is an annoying 6-tuple
+        h, t=os.path.split(u[2])
+        if t.lower().endswith("htm") or t.lower().endswith(".html"):
+            t=""
+        dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
         fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=dirUrl, URL=href, Date=date, Serial=ser, Pages=pages, Sequence=iRow)

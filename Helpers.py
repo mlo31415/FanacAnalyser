@@ -169,8 +169,6 @@ def CompareCompressedName(n1, n2):
     return CompressName(n1) == CompressName(n2)
 
 
-
-
 #=============================================================================
 # Print the text to a log file open by the main program
 # If isError is set also print it to the error file.
