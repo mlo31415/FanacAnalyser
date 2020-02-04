@@ -17,7 +17,30 @@ class FanacDate:
     Raw: str = None
     Date: datetime = None
 
-    def __init__(self, YearText=None, Year=None, MonthText=None, Month=None, DayText=None, Day=None, Raw=None, Date=None):
+    def __init__(self, YearText=None, Year=None, MonthText=None, Month=None, DayText=None, Day=None, Raw=None, Date=None, Copy=None):
+        # If Copy= is specified, copy the FanacDates object over
+        if Copy is not None:
+            self.Copy(Copy)
+            # If anything else is specified, let that override what was copied from the Copy= value
+            if YearText is not None:
+                self.YearText=YearText
+            if Year is not None:
+                self.YeatInt=Year
+            if YearText is not None:
+                self.YearText=YearText
+            if MonthText is not None:
+                self.MonthText=MonthText
+            if Month is not None:
+                self.MonthInt=Month
+            if Day is not None:
+                self.DayInt=Day
+            if Raw is not None:
+                self.Raw=Raw
+            if Date is not None:
+                self.Date=Date
+            return
+
+        # No copying needed
         self.YearText=YearText
         self.YearInt=Year
         self.MonthText=MonthText
@@ -52,11 +75,9 @@ class FanacDate:
             return self.DayInt < other.DayInt
         return False
 
-    #--------------------------------
-    # Copy a FanacDate to self
-    def Set1(self, other):
+    def Copy(self, other):
         self.YearText=other.YearText
-        self.YearInt=other.YearInt
+        self.YeatInt=other.YearInt
         self.MonthText=other.MonthText
         self.MonthInt=other.MonthInt
         self.DayText=other.DayText
@@ -182,7 +203,7 @@ class FanacDate:
         # There are some dates which follow no useful pattern.  Check for them
         d=InterpretRandomDatestring(dateText)
         if d is not None:
-            self.Set1(d)
+            self.Copy(d)
             return self
 
         # A common pattern of date that dateutil can't parse is <something> <some year>, where <something> might be "Easter" or "Q1" or "summer"
