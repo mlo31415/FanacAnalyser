@@ -160,9 +160,7 @@ def ExtractDate(columnHeaders: list, row: list):
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
     dayInt=FanacDates.InterpretDay(dayText)
 
-    d=FanacDate()
-    d.Set6(yearText, yearInt, monthText, monthInt, dateText, dayInt)
-
+    d=FanacDate(YearText=yearText, Year=yearInt, MonthText=monthText, Month=monthInt, DayText=dateText, Day=dayInt)
     d.Raw=FanacDates.CreateRawText(dayText, monthText, yearText)
 
     return d
@@ -493,7 +491,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.FanzineIssueName)+"'  ["+str(fi.Serial)+"]  ["+fi.Date.FormatDate()+"]  "+urlT)
+            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.FanzineIssueName)+"'  ["+str(fi.Serial)+"]  ["+str(fi.Date)+"]  "+urlT)
         else:
             Helpers.Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 

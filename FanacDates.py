@@ -17,6 +17,16 @@ class FanacDate:
     Raw: str = None
     Date: datetime = None
 
+    def __init__(self, YearText=None, Year=None, MonthText=None, Month=None, DayText=None, Day=None, Raw=None, Date=None):
+        self.YearText=YearText
+        self.YearInt=Year
+        self.MonthText=MonthText
+        self.MonthInt=Month
+        self.DayText=DayText
+        self.DayInt=Day
+        self.Raw=Raw
+        self.Date=Date
+
     #-----------------------------
     # Define < operator for sorting
     def __lt__(self, other):
@@ -94,7 +104,7 @@ class FanacDate:
     #   1969
     #   July 1969
     #   July 20, 1969
-    def FormatDate(self):
+    def __str__(self):
         # If we have a raw form of the date, just return it.
         if self.Raw is not None:
             return self.Raw
@@ -584,11 +594,10 @@ def StandardizeMonth(month: str):
 
 
 # =============================================================================
-# Allow raw use of FormatDate given integer inputs
+# Allow use of FormatDate given integer inputs
 def FormatDate2(year: int, month: int, day: int):
-    d=FanacDate()
-    d.Set6(YearName(year), year, MonthName(month), month, DayName(day), day)
-    return d.FormatDate()
+    d=FanacDate(YearText=YearName(year), Year=year, MonthText=MonthName(month), Month=month, DayText=DayName(day), Day=day)
+    return str(d)
 
 
 # =============================================================================

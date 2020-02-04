@@ -282,7 +282,7 @@ if os.path.exists("control-year.txt"):
         yearCount=0
         for fz in fanacIssueList:
             if fz.Date.YearInt == year:
-                file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(fz.Date.FormatDate())+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
+                file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(str(fz.Date))+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
                 yearCount+=1
         file.close()
         selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
@@ -312,6 +312,7 @@ undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", gmtime())+" UTC"
+
 
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
