@@ -23,7 +23,6 @@ class FanacSerial:
     #       ...nn[ ]
 
     def InterpretSerial(self, s):
-
         self.Vol=None
         self.Num=None
         self.Whole=None

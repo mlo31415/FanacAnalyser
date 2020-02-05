@@ -2,6 +2,7 @@ from typing import TextIO
 from time import gmtime, strftime
 import Helpers
 import FanacOrgReaders
+import FanacIssueInfo
 import requests
 from bs4 import BeautifulSoup
 import os
@@ -191,16 +192,16 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
         # The former are easy, but the latter need to be processed
         if html:
             if "/" not in fz.URL:
-                url=fz.DirectoryURL+"/"+fz.URL
+                url=fz.DirURL+"/"+fz.URL
             else:
                 # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
                 # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
                 parts=fz.URL.split("/")
                 if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
-                    url=fz.DirectoryURL+"/../"+"/".join(parts[-2:])
+                    url=fz.DirURL+"/../"+"/".join(parts[-2:])
                 else:
                     url=fz.URL
-            f.write('        '+Helpers.FormatLink(url, fz.FanzineIssueName.encode('ascii', 'xmlcharrefreplace').decode())+'<br>\n')
+            f.write('        '+Helpers.FormatLink(url, fz.IssueName.encode('ascii', 'xmlcharrefreplace').decode())+'<br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
@@ -264,7 +265,7 @@ fanacFanzineDirectories=ReadClassicModernPages()
 
 # Print a list of all fanzines sorted by fanzine name, then date
 fanacIssueList.sort(key=lambda elem: elem.Date)
-fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower())  # Sorts in place on fanzine name
+fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine name
 
 def NoNone(s: str):
     if s is None:
@@ -282,7 +283,7 @@ if os.path.exists("control-year.txt"):
         yearCount=0
         for fz in fanacIssueList:
             if fz.Date.YearInt == year:
-                file.write("|| "+NoNone(fz.FanzineIssueName)+" || "+NoNone(str(fz.Date))+" || " + NoNone(fz.DirectoryURL) +" || " + NoNone(fz.URL) + " ||\n")
+                file.write("|| "+NoNone(fz.IssueName)+" || "+NoNone(str(fz.Date))+" || " + NoNone(fz.DirURL) +" || " + NoNone(fz.URL) + " ||\n")
                 yearCount+=1
         file.close()
         selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
@@ -301,12 +302,12 @@ for fz in fanacIssueList:
         pageCount+=(fz.Pages if fz.Pages > 0 else 1)
         if os.path.splitext(fz.URL)[1] == ".pdf":
             pdfCount+=1
-        if fz.Pages == 0 and ignorePageCountErrors is not None and fz.FanzineName not in ignorePageCountErrors:
-            f.write(fz.FanzineName+"  "+str(fz.Serial)+"\n")
+        if fz.Pages == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
+            f.write(fz.SeriesName+"  "+str(fz.Serial)+"\n")
 f.close()
 
 # Produce a list of fanzines listed by date
-fanacIssueList.sort(key=lambda elem: elem.FanzineIssueName.lower(), reverse=True)  # Sorts in place on fanzine's name
+fanacIssueList.sort(key=lambda elem: elem.IssueName.lower(), reverse=True)  # Sorts in place on fanzine's name
 fanacIssueList.sort(key=lambda elem: elem.Date)
 undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
@@ -317,19 +318,19 @@ countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageC
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            'control-Header (Fanzine, chronological).html')
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            None)
 WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            undatedList,
            None,
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.IssueName,
            timestamp,
            "control-Header (Fanzine, alphabetical).html")
 
@@ -345,10 +346,10 @@ listOfNewszines=listOfNewszines+newszinesFromH2
 # Note that this scrambles the order.
 listOfNewszines=list(set(listOfNewszines))
 
-nonNewszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() not in listOfNewszines]
+nonNewszines=[fx.SeriesName.lower() for fx in fanacIssueList if fx.SeriesName.lower() not in listOfNewszines]
 nonNewszines=sorted(list(set(nonNewszines)))
 
-newszines=[fx.FanzineName.lower() for fx in fanacIssueList if fx.FanzineName.lower() in listOfNewszines]
+newszines=[fx.SeriesName.lower() for fx in fanacIssueList if fx.SeriesName.lower() in listOfNewszines]
 newszines=sorted(list(set(newszines)))
 
 # Count the number of issue and pages of all fanzines and just newszines
@@ -356,7 +357,7 @@ newsPageCount=0
 newsIssueCount=0
 newsPdfCount=0
 for fz in fanacIssueList:
-    if fz.FanzineName in listOfNewszines and fz.URL is not None:
+    if fz.SeriesName in listOfNewszines and fz.URL is not None:
         newsIssueCount+=1
         if os.path.split(fz.URL)[1].lower() == ".pdf":
             newsPdfCount+=1
@@ -385,28 +386,28 @@ countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(n
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            "control-Header (Newszine).html",
-           fSelector=lambda fx: fx.FanzineName.lower() in listOfNewszines)
+           fSelector=lambda fx: fx.SeriesName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
-def DatePlusSortVal(fz: FanacOrgReaders.FanacIssueInfo):
+def DatePlusSortVal(fz: FanacIssueInfo.FanacIssueInfo):
     return fz.Date.FormatDateForSorting()+"###"+str(fz.Serial.FormatSerialForSorting())
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.Sequence)  # Sorts in place on Date
-fanacIssueList.sort(key=lambda elem: elem.FanzineName.lower())  # Sorts in place on fanzine's name
+fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine's name
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
-           lambda fz: fz.FanzineName,
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.SeriesName,
+           lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            None,
            isDate=False)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
-           lambda fz: fz.FanzineName,
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.SeriesName,
+           lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            "control-Header (Fanzine, alphabetical).html",
            isDate=False)
@@ -433,17 +434,17 @@ def OddNames(n1, n2):
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            fanacIssueList,
-           lambda fz: fz.FanzineName,
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.SeriesName,
+           lambda fz: fz.IssueName,
            timestamp+"\n",
            None,
            isDate=False,
-           fSelector=lambda fx: OddNames(fx.FanzineIssueName,  fx.FanzineName))
+           fSelector=lambda fx: OddNames(fx.IssueName,  fx.SeriesName))
 
 # Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
 # Create a set of all fanzines run names (the set to eliminate suploicates) and then get its size.
-fzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList]))
-nzCount=len(set([fz.FanzineName.lower() for fz in fanacIssueList if fz.FanzineName.lower() in listOfNewszines]))
+fzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList]))
+nzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList if fz.SeriesName.lower() in listOfNewszines]))
 
 # Print to the console and also the statistics file
 print("\n")
@@ -458,15 +459,15 @@ with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
         print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]), file=f)
 
 # Generate a list of fanzines with odd page counts
-def OddPageCount(fz: FanacOrgReaders.FanacIssueInfo):
+def OddPageCount(fz: FanacIssueInfo.FanacIssueInfo):
     if fz.Pages > 250:
         return True
     return False
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            fanacIssueList,
-           lambda fz: fz.FanzineName,
-           lambda fz: fz.FanzineIssueName,
+           lambda fz: fz.SeriesName,
+           lambda fz: fz.IssueName,
            timestamp,
            None,
            isDate=False,

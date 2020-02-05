@@ -1,13 +1,13 @@
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
 import requests
-import collections
 import Helpers
 import re
 import FanacDates
 from FanacDates import FanacDate
 import urllib.parse
 from FanacSerials import FanacSerial
+from FanacIssueInfo import FanacIssueInfo
 import os
 
 # ============================================================================================
@@ -91,13 +91,13 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
 def RemoveDuplicates(fanzineList: list):
     # Sort in place on fanzine's Directory's URL followed by file name
     fanzineList.sort(key=lambda fz: fz.URL if fz.URL is not None else "")
-    fanzineList.sort(key=lambda fz: fz.DirectoryURL if fz.DirectoryURL is not None else "")
+    fanzineList.sort(key=lambda fz: fz.DirURL if fz.DirURL is not None else "")
 
     # Any duplicates will be adjacent, so search for adjacent directoryURL+URL
     last=""
     dedupedList=[]
     for fz in fanzineList:
-        this=fz.DirectoryURL+fz.URL if fz.URL is not None else ""
+        this=fz.DirURL+fz.URL if fz.URL is not None else ""
         if this != last:
             dedupedList.append(fz)
         last=this
@@ -119,7 +119,7 @@ def ChangeNBSPToSpace(s: str):
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
 # If cellname is a list of names, try them all and return the first that hits
-def GetCellValueByColHeader(columnHeaders: list, row: list, cellnames: str):
+def GetCellValueByColHeader(columnHeaders: list, row: list, cellnames):
 
     if type(cellnames) is list:
         for i in range(0, len(columnHeaders)):
@@ -250,10 +250,6 @@ def ExtractHrefAndTitle(columnHeaders: list, row: list):
                     break
 
     return name, href
-
-
-
-FanacIssueInfo=collections.namedtuple("FanacIssueInfo", "FanzineName  FanzineIssueName  Serial  DirectoryURL URL Date Pages Sequence")
 
 
 # ============================================================================================
@@ -391,7 +387,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
         Helpers.Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
-    fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=content[0], DirectoryURL=directoryUrl, URL="", Date=date, Serial=FanacSerial(), Pages=0, Sequence=0)
+    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", Date=date, Serial=FanacSerial(), Pages=0, Sequence=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -478,8 +474,8 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanacIssueInfo(FanzineName=fanzineName, FanzineIssueName=name, DirectoryURL=dirUrl, URL=href, Date=date, Serial=ser, Pages=pages, Sequence=iRow)
-        if fi.FanzineIssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
+        fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, Date=date, Serial=ser, Pages=pages, Sequence=iRow)
+        if fi.IssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
             Helpers.Log("   ****Skipping null table row: "+str(fi))
             continue
 
@@ -491,7 +487,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.FanzineIssueName)+"'  ["+str(fi.Serial)+"]  ["+str(fi.Date)+"]  "+urlT)
+            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.Serial)+"]  ["+str(fi.Date)+"]  "+urlT)
         else:
             Helpers.Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 
