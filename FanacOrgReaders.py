@@ -387,7 +387,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
         Helpers.Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
-    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", Date=date, Serial=FanacSerial(), Pages=0, Sequence=0)
+    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", Date=date, Serial=FanacSerial(), Pagecount=0, RowIndex=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -467,14 +467,14 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
 
         # In cases where there's a two-level index, the dirurl is actually the URL of an html file.
         # We need to remove that filename before using it to form other URLs
-        u=urllib.parse.urlparse(dirUrl) # u is an annoying 6-tuple
+        u=urllib.parse.urlparse(dirUrl)     # u is an annoying 6-tuple which needs to be modified and then reassembled
         h, t=os.path.split(u[2])
-        if t.lower().endswith("htm") or t.lower().endswith(".html"):
+        if t.lower().endswith("htm") or t.lower().endswith(".html"):    # If the last part of the URL is a filename (ending in html) then we remove it since we only want the dirname
             t=""
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, Date=date, Serial=ser, Pages=pages, Sequence=iRow)
+        fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, Date=date, Serial=ser, Pagecount=pages, RowIndex=iRow)
         if fi.IssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
             Helpers.Log("   ****Skipping null table row: "+str(fi))
             continue

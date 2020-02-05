@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import FanacDates
 
 @dataclass()
 class FanacIssueInfo:
@@ -7,19 +8,19 @@ class FanacIssueInfo:
     _Serial=None
     _DirURL: str=None
     _URL: str=None
-    _Date=None
-    _Pages: int=None
-    _Sequence: int=None
+    _Date: FanacDates=None
+    _Pagecount: int=None
+    _RowIndex: int=None
 
-    def __init__(self, SeriesName=None, IssueName=None, Serial=None, DirURL=None, URL=None, Date=None, Pages=None, Sequence=None):
+    def __init__(self, SeriesName=None, IssueName=None, Serial=None, DirURL=None, URL=None, Date=None, Pagecount=None, RowIndex=None):
         self._SeriesName=SeriesName
         self._IssueName=IssueName
         self._Serial=Serial
         self._DirURL=DirURL
         self._URL=URL
         self._Date=Date
-        self._Pages=Pages
-        self._Sequence=Sequence
+        self._Pagecount=Pagecount
+        self._RowIndex=RowIndex
 
     # .....................
     @property
@@ -101,27 +102,27 @@ class FanacIssueInfo:
 
     # .....................
     @property
-    def Pages(self):
-        return self._Pages
+    def Pagecount(self):
+        return self._Pagecount
 
-    @Pages.setter
-    def Pages(self, val):
-        self._Pages=val
+    @Pagecount.setter
+    def Pagecount(self, val):
+        self._Pagecount=val
 
-    @Pages.getter
-    def Pages(self):
-        return self._Pages
+    @Pagecount.getter
+    def Pagecount(self):
+        return self._Pagecount
 
     # .....................
     @property
-    def Sequence(self):
-        return self._Sequence
+    def RowIndex(self):
+        return self._RowIndex
 
-    @Sequence.setter
-    def Sequence(self, val):
-        self._Sequence=val
+    @RowIndex.setter
+    def RowIndex(self, val):
+        self._RowIndex=val
 
-    @Sequence.getter
-    def Sequence(self):
-        return self._Sequence
+    @RowIndex.getter
+    def RowIndex(self):
+        return self._RowIndex
 

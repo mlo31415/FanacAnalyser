@@ -1,5 +1,5 @@
 from typing import TextIO
-from time import gmtime, strftime
+from time import localtime, strftime
 import Helpers
 import FanacOrgReaders
 import FanacIssueInfo
@@ -299,10 +299,10 @@ ignorePageCountErrors=Helpers.ReadList("control-Ignore Page Count Errors.txt")
 for fz in fanacIssueList:
     if fz.URL is not None:
         issueCount+=1
-        pageCount+=(fz.Pages if fz.Pages > 0 else 1)
+        pageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
         if os.path.splitext(fz.URL)[1] == ".pdf":
             pdfCount+=1
-        if fz.Pages == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
+        if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
             f.write(fz.SeriesName+"  "+str(fz.Serial)+"\n")
 f.close()
 
@@ -363,7 +363,7 @@ for fz in fanacIssueList:
             newsPdfCount+=1
             newsPageCount+=1
         else:
-            newsPageCount+=(fz.Pages if fz.Pages > 0 else 1)
+            newsPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
 
 # Look for lines in the list of newszines which don't match actual newszines ont he site.
 unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
@@ -395,7 +395,7 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
 def DatePlusSortVal(fz: FanacIssueInfo.FanacIssueInfo):
     return fz.Date.FormatDateForSorting()+"###"+str(fz.Serial.FormatSerialForSorting())
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
-fanacIssueList.sort(key=lambda elem: elem.Sequence)  # Sorts in place on Date
+fanacIssueList.sort(key=lambda elem: elem.RowIndex)  # Sorts in place on order in index page, which is usually a good proxy for date
 fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine's name
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
@@ -460,7 +460,7 @@ with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
 
 # Generate a list of fanzines with odd page counts
 def OddPageCount(fz: FanacIssueInfo.FanacIssueInfo):
-    if fz.Pages > 250:
+    if fz.Pagecount > 250:
         return True
     return False
 
