@@ -25,13 +25,13 @@ class FanacDate:
             if YearText is not None:
                 self.YearText=YearText
             if Year is not None:
-                self.YeatInt=Year
-            if YearText is not None:
-                self.YearText=YearText
+                self.YearInt=Year
             if MonthText is not None:
                 self.MonthText=MonthText
             if Month is not None:
                 self.MonthInt=Month
+            if DayText is not None:
+                self.DayText=DayText
             if Day is not None:
                 self.DayInt=Day
             if Raw is not None:
@@ -77,7 +77,7 @@ class FanacDate:
 
     def Copy(self, other):
         self.YearText=other.YearText
-        self.YeatInt=other.YearInt
+        self.YearInt=other.YearInt
         self.MonthText=other.MonthText
         self.MonthInt=other.MonthInt
         self.DayText=other.DayText
@@ -88,22 +88,10 @@ class FanacDate:
     #--------------------------------
     # Set values using only integer year/month/day. Day may be None
     def Set3(self, yearInt: int, monthInt: int, dayInt: int):
-        self.YearText=str(yearInt)
-        self.YearInt=yearInt
-        self.MonthText=MonthName(monthInt)
-        self.MonthInt=monthInt
+        dt=None
         if dayInt is not None:
-            self.DayText=str(dayInt)
-        else:
-            self.DayText=None
-        self.DayInt=BoundDay(dayInt, monthInt)
-
-        if yearInt is None or monthInt is None:
-            self.Date=None
-        elif dayInt is None:
-            self.Date=datetime.datetime(self.YearInt, self.MonthInt, 1)
-        else:
-            self.Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
+            dt=str(dayInt)
+        self.Set6(str(yearInt), yearInt, MonthName(monthInt), monthInt, dt, BoundDay(dayInt, monthInt))
 
     #--------------------------------
     def Set6(self, yearText: str, yearInt: int, monthText: str, monthInt: int, dayText: str, dayInt: int):
@@ -113,9 +101,9 @@ class FanacDate:
         self.MonthInt=monthInt
         self.DayText=dayText
         self.DayInt=BoundDay(dayInt, monthInt)
-        if yearInt is None or monthInt is None:
+        if self.YearInt is None or self.MonthInt is None:
             self.Date=None
-        elif dayInt is None:
+        elif self.DayInt is None:
             self.Date=datetime.datetime(self.YearInt, self.MonthInt, 1)
         else:
             self.Date=datetime.datetime(self.YearInt, self.MonthInt, self.DayInt)
@@ -447,17 +435,17 @@ def MonthToInt(text: str):
 def InterpretRandomDatestring(text: str):
     text=text.lower()
     if text == "solar eclipse 2017":
-        return FanacDate("2017", 2017, "Solar Eclipse", 8, None, 21, text)
+        return FanacDate("2017", 2017, None, 8, "Solar Eclipse", 21, text)
     if text == "2018 new year's day":
-        return FanacDate("2018", 2018, "New Years Day", 1, None, 1, text)
+        return FanacDate("2018", 2018, None, 1, "New Years Day", 1, text)
     if text == "christmas 2015.":
-        return FanacDate("2015", 2015, "Christmas", 12, None, 25, text)
+        return FanacDate("2015", 2015, None, 12, "Christmas", 25, text)
     if text == "hogmanay 1991/1992":
-        return FanacDate("1991", 1991, "Hogmany", 12, None, 31, text)
+        return FanacDate("1991", 1991, None, 12, "Hogmany", 31, text)
     if text == "grey cup day 2014":
-        return FanacDate("2014", 2014, "Grey Cup Day", 11, None, 30, text)
+        return FanacDate("2014", 2014, None, 11, FanacDate("2014", 2014, "Grey Cup Day", 11, None, 30, text), 30, text)
     if text == "october 2013, halloween":
-        return FanacDate("2013", 2013, "Halloween", 10, None, 31, text)
+        return FanacDate("2013", 2013, None, 10, "Halloween", 31, text)
 
     return None
 
