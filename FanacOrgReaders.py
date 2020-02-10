@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
 import requests
-import Helpers
 import re
 import FanacDates
 from FanacDates import FanacDate
@@ -9,6 +8,13 @@ import urllib.parse
 from FanacSerials import FanacSerial
 from FanacIssueInfo import FanacIssueInfo
 import os
+from HelpersPackage import Log, LogSetFanzine
+from HelpersPackage import ReadList
+from HelpersPackage import RelPathToURL
+from HelpersPackage import ChangeFileInURL
+from HelpersPackage import CannonicizeColumnHeaders
+from HelpersPackage import GetHrefAndTextFromTag
+from HelpersPackage import LookForTable
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories: list):
@@ -35,15 +41,15 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
-        Helpers.LogSetFanzine("'"+dirname+"'      '"+title+"'")
+        LogSetFanzine("'"+dirname+"'      '"+title+"'")
 
         global skippers  # Not actually used anywhere else, but for performance sake, should be read once and retained
         try:
             skippers
         except NameError:
-            skippers=Helpers.ReadList("control-skippers.txt")
+            skippers=ReadList("control-skippers.txt")
         if dirname in skippers:
-            Helpers.Log("***Skipping because it is in skippers: "+dirname, isError=True)
+            Log("***Skipping because it is in skippers: "+dirname, isError=True)
             continue
 
         # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
@@ -51,27 +57,27 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
         try:
             offsite
         except NameError:
-            offsite=Helpers.ReadList("control-offsite.txt")
+            offsite=ReadList("control-offsite.txt")
         if dirname in offsite:
-            Helpers.Log("***Skipping because it is in offsite: "+dirname)
+            Log("***Skipping because it is in offsite: "+dirname)
             continue
 
         # Besides the offsite table, we try to detect references which are offsite from their URLs
         if dirname.startswith("http://"):
-            Helpers.Log("***skipped because the index page pointed to is not on fanac.org: "+dirname, isError=True)
+            Log("***skipped because the index page pointed to is not on fanac.org: "+dirname, isError=True)
             continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
-        url=Helpers.RelPathToURL(dirname)
+        url=RelPathToURL(dirname)
         if url is None:
             continue
         if not url.startswith("http://www.fanac.org"):
-            Helpers.Log("***skipped because not a fanac.org url: "+url, isError=True)
+            Log("***skipped because not a fanac.org url: "+url, isError=True)
             continue
 
         # if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-        #     Helpers.Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
+        #     Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
         #     continue
 
         ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo, newszineList)
@@ -257,7 +263,7 @@ def ExtractHrefAndTitle(columnHeaders: list, row: list):
 def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanzineIssueList: list, newszineList: list):
     global g_browser
 
-    Helpers.Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
+    Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
 
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
@@ -265,7 +271,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanz
     try:
         singletons
     except NameError:
-        singletons=Helpers.ReadList("control-singletons.txt")
+        singletons=ReadList("control-singletons.txt")
 
     # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
     # If this is the root of one of them...
@@ -273,7 +279,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanz
     try:
         specialBiggies
     except NameError:
-        specialBiggies=Helpers.ReadList("control-specialBiggies.txt")
+        specialBiggies=ReadList("control-specialBiggies.txt")
 
     if fanzineName in specialBiggies:
         ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
@@ -333,7 +339,7 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineIssueList: list, fanzineName: st
             m=p.match(url)
             if m is not None:
                 if url.startswith("index") or url.startswith("archive") or url.startswith("Bullsheet1-00") or url.startswith("Bullsheet2-00"):
-                    u=Helpers.ChangeFileInURL(directoryUrl, url)
+                    u=ChangeFileInURL(directoryUrl, url)
                     ReadSpecialBiggie(u, fanzineIssueList, fanzineName)
     return
 
@@ -344,7 +350,7 @@ def OpenSoup(directoryUrl: str):
     # * The fanzine's Issue Index Table page
     # * A singleton page
     # * The root of a tree with multiple Issue Index Pages
-    Helpers.Log("    opening "+directoryUrl, noNewLine=True)
+    Log("    opening "+directoryUrl, noNewLine=True)
     try:
         h=requests.get(directoryUrl, timeout=1)
     except:
@@ -354,13 +360,13 @@ def OpenSoup(directoryUrl: str):
             try:  # Do second retry
                 h=requests.get(directoryUrl, timeout=2)
             except:
-                Helpers.Log("\n***OpenSoup failed because it didn't load: "+directoryUrl, isError=True)
+                Log("\n***OpenSoup failed because it didn't load: "+directoryUrl, isError=True)
                 return None
-    Helpers.Log("...loaded", noNewLine=True)
+    Log("...loaded", noNewLine=True)
 
     # Next, parse the page looking for the body
     soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
-    Helpers.Log("...BeautifulSoup opened")
+    Log("...BeautifulSoup opened")
     return soup
 
 
@@ -369,7 +375,7 @@ def OpenSoup(directoryUrl: str):
 def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, soup):
     # Usually, a singleton has the information in the first h2 block
     if soup.h2 is None:
-        Helpers.Log("***Failed to find <h2> block in singleton '"+directoryUrl+"'", isError=True)
+        Log("***Failed to find <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
     content=[str(e) for e in soup.h2.contents if type(e) is NavigableString]
@@ -384,7 +390,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
         if not date.IsEmpty():
             break
     if date.IsEmpty():
-        Helpers.Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
+        Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
     fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", Date=date, Serial=FanacSerial(), Pagecount=0, RowIndex=0)
@@ -392,6 +398,14 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
     fanzineIssueList.append(fi)
     return
 
+#=====================================================================================
+# Function to compress newline elements from a list of Tags.
+def RemoveNewlineRows(tags: list):
+    compressedTags = []
+    for row in tags:
+        if not isinstance(row, NavigableString):
+            compressedTags.append(row)
+    return compressedTags
 
 #=========================================================================================
 # Read a fanzine's page of any format
@@ -400,7 +414,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
     # Subsequent rows are fanzine issue rows
-    Helpers.Log(directoryUrl+"\n")
+    Log(directoryUrl+"\n")
 
     # Start by creating a list of the column headers.  This will be used to locate information in each row.
     columnHeaders=[]
@@ -411,7 +425,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
     if len(table.contents[0])>1:
         columnHeaders=table.contents[0].text.strip()
     columnHeaders=columnHeaders.split("\n")
-    columnHeaders=[Helpers.CannonicizeColumnHeaders(c) for c in columnHeaders]
+    columnHeaders=[CannonicizeColumnHeaders(c) for c in columnHeaders]
 
     # We need to pull the fanzine rows in from BeautifulSoup and save them in the same format for later analysis.
     # The format will be a list of rows
@@ -419,10 +433,10 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
     # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
     tableRows=[]
     for i in range(1, len(table)):
-        tableRow=Helpers.RemoveNewlineRows(table.contents[i])
+        tableRow=RemoveNewlineRows(table.contents[i])
         newRow=[]
         for cell in tableRow:
-            cellval=Helpers.GetHrefAndTextFromTag(cell)
+            cellval=GetHrefAndTextFromTag(cell)
             if cellval[1] is None:
                 newRow.append(cellval[0])
             else:
@@ -459,7 +473,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
                 # OK, this is a fanac URL.  Divide it into a file and a path
                 fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
                 if len(fname) == 0:
-                    Helpers.Log("***FanacOrgReaders: href='"+href+"' seems to be pointing to a directory, not a file. Skipped", isError=True)
+                    Log("***FanacOrgReaders: href='"+href+"' seems to be pointing to a directory, not a file. Skipped", isError=True)
                     continue
                 path=href.replace("/"+fname, "")
                 href=fname
@@ -476,7 +490,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
         # And save the results
         fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, Date=date, Serial=ser, Pagecount=pages, RowIndex=iRow)
         if fi.IssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
-            Helpers.Log("   ****Skipping null table row: "+str(fi))
+            Log("   ****Skipping null table row: "+str(fi))
             continue
 
         print("   "+str(fi))
@@ -487,9 +501,9 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Helpers.Log("      Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.Serial)+"]  ["+str(fi.Date)+"]  "+urlT)
+            Log("      Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.Serial)+"]  ["+str(fi.Date)+"]  "+urlT)
         else:
-            Helpers.Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
+            Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 
 
 #===============================================================================
@@ -499,25 +513,25 @@ def LocateIndexTable(directoryUrl: str, soup, silence: bool=False):
 
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* nearly all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
-    table=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "5"})
+    table=LookForTable(soup, {"border" : "1", "cellpadding" : "5"})
     if table is not None:
         return table
 
     # A few cases have been tagged explicitly
-    table=Helpers.LookForTable(soup, {"class" : "indextable"})
+    table=LookForTable(soup, {"class" : "indextable"})
     if table is not None:
         return table
 
     # Then there's Peon...
-    table=Helpers.LookForTable(soup, {"border" : "1", "cellpadding" : "3"})
+    table=LookForTable(soup, {"border" : "1", "cellpadding" : "3"})
     if table is not None:
         return table
 
     # Then there's Bable-On...
-    table=Helpers.LookForTable(soup, {"cellpadding" : "10"})
+    table=LookForTable(soup, {"cellpadding" : "10"})
     if table is not None:
         return table
 
     if not silence:
-        Helpers.Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, isError=True)
+        Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, isError=True)
     return None

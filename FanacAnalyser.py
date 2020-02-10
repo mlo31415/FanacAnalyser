@@ -1,6 +1,5 @@
 from typing import TextIO
 from time import localtime, strftime
-import Helpers
 import FanacOrgReaders
 import FanacIssueInfo
 import requests
@@ -8,9 +7,16 @@ from bs4 import BeautifulSoup
 import os
 import FanacDates
 from tkinter import sys
-#from tkinter import messagebox
 
-Helpers.LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
+import os
+print (os.environ['PYTHONPATH'])
+
+from HelpersPackage import LogOpen, LogClose, LogFailureAndRaiseIfMissing
+from HelpersPackage import ReadList
+from HelpersPackage import FormatLink
+from HelpersPackage import InterpretNumber
+
+LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
 
 # ====================================================================================
 # Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html
@@ -24,8 +30,8 @@ def ReadClassicModernPages():
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectories=[]
-    Helpers.LogFailureAndRaiseIfMissing("control-topleveldirectories.txt")
-    directories=Helpers.ReadList("control-topleveldirectories.txt")
+    LogFailureAndRaiseIfMissing("control-topleveldirectories.txt")
+    directories=ReadList("control-topleveldirectories.txt")
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectories, dirs)
 
@@ -59,7 +65,7 @@ def ReadFile(filename: str):
 
     except:
         # If the expected control header is unavailable, use the default.
-        Helpers.LogFailureAndRaiseIfMissing(filename)
+        LogFailureAndRaiseIfMissing(filename)
     return None
 
 #================================================================================
@@ -201,7 +207,7 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
                     url=fz.DirURL+"/../"+"/".join(parts[-2:])
                 else:
                     url=fz.URL
-            f.write('        '+Helpers.FormatLink(url, fz.IssueName.encode('ascii', 'xmlcharrefreplace').decode())+'<br>\n')
+            f.write('        '+FormatLink(url, fz.IssueName.encode('ascii', 'xmlcharrefreplace').decode())+'<br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
@@ -210,7 +216,7 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
     if html:
         f.write('</div>\n</div>\n')
         try:
-            Helpers.LogFailureAndRaiseIfMissing("control-Default.Footer")
+            LogFailureAndRaiseIfMissing("control-Default.Footer")
             with open("control-Default.Footer", "r") as f2:
                 f.writelines(f2.readlines())
         except:
@@ -256,7 +262,7 @@ if not os.path.isdir(reportDir):
     try:
         os.mkdir(reportDir)
     except Exception as e:
-        Helpers.Log("Fatal Error: Attempt to create directory "+reportDir+" yields exception: "+str(e), isError=True)
+        Log("Fatal Error: Attempt to create directory "+reportDir+" yields exception: "+str(e), isError=True)
         exit(1)
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
@@ -276,10 +282,10 @@ def NoNone(s: str):
 # Read the control-year.txt file to get the year to be dumped out
 selectedYears=[]
 if os.path.exists("control-year.txt"):
-    years=Helpers.ReadList("control-year.txt")
+    years=ReadList("control-year.txt")
     for year in years:
         file=open(os.path.join(reportDir, year+" fanac.org Fanzines.txt"), "w+")
-        year=Helpers.InterpretNumber(year)
+        year=InterpretNumber(year)
         yearCount=0
         for fz in fanacIssueList:
             if fz.Date.YearInt == year:
@@ -294,7 +300,7 @@ pageCount=0
 issueCount=0
 pdfCount=0
 f=open(os.path.join(reportDir, "Items with No Page Count.txt"), "w+")
-ignorePageCountErrors=Helpers.ReadList("control-Ignore Page Count Errors.txt")
+ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
 
 for fz in fanacIssueList:
     if fz.URL is not None:
@@ -335,8 +341,8 @@ WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            "control-Header (Fanzine, alphabetical).html")
 
 # Get the names of the newszines as a list
-Helpers.LogFailureAndRaiseIfMissing("control-newszines.txt")
-listOfNewszines=Helpers.ReadList("control-newszines.txt", isFatal=True)
+LogFailureAndRaiseIfMissing("control-newszines.txt")
+listOfNewszines=ReadList("control-newszines.txt", isFatal=True)
 listOfNewszines=[x.lower() for x in listOfNewszines]  # Need strip() to get rid of trailing /n (at least)
 
 # Now add in the newszines discovered in the <h2> blocks
@@ -473,7 +479,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            isDate=False,
            fSelector=lambda fx: OddPageCount(fx))
 
-Helpers.LogClose()
+LogClose()
 
 # Display a message box (needed only for the built/packaged version)
 # if sys.gettrace() is None:      # This is an incantation which detects the presence of a debugger

@@ -1,9 +1,15 @@
 from dataclasses import dataclass
 import datetime
 import dateutil.parser
-import Helpers
 import math
 import re
+
+import os
+print (os.environ['PYTHONPATH'])
+
+from HelpersPackage import RemoveHTMLDebris
+from HelpersPackage import Log
+from HelpersPackage import IsNumeric
 
 
 @dataclass(order=False)
@@ -295,7 +301,7 @@ def InterpretYear(yearText: str):
     if len(yearText.strip()) == 0:  # If it's blank, return 0
         return None
 
-    yearText=Helpers.RemoveHTMLDebris(yearText)  # We treat <br> and </br> as whitespace, also
+    yearText=RemoveHTMLDebris(yearText)  # We treat <br> and </br> as whitespace, also
     if len(yearText) == 0:
         return None
 
@@ -320,7 +326,7 @@ def InterpretYear(yearText: str):
         except:
             pass
 
-    Helpers.Log("   ***Year conversion failed: '"+yearText+"'", isError=True)
+    Log("   ***Year conversion failed: '"+yearText+"'", isError=True)
     return None
 
 
@@ -336,13 +342,13 @@ def InterpretDay(dayData):
         return None
 
     # Convert to int
-    dayData=Helpers.RemoveHTMLDebris(dayData)
+    dayData=RemoveHTMLDebris(dayData)
     if len(dayData) == 0:
         return None
     try:
         day=int(dayData)
     except:
-        Helpers.Log("   ***Day conversion failed: '"+dayData+"'", isError=True)
+        Log("   ***Day conversion failed: '"+dayData+"'", isError=True)
         day=None
     return day
 
@@ -376,13 +382,13 @@ def InterpretMonth(monthData):
     if len(monthData.strip()) == 0:  # If it's blank, return 0
         return None
 
-    monthData=Helpers.RemoveHTMLDebris(monthData)
+    monthData=RemoveHTMLDebris(monthData)
     if len(monthData) == 0:
         return None
 
     monthInt=MonthToInt(monthData)
     if monthInt is None:
-        Helpers.Log("   ***Month conversion failed: "+monthData, isError=True)
+        Log("   ***Month conversion failed: "+monthData, isError=True)
         monthInt=None
 
     return monthInt
@@ -620,11 +626,11 @@ def CreateRawText(dayText: str, monthText: str, yearText: str):
     ye=yearText.strip() if yearText is not None else ""
 
     # The format depends on what's known and what's not, and also depends on wether the month and day representations are strings of numbers ("7") or include other characters ("July")
-    if Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
+    if IsNumeric(mo) and IsNumeric(da):
         return mo+"/"+da+"/"+ye             # 7/4/1776
-    elif not Helpers.IsNumeric(mo) and Helpers.IsNumeric(da):
+    elif not IsNumeric(mo) and IsNumeric(da):
         return mo+" "+da+", "+ye            # July 4, 1776
-    elif Helpers.IsNumeric(mo) and da == "":
+    elif IsNumeric(mo) and da == "":
         return MonthName(int(mo))+" "+ye    # July 1776
     else:
         # Text month and day.
