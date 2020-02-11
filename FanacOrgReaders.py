@@ -40,7 +40,8 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
             #"Irish_Fandom",
             #"StraightUp",
             #"Vega",
-            #"Fantasy_News"
+            #"Fantasy_News",
+            "FuturiaFantasia"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -169,6 +170,16 @@ def ExtractDate(columnHeaders: list, row: list):
             d.Month=int(monthText)
         else:
             d.MonthText=monthText
+
+    # There are a few annoying entries of the form "Winter 1951-52"  They all *appear* to mean something like January 1952
+    # We'll try to handle this case
+    if monthText == "Winter" and not IsInt(yearText):
+        p=re.compile("^([0-9]{4})-([0-9]{2})$")
+        m=p.match(yearText)
+        if m is not None and len(m.groups()) == 2:
+            d.Year=int(m.groups()[1])   # Use the second part
+            d.Month=1
+            d.MonthText="Winter"
 
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
     if dayText is not None:
