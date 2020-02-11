@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import FanacDates
+from FanzineIssueSpecPackage import FanzineIssueSpec
 
 @dataclass()
 class FanacIssueInfo:
@@ -8,7 +8,7 @@ class FanacIssueInfo:
     _Serial=None
     _DirURL: str=None
     _URL: str=None
-    _Date: FanacDates=None
+    _Date: FanzineIssueSpec=None
     _Pagecount: int=None
     _RowIndex: int=None
 

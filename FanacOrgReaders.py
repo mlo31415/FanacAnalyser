@@ -2,12 +2,11 @@ from bs4 import BeautifulSoup
 from bs4 import NavigableString
 import requests
 import re
-import FanacDates
-from FanacDates import FanacDate
 import urllib.parse
-from FanacSerials import FanacSerial
 from FanacIssueInfo import FanacIssueInfo
 import os
+from FanzineIssueSpecPackage import FanzineIssueSpec
+from FanzineIssueSpecPackage import ExtractSerialNumber
 from HelpersPackage import Log, LogSetFanzine
 from HelpersPackage import ReadList
 from HelpersPackage import RelPathToURL
@@ -33,7 +32,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
     for title, dirname in fanacDirectories:
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
         unskippers=[
-            #"MT_Void",
+            "MT_Void",
             #"Booklist",
             #"Axe",
             #"Opuntia",
@@ -150,24 +149,17 @@ def ExtractDate(columnHeaders: list, row: list):
     if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            return FanacDate().Parse(dateText)
+            return FanzineIssueSpec().Parse(dateText)
         except:
             pass    # If that doesn't work, try other schemes
 
     # Figure out how to get a year
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
-    yearInt=FanacDates.InterpretYear(yearText)
-
-    # Now month
     monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
-    monthInt=FanacDates.InterpretMonth(monthText)
-
-    # And day
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
-    dayInt=FanacDates.InterpretDay(dayText)
 
-    d=FanacDate(YearText=yearText, Year=yearInt, MonthText=monthText, Month=monthInt, DayText=dateText, Day=dayInt)
-    d.Raw=FanacDates.CreateRawText(dayText, monthText, yearText)
+    d=FanzineIssueSpec(Year=yearText, MonthText=monthText, DayText=dayText)
+    d.Raw=str(FanzineIssueSpec(Day=dayText, Month=monthText, Year=yearText))    # Create a raw string
 
     return d
 
@@ -189,7 +181,8 @@ def ExtractSerial(columnHeaders: list, row: list):
 
     titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])
 
-    return FanacSerial().ExtractSerialNumber(volText, numText, wholeText, volNumText, titleText)
+    volInt, numInt, wholeInt, suffix=ExtractSerialNumber(volText, numText, wholeText, volNumText, titleText)
+    return FanzineIssueSpec(Vol=volInt, Num=numInt, Whole=wholeInt, WSuffix=suffix)
 
 
 
@@ -386,14 +379,14 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
     # The date is the first line that looks like a date
     date=None
     for c in content:
-        date=FanacDate().Parse(c)
+        date=FanzineIssueSpec().Parse(c)
         if not date.IsEmpty():
             break
     if date.IsEmpty():
         Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
-    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", Date=date, Serial=FanacSerial(), Pagecount=0, RowIndex=0)
+    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", Date=date, Serial=FanzineIssueSpec(), Pagecount=0, RowIndex=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -489,7 +482,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
 
         # And save the results
         fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, Date=date, Serial=ser, Pagecount=pages, RowIndex=iRow)
-        if fi.IssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.YearInt is None and fi.Date.MonthInt is None:
+        if fi.IssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.Year is None and fi.Date.Month is None:
             Log("   ****Skipping null table row: "+str(fi))
             continue
 

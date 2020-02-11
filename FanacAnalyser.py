@@ -4,14 +4,15 @@ import FanacOrgReaders
 import FanacIssueInfo
 import requests
 from bs4 import BeautifulSoup
-import os
-import FanacDates
 from tkinter import sys
 
 import os
 print (os.environ['PYTHONPATH'])
 
-from HelpersPackage import LogOpen, LogClose, LogFailureAndRaiseIfMissing
+from FanzineIssueSpecPackage import FanzineIssueSpec
+from FanzineIssueSpecPackage import YearName
+from FanzineIssueSpecPackage import MonthName
+from HelpersPackage import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
 from HelpersPackage import InterpretNumber
@@ -74,7 +75,7 @@ def ReadFile(filename: str):
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
-def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText, countText: str, headerFilename: str, isDate=True, fSelector=None):
+def WriteTable(filename: str, fanacIssueList: list, fButtonText, fRowHeaderText, fRowBodyText, countText: str, headerFilename: str, fSelector=None):
     f: TextIO=open(filename, "w+")
 
     #....... Header .......
@@ -120,13 +121,9 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
         for fz in fanacIssueList:
             if fSelector is not None and not fSelector(fz):
                 continue
-            if fRowHeaderText is not None:
-                if isDate:
-                    date=fRowHeaderText(fz)
-                    if all(d in "0123456789" for d in date[-4:-1]):     # Only add all-numeric dates
-                        headers.add(fRowHeaderText(fz)[-4:-1]+"0s")
-                else:
-                    headers.add(fRowHeaderText(fz)[:1])
+            if fButtonText is not None:
+                if fButtonText(fz) is not None:
+                    headers.add(fButtonText(fz))
 
         headerlist=list(headers)
         headerlist.sort()
@@ -166,11 +163,9 @@ def WriteTable(filename: str, fanacIssueList: list, fRowHeaderText, fRowBodyText
         # Get the button link string, to see if we have a new decade (or 1st letter) and need to new jump anchor
         bls=""
         if html:
-            if fRowHeaderText is not None:
-                if isDate:
-                    bls=fRowHeaderText(fz)[-4:-1]+"0s"
-                else:
-                    bls=fRowHeaderText(fz)[:1]
+            if fButtonText is not None:
+                if fButtonText(fz) is not None:
+                    bls=fButtonText(fz)
 
         # Start a new row
         # Deal with Column 1
@@ -288,7 +283,7 @@ if os.path.exists("control-year.txt"):
         year=InterpretNumber(year)
         yearCount=0
         for fz in fanacIssueList:
-            if fz.Date.YearInt == year:
+            if fz.Date.Year == year:
                 file.write("|| "+NoNone(fz.IssueName)+" || "+NoNone(str(fz.Date))+" || " + NoNone(fz.DirURL) +" || " + NoNone(fz.URL) + " ||\n")
                 yearCount+=1
         file.close()
@@ -320,21 +315,29 @@ datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
 
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
+def ButtonText(fz):
+    if fz.Date.Year is None:
+        return " "
+    return str(fz.Date.Year)[0:3]+"0s"
+
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
-           lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
+           lambda fz: ButtonText(fz),
+           lambda fz: (fz.Date.MonthText+" "+fz.Date.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            'control-Header (Fanzine, chronological).html')
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
-           lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
+           lambda fz: ButtonText(fz),
+           lambda fz: (fz.Date.MonthText+" "+fz.Date.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            None)
 WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            undatedList,
+           None,
            None,
            lambda fz: fz.IssueName,
            timestamp,
@@ -391,7 +394,8 @@ with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"
 countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
-           lambda fz: FanacDates.FormatDate2(fz.Date.YearInt, fz.Date.MonthInt, None),
+           lambda fz: ButtonText(fz),
+           lambda fz: (fz.Date.MonthText+" "+fz.Date.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            "control-Header (Newszine).html",
@@ -405,18 +409,18 @@ fanacIssueList.sort(key=lambda elem: elem.RowIndex)  # Sorts in place on order i
 fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine's name
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
+           lambda fz: fz.SeriesName[0],
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
-           None,
-           isDate=False)
+           None)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
+           lambda fz: fz.SeriesName[0],
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
-           "control-Header (Fanzine, alphabetical).html",
-           isDate=False)
+           "control-Header (Fanzine, alphabetical).html")
 
 def RemoveArticles(name):
     if name[:4] == "The ":
@@ -440,11 +444,11 @@ def OddNames(n1, n2):
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            fanacIssueList,
+           lambda fz: fz.SeriesName[0],
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
            timestamp+"\n",
            None,
-           isDate=False,
            fSelector=lambda fx: OddNames(fx.IssueName,  fx.SeriesName))
 
 # Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
@@ -472,11 +476,11 @@ def OddPageCount(fz: FanacIssueInfo.FanacIssueInfo):
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            fanacIssueList,
+           lambda fz: fz.SeriesName[0],
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
            timestamp,
            None,
-           isDate=False,
            fSelector=lambda fx: OddPageCount(fx))
 
 LogClose()
