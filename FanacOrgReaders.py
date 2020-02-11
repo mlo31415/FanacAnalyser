@@ -41,7 +41,10 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
             #"StraightUp",
             #"Vega",
             #"Fantasy_News",
-            "FuturiaFantasia"
+            #"FuturiaFantasia",
+            #"Le_Zombie",
+            #"Spaceways",
+            #"MelbourneBulletin"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -158,13 +161,34 @@ def ExtractDate(columnHeaders: list, row: list):
         except:
             pass    # If that doesn't work, try other schemes
 
-    d=FanzineIssueSpec()
+    # Next, take the various parts and assemble them and try to interpret the result
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
+    monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
+    dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
+
+    constructedDate=None
+    if yearText is not None:
+        if monthText is not None:
+            if dayText is not None:
+                constructedDate=monthText+" "+dayText+", "+yearText
+            else:
+                constructedDate=monthText+" "+yearText
+        else:
+            if dayText is not None:
+                constructedDate=dayText+" "+yearText
+            else:
+                constructedDate=yearText
+        print("constructed date='"+constructedDate+"'")
+        if constructedDate is not None:
+            fz=FanzineIssueSpec().Parse(constructedDate)
+            i=0
+
+
+    d=FanzineIssueSpec()
     if yearText is not None:
         if IsInt(yearText):
             d.Year=int(yearText)
 
-    monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
     if monthText is not None:
         if IsInt(monthText):
             d.Month=int(monthText)
@@ -181,7 +205,6 @@ def ExtractDate(columnHeaders: list, row: list):
             d.Month=1
             d.MonthText="Winter"
 
-    dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
     if dayText is not None:
         if IsInt(dayText):
             d.Day=int(dayText)
