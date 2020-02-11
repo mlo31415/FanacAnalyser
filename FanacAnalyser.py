@@ -3,6 +3,7 @@ from time import localtime, strftime
 import FanacOrgReaders
 import FanacIssueInfo
 import requests
+import os
 from bs4 import BeautifulSoup
 from tkinter import sys
 
