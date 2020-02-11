@@ -6,12 +6,6 @@ import requests
 from bs4 import BeautifulSoup
 from tkinter import sys
 
-import os
-print (os.environ['PYTHONPATH'])
-
-from FanzineIssueSpecPackage import FanzineIssueSpec
-from FanzineIssueSpecPackage import YearName
-from FanzineIssueSpecPackage import MonthName
 from HelpersPackage import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
