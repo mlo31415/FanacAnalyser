@@ -8,17 +8,17 @@ class FanacIssueInfo:
     _Serial=None
     _DirURL: str=None
     _URL: str=None
-    _Date: FanzineIssueSpec=None
+    _FIS: FanzineIssueSpec=None
     _Pagecount: int=None
     _RowIndex: int=None
 
-    def __init__(self, SeriesName=None, IssueName=None, Serial=None, DirURL=None, URL=None, Date=None, Pagecount=None, RowIndex=None):
+    def __init__(self, SeriesName=None, IssueName=None, Serial=None, DirURL=None, URL=None, FIS=None, Pagecount=None, RowIndex=None):
         self._SeriesName=SeriesName
         self._IssueName=IssueName
         self._Serial=Serial
         self._DirURL=DirURL
         self._URL=URL
-        self._Date=Date
+        self._FIS=FIS
         self._Pagecount=Pagecount
         self._RowIndex=RowIndex
 
@@ -31,9 +31,6 @@ class FanacIssueInfo:
     def SeriesName(self, val):
         self._SeriesName=val
 
-    @SeriesName.getter
-    def SeriesName(self):
-        return self._SeriesName
 
     # .....................
     @property
@@ -44,9 +41,6 @@ class FanacIssueInfo:
     def IssueName(self, val):
         self._IssueName=val
 
-    @IssueName.getter
-    def IssueName(self):
-        return self._IssueName
 
     # .....................
     @property
@@ -57,9 +51,7 @@ class FanacIssueInfo:
     def Serial(self, val):
         self._Serial=val
 
-    @Serial.getter
-    def Serial(self):
-        return self._Serial
+
     # .....................
 
     @property
@@ -70,9 +62,6 @@ class FanacIssueInfo:
     def DirURL(self, val):
         self._DirURL=val
 
-    @DirURL.getter
-    def DirURL(self):
-        return self._DirURL
 
     # .....................
     @property
@@ -83,22 +72,16 @@ class FanacIssueInfo:
     def URL(self, val):
         self._URL=val
 
-    @URL.getter
-    def URL(self):
-        return self._URL
 
     # .....................
     @property
-    def Date(self):
-        return self._Date
+    def FIS(self):
+        return self._FIS
 
-    @Date.setter
-    def Date(self, val):
-        self._Date=val
+    @FIS.setter
+    def FIS(self, val: FanzineIssueSpec):
+        self._FIS=val
 
-    @Date.getter
-    def Date(self):
-        return self._Date
 
     # .....................
     @property
@@ -109,10 +92,6 @@ class FanacIssueInfo:
     def Pagecount(self, val):
         self._Pagecount=val
 
-    @Pagecount.getter
-    def Pagecount(self):
-        return self._Pagecount
-
     # .....................
     @property
     def RowIndex(self):
@@ -122,7 +101,4 @@ class FanacIssueInfo:
     def RowIndex(self, val):
         self._RowIndex=val
 
-    @RowIndex.getter
-    def RowIndex(self):
-        return self._RowIndex
 

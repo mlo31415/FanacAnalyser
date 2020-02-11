@@ -14,6 +14,7 @@ from HelpersPackage import ChangeFileInURL
 from HelpersPackage import CannonicizeColumnHeaders
 from HelpersPackage import GetHrefAndTextFromTag
 from HelpersPackage import LookForTable
+from HelpersPackage import IsInt
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories: list):
@@ -32,11 +33,14 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
     for title, dirname in fanacDirectories:
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
         unskippers=[
-            "MT_Void",
+            #"MT_Void",
             #"Booklist",
             #"Axe",
             #"Opuntia",
             #"Irish_Fandom",
+            #"StraightUp",
+            #"Vega",
+            #"Fantasy_News"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -153,12 +157,26 @@ def ExtractDate(columnHeaders: list, row: list):
         except:
             pass    # If that doesn't work, try other schemes
 
-    # Figure out how to get a year
+    d=FanzineIssueSpec()
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
-    monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
-    dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
+    if yearText is not None:
+        if IsInt(yearText):
+            d.Year=int(yearText)
 
-    d=FanzineIssueSpec(Year=yearText, MonthText=monthText, DayText=dayText)
+    monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
+    if monthText is not None:
+        if IsInt(monthText):
+            d.Month=int(monthText)
+        else:
+            d.MonthText=monthText
+
+    dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
+    if dayText is not None:
+        if IsInt(dayText):
+            d.Day=int(dayText)
+        else:
+            d.DayText=dayText
+
     d.Raw=str(FanzineIssueSpec(Day=dayText, Month=monthText, Year=yearText))    # Create a raw string
 
     return d
@@ -386,7 +404,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: list, fanzineName: str, s
         Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
 
-    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", Date=date, Serial=FanzineIssueSpec(), Pagecount=0, RowIndex=0)
+    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=date, Serial=FanzineIssueSpec(), Pagecount=0, RowIndex=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -481,8 +499,8 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, Date=date, Serial=ser, Pagecount=pages, RowIndex=iRow)
-        if fi.IssueName == "<not found>" and fi.Serial.Vol is None and fi.Date.Year is None and fi.Date.Month is None:
+        fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, FIS=date, Serial=ser, Pagecount=pages, RowIndex=iRow)
+        if fi.IssueName == "<not found>" and fi.Serial.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log("   ****Skipping null table row: "+str(fi))
             continue
 
@@ -494,7 +512,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: list, fanz
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Log("      Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.Serial)+"]  ["+str(fi.Date)+"]  "+urlT)
+            Log("      Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.Serial)+"]  ["+str(fi.FIS)+"]  "+urlT)
         else:
             Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 

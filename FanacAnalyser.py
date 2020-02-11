@@ -260,7 +260,7 @@ fanacFanzineDirectories=ReadClassicModernPages()
 (fanacIssueList, newszinesFromH2)=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
 # Print a list of all fanzines sorted by fanzine name, then date
-fanacIssueList.sort(key=lambda elem: elem.Date)
+fanacIssueList.sort(key=lambda elem: elem.FIS)
 fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine name
 
 def NoNone(s: str):
@@ -278,8 +278,8 @@ if os.path.exists("control-year.txt"):
         year=InterpretNumber(year)
         yearCount=0
         for fz in fanacIssueList:
-            if fz.Date.Year == year:
-                file.write("|| "+NoNone(fz.IssueName)+" || "+NoNone(str(fz.Date))+" || " + NoNone(fz.DirURL) +" || " + NoNone(fz.URL) + " ||\n")
+            if fz.FIS.Year == year:
+                file.write("|| "+NoNone(fz.IssueName)+" || "+NoNone(str(fz.FIS))+" || " + NoNone(fz.DirURL) +" || " + NoNone(fz.URL) + " ||\n")
                 yearCount+=1
         file.close()
         selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
@@ -304,29 +304,29 @@ f.close()
 
 # Produce a list of fanzines listed by date
 fanacIssueList.sort(key=lambda elem: elem.IssueName.lower(), reverse=True)  # Sorts in place on fanzine's name
-fanacIssueList.sort(key=lambda elem: elem.Date)
-undatedList=[f for f in fanacIssueList if f.Date.IsEmpty()]
-datedList=[f for f in fanacIssueList if not f.Date.IsEmpty()]
+fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
+datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
 
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
 def ButtonText(fz):
-    if fz.Date.Year is None:
+    if fz.FIS.Year is None:
         return " "
-    return str(fz.Date.Year)[0:3]+"0s"
+    return str(fz.FIS.Year)[0:3]+"0s"
 
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: ButtonText(fz),
-           lambda fz: (fz.Date.MonthText+" "+fz.Date.YearText).strip(),
+           lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            'control-Header (Fanzine, chronological).html')
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
            lambda fz: ButtonText(fz),
-           lambda fz: (fz.Date.MonthText+" "+fz.Date.YearText).strip(),
+           lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            None)
@@ -390,7 +390,7 @@ countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(n
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: ButtonText(fz),
-           lambda fz: (fz.Date.MonthText+" "+fz.Date.YearText).strip(),
+           lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            "control-Header (Newszine).html",
@@ -398,7 +398,7 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
 
 # Produce a list of fanzines by title
 def DatePlusSortVal(fz: FanacIssueInfo.FanacIssueInfo):
-    return fz.Date.FormatDateForSorting()+"###"+str(fz.Serial.FormatSerialForSorting())
+    return fz.FIS.FormatDateForSorting()+"###"+str(fz.Serial.FormatSerialForSorting())
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.RowIndex)  # Sorts in place on order in index page, which is usually a good proxy for date
 fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine's name
