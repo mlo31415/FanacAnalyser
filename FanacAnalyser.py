@@ -6,6 +6,7 @@ import requests
 import os
 from bs4 import BeautifulSoup
 from tkinter import sys
+import unidecode
 
 from HelpersPackage import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
@@ -401,7 +402,7 @@ def DatePlusSortVal(fz: FanacIssueInfo.FanacIssueInfo):
     return fz.FIS.FormatYearMonthForSorting()+"###"+str(fz.Serial.FormatSerialForSorting())
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.RowIndex)  # Sorts in place on order in index page, which is usually a good proxy for date
-fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine's name
+fanacIssueList.sort(key=lambda elem: unidecode.unidecode(elem.SeriesName.lower()))  # Sorts in place on fanzine's name; the Unidecode is so that things like 'á Bas' sort with A
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
            lambda fz: fz.SeriesName[0],
