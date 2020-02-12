@@ -7,7 +7,7 @@ from FanacIssueInfo import FanacIssueInfo
 import os
 from FanzineIssueSpecPackage import FanzineIssueSpec
 from FanzineIssueSpecPackage import ExtractSerialNumber
-from HelpersPackage import Log, LogSetFanzine
+from HelpersPackage import Log, LogSetHeader
 from HelpersPackage import ReadList
 from HelpersPackage import RelPathToURL
 from HelpersPackage import ChangeFileInURL
@@ -44,11 +44,13 @@ def ReadFanacFanzineIssues(fanacDirectories: list):
             #"FuturiaFantasia",
             #"Le_Zombie",
             #"Spaceways",
-            #"MelbourneBulletin"
+            #"MelbourneBulletin",
+            #"Sanders",
+            #"Speculation"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
-        LogSetFanzine("'"+dirname+"'      '"+title+"'")
+        LogSetHeader("'"+dirname+"'      '"+title+"'")
 
         global skippers  # Not actually used anywhere else, but for performance sake, should be read once and retained
         try:
