@@ -12,6 +12,7 @@ from HelpersPackage import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
 from HelpersPackage import InterpretNumber
+from HelpersPackage import UnicodeToHtml
 
 LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
 
@@ -68,6 +69,7 @@ def ReadFile(filename: str):
 #================================================================================
 # fRowHeaderText and fRowBodyText and fSelector are all lambdas
 #   fSelector decides if this fanzines is to be listed and returns True for fanzines to be listed, and False for ones to be skipped. (If None, nothing will be skipped)
+#   fButtonText operates on an issue and selects the character (or whatever) that will be used for button grouping
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
@@ -127,7 +129,7 @@ def WriteTable(filename: str, fanacIssueList: list, fButtonText, fRowHeaderText,
         for item in headerlist:
             if len(buttonlist) > 0:
                 buttonlist=buttonlist+" &mdash; "
-            buttonlist=buttonlist+'<a href="#' + item + '">' + item + '</a>\n'
+            buttonlist+=FormatLink("#"+ item, item)
 
         # Write out the button bar
         f.write(buttonlist+"<p><p>\n")
@@ -173,11 +175,11 @@ def WriteTable(filename: str, fanacIssueList: list, fButtonText, fRowHeaderText,
             # Since this is a new sub-box, we write the header in col 1
             if html:
                 if bls != lastBLS:
-                    f.write('<a name="'+bls+'"></a>')
+                    f.write('<a name="'+UnicodeToHtml(bls)+'"></a>')
                     lastBLS=bls
                 f.write('<div class="row border">\n')  # Start a new sub-box
                 # Write col 1
-                f.write('  <div class=col-md-3>'+lastRowHeader)
+                f.write('  <div class=col-md-3>'+ UnicodeToHtml(lastRowHeader))
                 f.write('</div>\n')
                 f.write('    <div class=col-md-9>\n') # Start col 2
             else:
@@ -198,7 +200,7 @@ def WriteTable(filename: str, fanacIssueList: list, fButtonText, fRowHeaderText,
                     url=fz.DirURL+"/../"+"/".join(parts[-2:])
                 else:
                     url=fz.URL
-            f.write('        '+FormatLink(url, fz.IssueName.encode('ascii', 'xmlcharrefreplace').decode())+'<br>\n')
+            f.write('        '+FormatLink(url, fz.IssueName)+'<br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
