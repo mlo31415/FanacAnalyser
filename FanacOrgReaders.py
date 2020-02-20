@@ -157,7 +157,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
     if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            return FanzineDate().Parse(dateText)
+            return FanzineDate().ParseGeneralDateString(dateText)
         except:
             pass    # If that doesn't work, try other schemes
 
@@ -179,7 +179,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
                 constructedDate=yearText
         print("constructed date='"+constructedDate+"'")
         if constructedDate is not None:
-            fis=FanzineIssueSpec()._FD.Parse(constructedDate)
+            fis=FanzineDate().ParseGeneralDateString(constructedDate)
             if not fis.IsEmpty():
                 return fis
 
@@ -438,7 +438,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
     # The date is the first line that looks like a date
     date=None
     for c in content:
-        date=FanzineDate().Parse(c)
+        date=FanzineDate().ParseGeneralDateString(c)
         if not date.IsEmpty():
             break
     if date.IsEmpty():
