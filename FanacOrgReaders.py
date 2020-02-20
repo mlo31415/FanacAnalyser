@@ -152,7 +152,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: List[str], cellnames: Unio
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
 def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
 
-    # Does this have a Date column?
+    # Does this have a Date column?  If so, that's all we need. (I hope...)
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
     if dateText is not None and len(dateText) > 0:
         # Get the date
@@ -161,7 +161,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
         except:
             pass    # If that doesn't work, try other schemes
 
-    # Next, take the various parts and assemble them and try to interpret the result
+    # Next, take the various parts and assemble them and try to interpret the result using the FanzineDate() parser
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
     monthText=GetCellValueByColHeader(columnHeaders, row, "Month")
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day")
@@ -179,10 +179,12 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
                 constructedDate=yearText
         print("constructed date='"+constructedDate+"'")
         if constructedDate is not None:
-            fis=FanzineDate().ParseGeneralDateString(constructedDate)
-            if not fis.IsEmpty():
-                return fis
+            fd=FanzineDate().ParseGeneralDateString(constructedDate)
+            if not fd.IsEmpty():
+                return fd
 
+    # Well, that didn't work.
+    # Try to build up a FanzineDate "by hand", so to speak
     d=FanzineDate()
     if yearText is not None:
         if IsInt(yearText):
@@ -193,22 +195,6 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
             d.Month=int(monthText)
         else:
             d.MonthText=monthText
-
-    # There are a few annoying entries of the form "Winter 1951-52"  They all *appear* to mean something like January 1952
-    # We'll try to handle this case
-    if monthText == "Winter" and not IsInt(yearText):
-        p=re.compile("^([0-9]{4})-([0-9]{2})$")
-        m=p.match(yearText)
-        if m is not None and len(m.groups()) == 2:
-            d.Year=int(m.groups()[1])   # Use the second part
-            d.Month=1
-            d.MonthText="Winter"
-
-    if dayText is not None:
-        if IsInt(dayText):
-            d.Day=int(dayText)
-        else:
-            d.DayText=dayText
 
     return d
 
