@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from typing import Union, Tuple, Optional
 from dataclasses import dataclass
 from FanzineIssueSpecPackage import FanzineIssueSpec
 
@@ -5,77 +8,66 @@ from FanzineIssueSpecPackage import FanzineIssueSpec
 class FanacIssueInfo:
     _SeriesName: str=None
     _IssueName: str=None
-    _Serial=None
     _DirURL: str=None
     _URL: str=None
     _FIS: FanzineIssueSpec=None
     _Pagecount: int=None
     _RowIndex: int=None
 
-    def __init__(self, SeriesName=None, IssueName=None, Serial=None, DirURL=None, URL=None, FIS=None, Pagecount=None, RowIndex=None):
+    def __init__(self, SeriesName=None, IssueName=None, DirURL=None, URL=None, FIS=None, Pagecount=None, RowIndex=None):
         self._SeriesName=SeriesName
         self._IssueName=IssueName
-        self._Serial=Serial
         self._DirURL=DirURL
         self._URL=URL
         self._FIS=FIS
         self._Pagecount=Pagecount
         self._RowIndex=RowIndex
 
+    def __str__(self):
+        return self.SeriesName+"  "+str(self._FIS)
+
     # .....................
     @property
-    def SeriesName(self):
+    def SeriesName(self) -> Optional[str]:
         return self._SeriesName
 
     @SeriesName.setter
-    def SeriesName(self, val):
+    def SeriesName(self, val: Optional[str]):
         self._SeriesName=val
 
 
     # .....................
     @property
-    def IssueName(self):
+    def IssueName(self) -> Optional[str]:
         return self._IssueName
 
     @IssueName.setter
-    def IssueName(self, val):
+    def IssueName(self, val: Optional[str]):
         self._IssueName=val
 
-
     # .....................
     @property
-    def Serial(self):
-        return self._Serial
-
-    @Serial.setter
-    def Serial(self, val):
-        self._Serial=val
-
-
-    # .....................
-
-    @property
-    def DirURL(self):
+    def DirURL(self) -> Optional[str]:
         return self._DirURL
 
     @DirURL.setter
-    def DirURL(self, val):
+    def DirURL(self, val: Optional[str]):
         self._DirURL=val
 
 
     # .....................
     @property
-    def URL(self):
+    def URL(self) -> Optional[str]:
         return self._URL
 
     @URL.setter
-    def URL(self, val):
+    def URL(self, val: Optional[str]):
         self._URL=val
 
 
     # .....................
     @property
-    def FIS(self):
+    def FIS(self) -> Optional[FanzineIssueSpec]:
         return self._FIS
 
     @FIS.setter
@@ -85,20 +77,20 @@ class FanacIssueInfo:
 
     # .....................
     @property
-    def Pagecount(self):
+    def Pagecount(self) -> Optional[int]:
         return self._Pagecount
 
     @Pagecount.setter
-    def Pagecount(self, val):
+    def Pagecount(self, val: Optional[int]):
         self._Pagecount=val
 
     # .....................
     @property
-    def RowIndex(self):
+    def RowIndex(self) -> int:
         return self._RowIndex
 
     @RowIndex.setter
-    def RowIndex(self, val):
+    def RowIndex(self, val: int):
         self._RowIndex=val
 
 
