@@ -210,8 +210,6 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
         else:
             d.DayText=dayText
 
-    d.Raw=str(FanzineDate(Day=dayText, Month=monthText, Year=yearText))    # Create a raw string
-
     return d
 
 
