@@ -1,14 +1,12 @@
-from typing import TextIO, List, Union, Tuple, Optional, Callable
+from typing import TextIO, List, Tuple, Optional, Callable
 from time import localtime, strftime
-import FanacOrgReaders
-import FanacIssueInfo
 import requests
 import os
 from bs4 import BeautifulSoup
 from tkinter import sys
 import unidecode
 
-from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineIssueSpecList
+import FanacOrgReaders
 from FanacIssueInfo import FanacIssueInfo
 
 from HelpersPackage import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
@@ -409,11 +407,11 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            "control-Header (Newszine).html",
-           lambda fx: fx.SeriesName.lower() in listOfNewszines)
+           lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
 def DatePlusSortVal(fz: FanacIssueInfo):
-    return fz.FIS.FormatYearMonthForSorting()+"###"+str(fz.Serial.FormatSerialForSorting())
+    return fz.FIS.FormatYearMonthForSorting()+"###"+str(fz.FIS.FormatSerialForSorting())
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.RowIndex)  # Sorts in place on order in index page, which is usually a good proxy for date
 fanacIssueList.sort(key=lambda elem: unidecode.unidecode(elem.SeriesName.lower()))  # Sorts in place on fanzine's name; the Unidecode is so that things like 'á Bas' sort with A
@@ -446,10 +444,9 @@ def RemoveArticles(name):
 
 # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
 # This function is used only in the lambda expression following immediately afterwards.
-def OddNames(n1, n2):
+def OddNames(n1: str, n2: str) -> bool:
     n1=RemoveArticles(n1).lower().strip()
     n2=RemoveArticles(n2).lower().strip()
-
     # We'd like them to match to the length of the shorter name
     length=min(len(n1), len(n2))
     return n1[:length] != n2[:length]
