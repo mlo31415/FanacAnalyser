@@ -137,11 +137,11 @@ def GetCellValueByColHeader(columnHeaders: list, row: List[str], cellnames: Unio
     if type(cellnames) is list:
         for i in range(0, len(columnHeaders)):
             for cn in cellnames:
-                if columnHeaders[i].lower() == cn.lower():
+                if CannonicizeColumnHeaders(columnHeaders[i]) == CannonicizeColumnHeaders(cn):
                     return ChangeNBSPToSpace(row[i])
     else:
         for i in range(0, len(columnHeaders)):
-            if columnHeaders[i].lower() == cellnames.lower():
+            if CannonicizeColumnHeaders(columnHeaders[i]) == CannonicizeColumnHeaders(cellnames):
                 return ChangeNBSPToSpace(row[i])
 
     return None
