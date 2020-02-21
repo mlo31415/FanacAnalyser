@@ -313,7 +313,7 @@ for fz in fanacIssueList:
 f.close()
 
 # Produce a list of fanzines listed by date
-fanacIssueList.sort(key=lambda elem: elem.IssueName.lower(), reverse=True)  # Sorts in place on fanzine's name
+fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
 fanacIssueList.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
 undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
