@@ -25,7 +25,7 @@ LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer 
 #       The name of directory is the name of the directory pointed to
 
 def ReadClassicModernPages() -> List[Tuple[str, str]]:
-    print("----Begin reading Classic and Modern tables")
+    Log("----Begin reading Classic and Modern tables")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectories=[]
@@ -34,7 +34,7 @@ def ReadClassicModernPages() -> List[Tuple[str, str]]:
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectories, dirs)
 
-    print("----Done reading Classic and Modern tables")
+    Log("----Done reading Classic and Modern tables")
     return fanacFanzineDirectories
 
 
@@ -233,15 +233,15 @@ def AddFanacDirectory(fanacFanzineDirectories: List[Tuple[str, str]], name: str,
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectories if e2 == dirname]
     if len(dups) > 0:
-        print("   duplicate: name="+name+"  dirname="+dirname)
+        Log("   duplicate: name="+name+"  dirname="+dirname)
         return
 
     if dirname[:3]=="http":
-        print("    ignored, because is HTML: "+dirname)
+        Log("    ignored, because is HTML: "+dirname)
         return
 
     # Add name and directory reference
-    print("   added to fanacFanzineDirectories:  name='"+name+"'  dirname='"+dirname+"'")
+    Log("   added to fanacFanzineDirectories:  name='"+name+"'  dirname='"+dirname+"'")
     fanacFanzineDirectories.append((name, dirname))
     return
 
@@ -466,11 +466,11 @@ fzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList]))
 nzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList if fz.SeriesName.lower() in listOfNewszines]))
 
 # Print to the console and also the statistics file
-print("\n")
-print("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfCount))
-print("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfCount))
+Log("\n")
+Log("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfCount))
+Log("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfCount))
 for selectedYear in selectedYears:
-    print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]))
+    Log(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
     print("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfCount), file=f)
     print("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfCount), file=f)

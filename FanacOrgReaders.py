@@ -25,7 +25,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
     # Loop over the list of all fanzines, building up a list of those on fanac.org
-    print("----Begin reading index.html files on fanac.org")
+    Log("----Begin reading index.html files on fanac.org")
 
     global g_browser
     g_browser=None
@@ -101,7 +101,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
         ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo, newszineList)
 
     # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
-    print("----Done reading index.html files on fanac.org")
+    Log("----Done reading index.html files on fanac.org")
     if g_browser is not None:
         g_browser.quit()
 
@@ -177,7 +177,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
                 constructedDate=dayText+" "+yearText
             else:
                 constructedDate=yearText
-        print("constructed date='"+constructedDate+"'")
+        Log("constructed date='"+constructedDate+"'")
         if constructedDate is not None:
             fd=FanzineDate().ParseGeneralDateString(constructedDate)
             if not fd.IsEmpty():
@@ -185,11 +185,11 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
 
     # Well, that didn't work.
     if yearText is None or not IsInt(yearText):
-        Log("   ***Date conversion failed: no useable date columns data found", False)
+        Log("   ***Date conversion failed: no useable date columns data found")
 
     # Try to build up a FanzineDate "by hand", so to speak
     fd=FanzineDate(Year=yearText, MonthText=monthText)
-    Log("By hand: "+str(fd), False)
+    Log("By hand: "+str(fd))
     return fd
 
 
@@ -317,7 +317,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanz
     # Check to see if this is marked as a Newszine
     temp=soup.h2
     if temp.text.find("Newszine") > -1:
-        print(">>>>>> Newszine added: '"+fanzineName+"'")
+        Log(">>>>>> Newszine added: '"+fanzineName+"'")
         newszineList.append(fanzineName)
 
     # Walk the table and extract the fanzines in it
@@ -425,7 +425,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
     fis=FanzineIssueSpec()
     fis.FD=date
     fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=fis, Pagecount=0, RowIndex=0)
-    Log("   (singleton): "+str(fi), False)
+    Log("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
 
@@ -483,7 +483,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanac
         tableRow=tableRows[iRow]
         if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
             continue
-        print("   row="+str(tableRow))
+        Log("   row="+str(tableRow))
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
@@ -529,7 +529,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanac
             Log("   ****Skipping null table row: "+str(fi))
             continue
 
-        print("   "+str(fi))
+        Log("   "+str(fi))
         fanzineIssueList.append(fi)
 
         # Log it.
