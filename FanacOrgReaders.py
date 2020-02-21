@@ -54,8 +54,8 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
             #"SkyHook",
             #"Fantasy_News",
             #"Scienti-Snaps",
-            #"Satellite",
-            #"A_Bas"
+            # "A_Bas",
+            #"Bay_Area_News"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -184,19 +184,13 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
                 return fd
 
     # Well, that didn't work.
+    if yearText is None or not IsInt(yearText):
+        Log("   ***Date conversion failed: no useable date columns data found", False)
+
     # Try to build up a FanzineDate "by hand", so to speak
-    d=FanzineDate()
-    if yearText is not None:
-        if IsInt(yearText):
-            d.Year=int(yearText)
-
-    if monthText is not None:
-        if IsInt(monthText):
-            d.Month=int(monthText)
-        else:
-            d.MonthText=monthText
-
-    return d
+    fd=FanzineDate(Year=yearText, MonthText=monthText)
+    Log("By hand: "+str(fd), False)
+    return fd
 
 
 #=============================================================================================
@@ -429,7 +423,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
         Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
     fis=FanzineIssueSpec()
-    fis._FD=date
+    fis.FD=date
     fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=fis, Pagecount=0, RowIndex=0)
     print("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
