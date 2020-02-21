@@ -425,7 +425,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
     fis=FanzineIssueSpec()
     fis.FD=date
     fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=fis, Pagecount=0, RowIndex=0)
-    print("   (singleton): "+str(fi))
+    Log("   (singleton): "+str(fi), False)
     fanzineIssueList.append(fi)
     return
 
