@@ -13,7 +13,7 @@ import os
 from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial
 from FanzineIssueSpecPackage import ExtractSerialNumber
 
-from HelpersPackage import Log, LogSetHeader
+from Log import Log, LogSetHeader
 from HelpersPackage import ReadList
 from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace
 from HelpersPackage import CannonicizeColumnHeaders

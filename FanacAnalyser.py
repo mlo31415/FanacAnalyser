@@ -9,7 +9,7 @@ import unidecode
 import FanacOrgReaders
 from FanacIssueInfo import FanacIssueInfo
 
-from HelpersPackage import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
+from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
 from HelpersPackage import InterpretNumber
