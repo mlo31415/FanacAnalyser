@@ -67,7 +67,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
         except NameError:
             skippers=ReadList("control-skippers.txt")
         if dirname in skippers:
-            Log("***Skipping because it is in skippers: "+dirname, isError=True)
+            Log("...Skipping because it is in skippers: "+dirname, isError=True)
             continue
 
         # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
@@ -77,12 +77,12 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
         except NameError:
             offsite=ReadList("control-offsite.txt")
         if dirname in offsite:
-            Log("***Skipping because it is in offsite: "+dirname)
+            Log("...Skipping because it is in offsite: "+dirname)
             continue
 
         # Besides the offsite table, we try to detect references which are offsite from their URLs
         if dirname.startswith("http://"):
-            Log("***skipped because the index page pointed to is not on fanac.org: "+dirname, isError=True)
+            Log("...Skipped because the index page pointed to is not on fanac.org: "+dirname, isError=True)
             continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
@@ -91,7 +91,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
         if url is None:
             continue
         if not url.startswith("http://www.fanac.org"):
-            Log("***skipped because not a fanac.org url: "+url, isError=True)
+            Log("...Skipped because not a fanac.org url: "+url, isError=True)
             continue
 
         # if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
@@ -177,7 +177,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
                 constructedDate=dayText+" "+yearText
             else:
                 constructedDate=yearText
-        Log("constructed date='"+constructedDate+"'")
+        Log("   constructed date='"+constructedDate+"'")
         if constructedDate is not None:
             fd=FanzineDate().ParseGeneralDateString(constructedDate)
             if not fd.IsEmpty():
@@ -537,7 +537,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanac
             urlT=""
             if fi.URL is None:
                 urlT="*No URL*"
-            Log("      Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.FIS)+"]  "+urlT)
+            Log("Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.FIS)+"]  "+urlT)
         else:
             Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
 

@@ -24,7 +24,7 @@ class FanacIssueInfo:
         self._RowIndex=RowIndex
 
     def __str__(self):
-        return self.SeriesName+"  "+str(self._FIS)
+        return self.SeriesName+": "+self.IssueName+"  "+str(self._FIS)
 
     # .....................
     @property
