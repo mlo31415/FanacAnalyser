@@ -40,7 +40,7 @@ def ReadClassicModernPages() -> List[Tuple[str, str]]:
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
-def ReadModernOrClassicTable(fanacFanzineDirectories: List[Tuple[str, str]], url: str):
+def ReadModernOrClassicTable(fanacFanzineDirectories: List[Tuple[str, str]], url: str) -> None:
     h=requests.get(url)
     s=BeautifulSoup(h.content, "html.parser")
     # We look for the first table that does not contain a "navbar"
@@ -81,7 +81,8 @@ def WriteTable(filename: str,
                fRowBodyText: Callable[[FanacIssueInfo],str],
                countText: Optional[str],
                headerFilename: Optional[str],
-               fSelector: Optional[Callable[[FanacIssueInfo],str]]):
+               fSelector: Optional[Callable[[FanacIssueInfo],bool]])\
+                -> None:
     f: TextIO=open(filename, "w+")
 
     #....... Header .......
@@ -228,7 +229,7 @@ def WriteTable(filename: str,
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacFanzineDirectories: List[Tuple[str, str]], name: str, dirname: str):
+def AddFanacDirectory(fanacFanzineDirectories: List[Tuple[str, str]], name: str, dirname: str) -> None:
 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectories if e2 == dirname]
@@ -280,7 +281,7 @@ fanacFanzineDirectories=ReadClassicModernPages()
 # Sort the list of all fanzines by fanzine series name
 fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
 
-def NoNone(s: str):
+def NoNone(s: str) -> str:
     if s is None:
         return ""
     return s
@@ -327,7 +328,7 @@ datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
 
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
-def ButtonText(fz):
+def ButtonText(fz: FanacIssueInfo) -> str:
     if fz.FIS.Year is None:
         return " "
     return str(fz.FIS.Year)[0:3]+"0s"
@@ -417,7 +418,7 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
-def DatePlusSortVal(fz: FanacIssueInfo):
+def DatePlusSortVal(fz: FanacIssueInfo) -> str:
     return fz.FIS.FormatYearMonthForSorting()+"###"+str(fz.FIS.FormatSerialForSorting())
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.RowIndex)  # Sorts in place on order in index page, which is usually a good proxy for date
@@ -439,7 +440,7 @@ WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            "control-Header (Fanzine, alphabetical).html",
            None)
 
-def RemoveArticles(name):
+def RemoveArticles(name: str) -> str:
     if name[:4] == "The ":
         return name[4:]
     if name[:2] == "a ":

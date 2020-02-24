@@ -132,7 +132,7 @@ def RemoveDuplicates(fanzineList: List[FanacIssueInfo]) -> List[FanacIssueInfo]:
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
 # If cellname is a list of names, try them all and return the first that hits
-def GetCellValueByColHeader(columnHeaders: list, row: List[str], cellnames: Union[str, List[str]]):
+def GetCellValueByColHeader(columnHeaders: list, row: List[str], cellnames: Union[str, List[str]]) -> Optional[str]:
 
     if type(cellnames) is list:
         for i in range(0, len(columnHeaders)):
@@ -432,7 +432,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
 
 #=====================================================================================
 # Function to compress newline elements from a list of Tags.
-def RemoveNewlineRows(tags: List[str]) -> List[str]:
+def RemoveNewlineRows(tags: List[Tag]) -> List[Tag]:
     compressedTags = []
     for row in tags:
         if not isinstance(row, NavigableString):

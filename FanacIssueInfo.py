@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Union, Tuple, Optional
+from typing import Optional
 from dataclasses import dataclass
 from FanzineIssueSpecPackage import FanzineIssueSpec
 
@@ -14,7 +14,7 @@ class FanacIssueInfo:
     _Pagecount: int=None
     _RowIndex: int=None
 
-    def __init__(self, SeriesName=None, IssueName=None, DirURL=None, URL=None, FIS=None, Pagecount=None, RowIndex=None):
+    def __init__(self, SeriesName=None, IssueName=None, DirURL=None, URL=None, FIS=None, Pagecount=None, RowIndex=None) -> None:
         self._SeriesName=SeriesName
         self._IssueName=IssueName
         self._DirURL=DirURL
@@ -23,7 +23,7 @@ class FanacIssueInfo:
         self._Pagecount=Pagecount
         self._RowIndex=RowIndex
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.SeriesName+": "+self.IssueName+"  "+str(self._FIS)
 
     # .....................
@@ -32,7 +32,7 @@ class FanacIssueInfo:
         return self._SeriesName
 
     @SeriesName.setter
-    def SeriesName(self, val: Optional[str]):
+    def SeriesName(self, val: Optional[str]) -> None:
         self._SeriesName=val
 
 
@@ -42,7 +42,7 @@ class FanacIssueInfo:
         return self._IssueName
 
     @IssueName.setter
-    def IssueName(self, val: Optional[str]):
+    def IssueName(self, val: Optional[str]) -> None:
         self._IssueName=val
 
     # .....................
@@ -51,7 +51,7 @@ class FanacIssueInfo:
         return self._DirURL
 
     @DirURL.setter
-    def DirURL(self, val: Optional[str]):
+    def DirURL(self, val: Optional[str]) -> None:
         self._DirURL=val
 
 
@@ -61,7 +61,7 @@ class FanacIssueInfo:
         return self._URL
 
     @URL.setter
-    def URL(self, val: Optional[str]):
+    def URL(self, val: Optional[str]) -> None:
         self._URL=val
 
 
@@ -71,7 +71,7 @@ class FanacIssueInfo:
         return self._FIS
 
     @FIS.setter
-    def FIS(self, val: FanzineIssueSpec):
+    def FIS(self, val: FanzineIssueSpec) -> None:
         self._FIS=val
 
 
@@ -81,7 +81,7 @@ class FanacIssueInfo:
         return self._Pagecount
 
     @Pagecount.setter
-    def Pagecount(self, val: Optional[int]):
+    def Pagecount(self, val: Optional[int]) -> None:
         self._Pagecount=val
 
     # .....................
@@ -90,7 +90,7 @@ class FanacIssueInfo:
         return self._RowIndex
 
     @RowIndex.setter
-    def RowIndex(self, val: int):
+    def RowIndex(self, val: int) -> None:
         self._RowIndex=val
 
 
