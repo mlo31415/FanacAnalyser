@@ -9,7 +9,7 @@ import unidecode
 import FanacOrgReaders
 from FanacIssueInfo import FanacIssueInfo
 
-from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
+from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
 from HelpersPackage import InterpretNumber
@@ -249,6 +249,8 @@ def AddFanacDirectory(fanacFanzineDirectories: List[Tuple[str, str]], name: str,
 #===========================================================================
 #===========================================================================
 # Main
+Log("Started")
+LogFlush()
 
 # Read the command line arguments
 outputDir="."
@@ -256,6 +258,9 @@ if len(sys.argv) > 1:
     outputDir=sys.argv[1]
 if not os.path.isdir(outputDir):
     os.mkdir(outputDir)
+
+Log("Output directory '"+outputDir+"' set")
+LogFlush()
 
 # Create a Reports directory if needed.
 reportDir=os.path.join(outputDir, "Reports")
@@ -265,6 +270,8 @@ if not os.path.isdir(reportDir):
     except Exception as e:
         Log("***Fatal Error: Attempt to create directory "+reportDir+" yields exception: "+str(e), isError=True)
         exit(1)
+Log("Report directory '"+reportDir+"' created")
+LogFlush()
 
 # Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
 fanacFanzineDirectories=ReadClassicModernPages()
