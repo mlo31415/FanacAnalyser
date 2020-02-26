@@ -2,8 +2,8 @@ from typing import TextIO, List, Tuple, Optional, Callable
 from time import localtime, strftime
 import requests
 import os
+import sys
 from bs4 import BeautifulSoup
-from tkinter import sys
 import unidecode
 
 import FanacOrgReaders
@@ -495,10 +495,3 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            lambda fz: fz.Pagecount > 250)
 
 LogClose()
-
-# Display a message box (needed only for the built/packaged version)
-# if sys.gettrace() is None:      # This is an incantation which detects the presence of a debugger
-#    root = Tk()
-#    root.withdraw()
-#    messagebox.showinfo(title=None, message="Finished!")
-

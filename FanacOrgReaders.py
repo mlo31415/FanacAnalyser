@@ -16,7 +16,7 @@ from FanzineIssueSpecPackage import ExtractSerialNumber
 from Log import Log, LogSetHeader
 from HelpersPackage import ReadList
 from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace
-from HelpersPackage import CannonicizeColumnHeaders
+from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt
 
 # ============================================================================================
@@ -137,11 +137,11 @@ def GetCellValueByColHeader(columnHeaders: list, row: List[str], cellnames: Unio
     if type(cellnames) is list:
         for i in range(0, len(columnHeaders)):
             for cn in cellnames:
-                if CannonicizeColumnHeaders(columnHeaders[i]) == CannonicizeColumnHeaders(cn):
+                if CanonicizeColumnHeaders(columnHeaders[i]) == CanonicizeColumnHeaders(cn):
                     return ChangeNBSPToSpace(row[i])
     else:
         for i in range(0, len(columnHeaders)):
-            if CannonicizeColumnHeaders(columnHeaders[i]) == CannonicizeColumnHeaders(cellnames):
+            if CanonicizeColumnHeaders(columnHeaders[i]) == CanonicizeColumnHeaders(cellnames):
                 return ChangeNBSPToSpace(row[i])
 
     return None
@@ -458,7 +458,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanac
     if len(table.contents[0])>1:
         columnHeaders=table.contents[0].text.strip()
     columnHeaders=columnHeaders.split("\n")
-    columnHeaders=[CannonicizeColumnHeaders(c) for c in columnHeaders]
+    columnHeaders=[CanonicizeColumnHeaders(c) for c in columnHeaders]
 
     # We need to pull the fanzine rows in from BeautifulSoup and save them in the same format for later analysis.
     # The format will be a list of rows
