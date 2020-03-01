@@ -179,7 +179,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
                 constructedDate=yearText
         Log("   constructed date='"+constructedDate+"'")
         if constructedDate is not None:
-            fd=FanzineDate().ParseGeneralDateString(constructedDate)
+            fd=FanzineDate().Match(constructedDate)
             if not fd.IsEmpty():
                 return fd
 
