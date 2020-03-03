@@ -157,7 +157,9 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
     if dateText is not None and len(dateText) > 0:
         # Get the date
         try:
-            return FanzineDate().ParseGeneralDateString(dateText)
+            fd=FanzineDate()
+            fd.Match(dateText)
+            return fd
         except:
             pass    # If that doesn't work, try other schemes
 

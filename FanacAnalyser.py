@@ -191,7 +191,7 @@ def WriteTable(filename: str,
                 # Write col 1
                 f.write('  <div class=col-md-3>')
                 if isAlpha:
-                    f.write(FormatLink(fz.DirURL, UnicodeToHtml(lastRowHeader)))
+                    f.write(FormatLink(fz.DirURL, lastRowHeader))
                 else:
                     f.write(UnicodeToHtml(lastRowHeader))
                 f.write('</div>\n')
@@ -214,7 +214,8 @@ def WriteTable(filename: str,
                     url=fz.DirURL+"/../"+"/".join(parts[-2:])
                 else:
                     url=fz.URL
-            f.write('        '+FormatLink(url, fz.IssueName)+'<br>\n')
+            f.write('        '+FormatLink(url, fz.IssueName))
+            f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fz.FIS.FD.IsEmpty() else "<small>("+str(fz.FIS.FD.LongDates)+')</small>')+'<br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
