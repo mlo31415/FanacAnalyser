@@ -160,7 +160,7 @@ def WriteTable(filename: str,
         f.write('<div>\n')  # Begin the main table
 
     lastRowHeader=None
-    lastBLS=None
+    lastButtonLinkString=None
     for fz in fanacIssueList:
         # Do we skip this fanzine
         if fSelector is not None and not fSelector(fz):
@@ -169,11 +169,11 @@ def WriteTable(filename: str,
             continue
 
         # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
-        bls=""
+        buttonLinkString=""
         if html:
             if fButtonText is not None:
                 if fButtonText(fz) is not None:
-                    bls=fButtonText(fz)
+                    buttonLinkString=fButtonText(fz)
 
         # Start a new row
         # Deal with Column 1
@@ -184,9 +184,9 @@ def WriteTable(filename: str,
 
             # Since this is a new sub-box, we write the header in col 1
             if html:
-                if bls != lastBLS:
-                    f.write('<a name="'+UnicodeToHtml(bls)+'"></a>')
-                    lastBLS=bls
+                if buttonLinkString != lastButtonLinkString:
+                    f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
+                    lastButtonLinkString=buttonLinkString
                 f.write('<div class="row border">\n')  # Start a new sub-box
                 # Write col 1
                 f.write('  <div class=col-md-3>')
