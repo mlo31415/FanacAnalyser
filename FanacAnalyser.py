@@ -81,7 +81,8 @@ def WriteTable(filename: str,
                fRowBodyText: Callable[[FanacIssueInfo],str],
                countText: Optional[str],
                headerFilename: Optional[str],
-               fSelector: Optional[Callable[[FanacIssueInfo],bool]])\
+               fSelector: Optional[Callable[[FanacIssueInfo],bool]],
+               isAlpha: bool=False)\
                 -> None:
     f: TextIO=open(filename, "w+")
 
@@ -167,7 +168,7 @@ def WriteTable(filename: str,
         if html and fz.URL is None:
             continue
 
-        # Get the button link string, to see if we have a new decade (or 1st letter) and need to new jump anchor
+        # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
         bls=""
         if html:
             if fButtonText is not None:
@@ -188,7 +189,11 @@ def WriteTable(filename: str,
                     lastBLS=bls
                 f.write('<div class="row border">\n')  # Start a new sub-box
                 # Write col 1
-                f.write('  <div class=col-md-3>'+ UnicodeToHtml(lastRowHeader))
+                f.write('  <div class=col-md-3>')
+                if isAlpha:
+                    f.write(FormatLink(fz.DirURL, UnicodeToHtml(lastRowHeader)))
+                else:
+                    f.write(UnicodeToHtml(lastRowHeader))
                 f.write('</div>\n')
                 f.write('    <div class=col-md-9>\n') # Start col 2
             else:
@@ -430,7 +435,8 @@ WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            None,
-           None)
+           None,
+           isAlpha=True)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
            lambda fz: fz.SeriesName[0],
@@ -438,7 +444,8 @@ WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
            "control-Header (Fanzine, alphabetical).html",
-           None)
+           None,
+           isAlpha=True)
 
 def RemoveArticles(name: str) -> str:
     if name[:4] == "The ":
