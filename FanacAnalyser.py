@@ -330,7 +330,7 @@ f.close()
 
 # Produce a list of fanzines listed by date
 fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
-fanacIssueList.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
+fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
 undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
 datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
 
@@ -427,9 +427,9 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
 
 # Produce a list of fanzines by title
 def DatePlusSortVal(fz: FanacIssueInfo) -> str:
-    return fz.FIS.FormatYearMonthForSorting()+"###"+str(fz.FIS.FormatSerialForSorting())
+    return fz.FIS.FormatDateForSorting()+"###"+str(fz.FIS.FormatSerialForSorting())
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
-fanacIssueList.sort(key=lambda elem: elem.RowIndex)  # Sorts in place on order in index page, which is usually a good proxy for date
+fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
 fanacIssueList.sort(key=lambda elem: unidecode.unidecode(elem.SeriesName.lower()))  # Sorts in place on fanzine's name; the Unidecode is so that things like 'á Bas' sort with A
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
