@@ -215,7 +215,9 @@ def WriteTable(filename: str,
                 else:
                     url=fz.URL
             f.write('        '+FormatLink(url, fz.IssueName))
-            f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fz.FIS.FD.IsEmpty() else "<small>("+str(fz.FIS.FD.LongDates)+')</small>')+'<br>\n')
+            if isAlpha:
+                f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fz.FIS.FD.IsEmpty() else "<small>("+str(fz.FIS.FD.LongDates)+')</small>'))
+            f.write('<br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
 
