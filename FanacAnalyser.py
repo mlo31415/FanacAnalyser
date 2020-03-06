@@ -336,7 +336,7 @@ datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
 
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
-def ButtonText(fz: FanacIssueInfo) -> str:
+def ChronButtonText(fz: FanacIssueInfo) -> str:
     if fz.FIS.Year is None:
         return " "
     return str(fz.FIS.Year)[0:3]+"0s"
@@ -344,7 +344,7 @@ def ButtonText(fz: FanacIssueInfo) -> str:
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
-           lambda fz: ButtonText(fz),
+           lambda fz: ChronButtonText(fz),
            lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
@@ -352,7 +352,7 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            None)
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
-           lambda fz: ButtonText(fz),
+           lambda fz: ChronButtonText(fz),
            lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
@@ -418,7 +418,7 @@ with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"
 countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
-           lambda fz: ButtonText(fz),
+           lambda fz: ChronButtonText(fz),
            lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
@@ -428,9 +428,30 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
 # Produce a list of fanzines by title
 def DatePlusSortVal(fz: FanacIssueInfo) -> str:
     return fz.FIS.FormatDateForSorting()+"###"+str(fz.FIS.FormatSerialForSorting())
+def AlphaSortText(fz: FanacIssueInfo) -> str:
+    if fz.SeriesName is None or len(fz.SeriesName) == 0:
+        return " "
+    # Replace lower case and accented alphas, ignore punctuation, retain digits
+    out=""
+    for c in fz.SeriesName:
+        if c.isalpha():
+            out+=unidecode.unidecode(c.upper())
+        elif c.isdigit():
+            out+=c
+    return out
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-fanacIssueList.sort(key=lambda elem: unidecode.unidecode(elem.SeriesName.lower()))  # Sorts in place on fanzine's name; the Unidecode is so that things like 'á Bas' sort with A
+fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name; the Unidecode is so that things like 'á Bas' sort with A
+
+
+
+def AlphaButtonText(fz: FanacIssueInfo) -> str:
+    c=AlphaSortText(fz)[0]
+    if c == " " or c.isdigit():
+        return "*"
+    return c
+
+
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
            lambda fz: fz.SeriesName[0],
@@ -442,7 +463,7 @@ WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            isAlpha=True)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
-           lambda fz: fz.SeriesName[0],
+           lambda fz: AlphaButtonText(fz),
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
            countText+"\n"+timestamp+"\n",
