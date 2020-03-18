@@ -57,6 +57,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
             #"A_Bas",
             #"Bay_Area_News",
             #"Degler",
+            #"BrokenToys",
             #"Aspidistra"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
@@ -159,9 +160,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
     if dateText is not None and len(dateText) > 0:
         # Get the date
         with suppress(Exception):
-            fd=FanzineDate()
-            fd.Match(dateText)
-            return fd
+            return FanzineDate().Match(dateText)
 
     # Next, take the various parts and assemble them and try to interpret the result using the FanzineDate() parser
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
@@ -181,8 +180,7 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
                 constructedDate=yearText
         Log("   constructed date='"+constructedDate+"'")
         if constructedDate is not None:
-            fd=FanzineDate()
-            fd.Match(constructedDate)
+            fd=FanzineDate().Match(constructedDate)
             if not fd.IsEmpty():
                 return fd
 
@@ -419,8 +417,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
     # The date is the first line that looks like a date
     date=None
     for c in content:
-        date=FanzineDate()
-        date.Match(c)
+        date=FanzineDate().Match(c)
         if not date.IsEmpty():
             break
     if date.IsEmpty():
