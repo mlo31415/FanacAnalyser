@@ -229,8 +229,8 @@ def WriteTable(filename: str,
             LogFailureAndRaiseIfMissing("control-Default.Footer")
             with open("control-Default.Footer", "r") as f2:
                 f.writelines(f2.readlines())
-        except:
-            pass  # Except nothing, really.  If the file's not there, we ignore the whole thing.
+        except e:
+            Log("Exception "+str(e)+" raised while opening control-Default.Footer", isError=True)
     f.close()
 
 
