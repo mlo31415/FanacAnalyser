@@ -1,5 +1,5 @@
 from typing import Union, Tuple, Optional, List, Dict
-
+from contextlib import suppress
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
 from bs4 import Tag
@@ -56,6 +56,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
             #"Scienti-Snaps",
             #"A_Bas",
             #"Bay_Area_News",
+            #"Degler",
             #"Aspidistra"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
@@ -157,12 +158,10 @@ def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")
     if dateText is not None and len(dateText) > 0:
         # Get the date
-        try:
+        with suppress(Exception):
             fd=FanzineDate()
             fd.Match(dateText)
             return fd
-        except:
-            pass    # If that doesn't work, try other schemes
 
     # Next, take the various parts and assemble them and try to interpret the result using the FanzineDate() parser
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year")
@@ -230,10 +229,10 @@ def ExtractPageCount(columnHeaders: List[str], row: List[str]) -> int:
             return 1    # All cards have a pagecount of 1
         return 0
 
-    try:
+    with suppress(Exception):
         return int(pageText)
-    except:
-        return 0
+
+    return 0
 
 
 # ============================================================================================
