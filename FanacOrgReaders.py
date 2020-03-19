@@ -490,6 +490,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanac
         # We have to treat the Title column specially, since it contains the critical href we need.
         date=ExtractDate(columnHeaders, tableRow)
         ser=ExtractSerial(columnHeaders, tableRow)
+        fis=FanzineIssueSpec(FD=date, FS=ser)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
 
@@ -522,9 +523,6 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanac
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fis=FanzineIssueSpec()
-        fis._FD=date
-        fis._FS=ser
         fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, FIS=fis, Pagecount=pages, RowIndex=iRow)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log("   ****Skipping null table row: "+str(fi))
