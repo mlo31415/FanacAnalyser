@@ -423,8 +423,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
     if date.IsEmpty():
         Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
-    fis=FanzineIssueSpec()
-    fis.FD=date
+    fis=FanzineIssueSpec(FD=date)
     fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=fis, Pagecount=0, RowIndex=0)
     Log("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
