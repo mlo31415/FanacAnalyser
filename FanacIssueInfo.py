@@ -12,16 +12,14 @@ class FanacIssueInfo:
     _URL: str=None
     _FIS: FanzineIssueSpec=None
     _Pagecount: int=None
-    _RowIndex: int=None
 
-    def __init__(self, SeriesName=None, IssueName=None, DirURL=None, URL=None, FIS=None, Pagecount=None, RowIndex=None) -> None:
+    def __init__(self, SeriesName=None, IssueName=None, DirURL=None, URL=None, FIS=None, Pagecount=None) -> None:
         self._SeriesName=SeriesName
         self._IssueName=IssueName
         self._DirURL=DirURL
         self._URL=URL
         self._FIS=FIS
         self._Pagecount=Pagecount
-        self._RowIndex=RowIndex
 
     def __str__(self) -> str:
         return self.SeriesName+": "+self.IssueName+"  "+str(self._FIS)
@@ -84,13 +82,5 @@ class FanacIssueInfo:
     def Pagecount(self, val: Optional[int]) -> None:
         self._Pagecount=val
 
-    # .....................
-    @property
-    def RowIndex(self) -> int:
-        return self._RowIndex
-
-    @RowIndex.setter
-    def RowIndex(self, val: int) -> None:
-        self._RowIndex=val
 
 
