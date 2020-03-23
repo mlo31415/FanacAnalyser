@@ -7,8 +7,7 @@ from bs4 import BeautifulSoup
 import unidecode
 
 import FanacOrgReaders
-from FanacIssueInfo import FanacIssueInfo
-
+from FanzineIssueSpecPackage import FanacIssueInfo
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink

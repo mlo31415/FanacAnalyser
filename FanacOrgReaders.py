@@ -6,11 +6,10 @@ from bs4 import Tag
 import requests
 import re
 import urllib.parse
-from FanacIssueInfo import FanacIssueInfo
 import os
 
 
-from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial
+from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanacIssueInfo
 from FanzineIssueSpecPackage import ExtractSerialNumber
 
 from Log import Log, LogSetHeader
@@ -38,7 +37,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
         unskippers=[
             #"MT_Void",
             #"Booklist",
-            #"Axe",
+            "Axe",
             #"Opuntia",
             #"Irish_Fandom",
             #"StraightUp",
