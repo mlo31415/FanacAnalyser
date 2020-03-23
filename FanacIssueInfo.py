@@ -1,25 +1,24 @@
 from __future__ import annotations
 
 from typing import Optional
-from dataclasses import dataclass
 from FanzineIssueSpecPackage import FanzineIssueSpec
 
-@dataclass()
 class FanacIssueInfo:
-    _SeriesName: str=None           # Name of the fanzine series of which this is an issue
-    _IssueName: str=None            # Name of this issue (does not include issue #/date info)
-    _DirURL: str=None               # URL of fanzine directory
-    _URL: str=None                  # URL of specific issue in directory
-    _FIS: FanzineIssueSpec=None     # FIS for this issue
-    _Pagecount: int=None            # Page count for this issue
 
     def __init__(self, SeriesName=None, IssueName=None, DirURL=None, URL=None, FIS=None, Pagecount=None) -> None:
-        self._SeriesName=SeriesName
-        self._IssueName=IssueName
-        self._DirURL=DirURL
-        self._URL=URL
-        self._FIS=FIS
-        self._Pagecount=Pagecount
+        _SeriesName: Optional[str]=None  # Name of the fanzine series of which this is an issue
+        _IssueName: Optional[str]=None  # Name of this issue (does not include issue #/date info)
+        _DirURL: Optional[str]=None  # URL of fanzine directory
+        _URL: Optional[str]=None  # URL of specific issue in directory
+        _FIS: Optional[FanzineIssueSpec]=None  # FIS for this issue
+        _Pagecount: Optional[str]=None  # Page count for this issue
+
+        self.SeriesName=SeriesName
+        self.IssueName=IssueName
+        self.DirURL=DirURL
+        self.URL=URL
+        self.FIS=FIS
+        self.Pagecount=Pagecount
 
     def __str__(self) -> str:
         return self.SeriesName+": "+self.IssueName+"  "+str(self._FIS)
@@ -32,7 +31,6 @@ class FanacIssueInfo:
     @SeriesName.setter
     def SeriesName(self, val: Optional[str]) -> None:
         self._SeriesName=val
-
 
     # .....................
     @property
@@ -52,7 +50,6 @@ class FanacIssueInfo:
     def DirURL(self, val: Optional[str]) -> None:
         self._DirURL=val
 
-
     # .....................
     @property
     def URL(self) -> Optional[str]:
@@ -70,7 +67,6 @@ class FanacIssueInfo:
     @FIS.setter
     def FIS(self, val: FanzineIssueSpec) -> None:
         self._FIS=val
-
 
     # .....................
     @property
