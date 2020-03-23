@@ -6,12 +6,12 @@ from FanzineIssueSpecPackage import FanzineIssueSpec
 
 @dataclass()
 class FanacIssueInfo:
-    _SeriesName: str=None
-    _IssueName: str=None
-    _DirURL: str=None
-    _URL: str=None
-    _FIS: FanzineIssueSpec=None
-    _Pagecount: int=None
+    _SeriesName: str=None           # Name of the fanzine series of which this is an issue
+    _IssueName: str=None            # Name of this issue (does not include issue #/date info)
+    _DirURL: str=None               # URL of fanzine directory
+    _URL: str=None                  # URL of specific issue in directory
+    _FIS: FanzineIssueSpec=None     # FIS for this issue
+    _Pagecount: int=None            # Page count for this issue
 
     def __init__(self, SeriesName=None, IssueName=None, DirURL=None, URL=None, FIS=None, Pagecount=None) -> None:
         self._SeriesName=SeriesName
@@ -61,7 +61,6 @@ class FanacIssueInfo:
     @URL.setter
     def URL(self, val: Optional[str]) -> None:
         self._URL=val
-
 
     # .....................
     @property
