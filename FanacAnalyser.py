@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import unidecode
 
 import FanacOrgReaders
-from FanzineIssueSpecPackage import FanacIssueInfo
+from FanzineIssueSpecPackage import FanzineIssueInfo
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
@@ -74,13 +74,13 @@ def ReadFile(filename: str) -> Optional[List[str]]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
-               fanacIssueList: List[FanacIssueInfo],
-               fButtonText: Optional[Callable[[FanacIssueInfo],str]],
-               fRowHeaderText: Optional[Callable[[FanacIssueInfo],str]],
-               fRowBodyText: Callable[[FanacIssueInfo],str],
+               fanacIssueList: List[FanzineIssueInfo],
+               fButtonText: Optional[Callable[[FanzineIssueInfo], str]],
+               fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]],
+               fRowBodyText: Callable[[FanzineIssueInfo], str],
                countText: Optional[str],
                headerFilename: Optional[str],
-               fSelector: Optional[Callable[[FanacIssueInfo],bool]],
+               fSelector: Optional[Callable[[FanzineIssueInfo], bool]],
                isAlpha: bool=False)\
                 -> None:
     f: TextIO=open(filename, "w+")
@@ -335,7 +335,7 @@ datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
 
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
-def ChronButtonText(fz: FanacIssueInfo) -> str:
+def ChronButtonText(fz: FanzineIssueInfo) -> str:
     if fz.FIS.Year is None:
         return " "
     return str(fz.FIS.Year)[0:3]+"0s"
@@ -425,9 +425,9 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
-def DatePlusSortVal(fz: FanacIssueInfo) -> str:
+def DatePlusSortVal(fz: FanzineIssueInfo) -> str:
     return fz.FIS.FormatDateForSorting()+"###"+str(fz.FIS.FormatSerialForSorting())
-def AlphaSortText(fz: FanacIssueInfo) -> str:
+def AlphaSortText(fz: FanzineIssueInfo) -> str:
     if fz.SeriesName is None or len(fz.SeriesName) == 0:
         return " "
     # Replace lower case and accented alphas, ignore punctuation, retain digits
@@ -444,7 +444,7 @@ fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on f
 
 
 
-def AlphaButtonText(fz: FanacIssueInfo) -> str:
+def AlphaButtonText(fz: FanzineIssueInfo) -> str:
     c=AlphaSortText(fz)[0]
     if c == " " or c.isdigit():
         return "*"

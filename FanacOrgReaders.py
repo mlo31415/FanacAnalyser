@@ -9,7 +9,7 @@ import urllib.parse
 import os
 
 
-from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanacIssueInfo
+from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo
 from FanzineIssueSpecPackage import ExtractSerialNumber
 
 from Log import Log, LogSetHeader
@@ -19,7 +19,7 @@ from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt
 
 # ============================================================================================
-def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[List[FanacIssueInfo], List[str]]:
+def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[List[FanzineIssueInfo], List[str]]:
     # Read index.html files on fanac.org
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
@@ -114,7 +114,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
 
 #=============================================================================================
 # Remove the duplicates from a fanzine list
-def RemoveDuplicates(fanzineList: List[FanacIssueInfo]) -> List[FanacIssueInfo]:
+def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueInfo]:
     # Sort in place on fanzine's Directory's URL followed by file name
     fanzineList.sort(key=lambda fz: fz.URL if fz.URL is not None else "")
     fanzineList.sort(key=lambda fz: fz.DirURL if fz.DirURL is not None else "")
@@ -273,7 +273,7 @@ def ExtractHrefAndTitle(columnHeaders: List[str], row: List[str]) -> Tuple[Optio
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], newszineList: List[str]) -> None:
+def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], newszineList: List[str]) -> None:
     global g_browser
 
     Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
@@ -329,7 +329,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanz
 # The "special biggie" pages are few (only two at the time this ie being written) and need to be handled specially
 # The characteristic is that they are a tree of pages which may contain one or more *tagged* fanzine index tables on any level.
 # The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
-def ReadSpecialBiggie(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fanzineName: str) -> None:
+def ReadSpecialBiggie(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], fanzineName: str) -> None:
 
     soup=OpenSoup(directoryUrl)
     if soup is None:
@@ -402,7 +402,7 @@ def GetHrefAndTextFromTag(tag: Tag) -> Tuple[str, Optional[str]]:
 
 #======================================================================================
 # Read a singleton-format fanzine page
-def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fanzineName: str, soup) -> None:
+def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], fanzineName: str, soup) -> None:
     # Usually, a singleton has the information in the first h2 block
     if soup.h2 is None:
         Log("***Failed to find <h2> block in singleton '"+directoryUrl+"'", isError=True)
@@ -423,7 +423,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fan
         Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
     fis=FanzineIssueSpec(FD=date)
-    fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=fis, Pagecount=0)
+    fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=fis, Pagecount=0)
     Log("   (singleton): "+str(fi))
     fanzineIssueList.append(fi)
     return
@@ -441,7 +441,7 @@ def RemoveNewlineRows(tags: List[Tag]) -> List[Tag]:
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[FanacIssueInfo], fanzineName: str, table: Tag) -> None:
+def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], fanzineName: str, table: Tag) -> None:
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -521,7 +521,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanac
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanacIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, FIS=fis, Pagecount=pages)
+        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, FIS=fis, Pagecount=pages)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log("   ****Skipping null table row: "+str(fi))
             continue
