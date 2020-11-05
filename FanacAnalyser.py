@@ -391,7 +391,7 @@ newsPdfCount=0
 for fz in fanacIssueList:
     if fz.SeriesName in listOfNewszines and fz.URL is not None:
         newsIssueCount+=1
-        if os.path.split(fz.URL)[1].lower() == ".pdf":
+        if os.path.splitext(fz.URL)[1].lower() == ".pdf":
             newsPdfCount+=1
             newsPageCount+=1
         else:
