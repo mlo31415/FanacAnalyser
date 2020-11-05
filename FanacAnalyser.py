@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import unidecode
 
 import FanacOrgReaders
-from FanzineIssueSpecPackage import FanzineIssueInfo
+from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
@@ -430,7 +430,7 @@ def DatePlusSortVal(fz: FanzineIssueInfo) -> str:
 def AlphaSortText(fz: FanzineIssueInfo) -> str:
     if fz.SeriesName is None or len(fz.SeriesName) == 0:
         return " "
-    # Replace lower case and accented alphas, ignore punctuation, retain digits
+    # Replace lower case and accented alphas, ignore punctuation, retain digits; the Unidecode is so that things like 'á Bas' sort with A
     out=""
     for c in fz.SeriesName:
         if c.isalpha():
@@ -440,7 +440,7 @@ def AlphaSortText(fz: FanzineIssueInfo) -> str:
     return out
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name; the Unidecode is so that things like 'á Bas' sort with A
+fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
 
 
 
@@ -523,5 +523,34 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            timestamp,
            None,
            lambda fz: fz.Pagecount > 250)
+
+# Now generate a list or fanzine series sorted by country
+# For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
+# FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
+fanacSeriesListByCountry={}     # Key is country code; value is a newly-constructed FSI
+for elem in fanacIssueList:
+    # If this is a new country, create an empty entry for it
+    if elem.Country not in fanacSeriesListByCountry.keys():
+        fanacSeriesListByCountry[elem.Country]=[]
+    fsi=FanzineSeriesInfo(SeriesName=elem.SeriesName, DisplayName=elem.DisplayName, URL=elem.DirURL, Issuecount=1, Pagecount=elem.Pagecount, Editor=elem.Editor, Country=elem.Country)
+    # Is this new issue from a series already in the list for this country?
+    lst=fanacSeriesListByCountry[elem.Country]
+    if fsi in lst:
+        # Yes: Just add this issue to the existing series totals
+        fanacSeriesListByCountry[elem.Country][lst.index(fsi)]+=fsi
+    else:
+        # No: Add a new series entry from this issue
+        fanacSeriesListByCountry[elem.Country].append(fsi)
+
+# Next we sort the individual country lists into order by series name
+for key, val in fanacSeriesListByCountry.items():
+    val.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
+
+with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
+    for key, val in fanacSeriesListByCountry.items():
+        print("\n"+key, file=f)
+        for series in val:
+            print("    "+series.SeriesName, file=f)
+
 
 LogClose()
