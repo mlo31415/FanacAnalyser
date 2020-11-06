@@ -527,30 +527,42 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
 # Now generate a list or fanzine series sorted by country
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
 # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-fanacSeriesListByCountry={}     # Key is country code; value is a newly-constructed FSI
+fanacSeriesListByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per title)
 for elem in fanacIssueList:
     # If this is a new country, create an empty entry for it
     if elem.Country not in fanacSeriesListByCountry.keys():
-        fanacSeriesListByCountry[elem.Country]=[]
+        fanacSeriesListByCountry[elem.Country]=(0, 0, [])
     fsi=FanzineSeriesInfo(SeriesName=elem.SeriesName, DisplayName=elem.DisplayName, URL=elem.DirURL, Issuecount=1, Pagecount=elem.Pagecount, Editor=elem.Editor, Country=elem.Country)
     # Is this new issue from a series already in the list for this country?
     lst=fanacSeriesListByCountry[elem.Country]
-    if fsi in lst:
+    if fsi in lst[2]:
         # Yes: Just add this issue to the existing series totals
-        fanacSeriesListByCountry[elem.Country][lst.index(fsi)]+=fsi
+        fanacSeriesListByCountry[elem.Country][2][lst[2].index(fsi)]+=fsi
     else:
         # No: Add a new series entry from this issue
-        fanacSeriesListByCountry[elem.Country].append(fsi)
+        fanacSeriesListByCountry[elem.Country][2].append(fsi)
+
+# For each country, compute a country total for issues and pages
+for key, val in fanacSeriesListByCountry.items():
+    issues=0
+    pages=0
+    for series in val[2]:
+        issues+=series.Issuecount
+        pages+=series.Pagecount
+    fanacSeriesListByCountry[key]=(issues, pages, val[2])
 
 # Next we sort the individual country lists into order by series name
 for key, val in fanacSeriesListByCountry.items():
-    val.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
+    val[2].sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
+
+
 
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
     for key, val in fanacSeriesListByCountry.items():
-        print("\n"+key, file=f)
-        for series in val:
-            print("    "+series.SeriesName, file=f)
+        k=key if len(key.strip()) > 0 else "<no country>"
+        print("\n"+k+"   "+str(len(val[2]))+" titles,  "+str(val[0])+" issues,  and "+str(val[1])+" pages", file=f)
+        for series in val[2]:
+            print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
 
 
 LogClose()
