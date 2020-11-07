@@ -534,17 +534,19 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
 fanacSeriesListByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per title)
 for elem in fanacIssueList:
     # If this is a new country, create an empty entry for it
-    if elem.Country not in fanacSeriesListByCountry.keys():
-        fanacSeriesListByCountry[elem.Country.lower()]=(0, 0, [])
+    country=elem.Country.lower()
+    if country not in fanacSeriesListByCountry.keys():
+        fanacSeriesListByCountry[country]=(0, 0, [])
     fsi=FanzineSeriesInfo(SeriesName=elem.SeriesName, DisplayName=elem.DisplayName, URL=elem.DirURL, Issuecount=1, Pagecount=elem.Pagecount, Editor=elem.Editor, Country=elem.Country)
     # Is this new issue from a series already in the list for this country?
-    lst=fanacSeriesListByCountry[elem.Country.lower()]
-    if fsi in lst[2]:
-        # Yes: Just add this issue to the existing series totals
-        fanacSeriesListByCountry[elem.Country.lower()][2][lst[2].index(fsi)]+=fsi
+    lst=fanacSeriesListByCountry[country][2]
+    if fsi in lst:
+        # Yes: If the directories in the URLs match, just add this issue to the existing series totals
+        if fsi.URL == lst[lst.index(fsi)].URL:
+            fanacSeriesListByCountry[country][2][lst.index(fsi)]+=fsi
     else:
         # No: Add a new series entry from this issue
-        fanacSeriesListByCountry[elem.Country.lower()][2].append(fsi)
+        fanacSeriesListByCountry[country][2].append(fsi)
 
 # For each country, compute a country total for issues and pages
 for key, val in fanacSeriesListByCountry.items():
@@ -558,7 +560,6 @@ for key, val in fanacSeriesListByCountry.items():
 # Next we sort the individual country lists into order by series name
 for key, val in fanacSeriesListByCountry.items():
     val[2].sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
-
 
 # List out the by country data
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
