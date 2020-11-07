@@ -50,9 +50,13 @@ def ReadModernOrClassicTable(fanacFanzineDirectories: List[Tuple[str, str]], url
             trs=table.find_all("tr")
             for i in range(1, len(trs)):
                 # Now the data rows
-                name=trs[i].find_all("td")[1].contents[0].contents[0].contents[0]
-                dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
-                AddFanacDirectory(fanacFanzineDirectories, name, dirname)
+                try:
+                    if len(trs[i].find_all("td")[1].contents[0].contents[0]) > 0:   # I've seen bogus entries where this isn't true
+                        name=trs[i].find_all("td")[1].contents[0].contents[0].contents[0]
+                        dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
+                        AddFanacDirectory(fanacFanzineDirectories, name, dirname)
+                except:
+                    Log("Bogus row found by ReadModernOrClassicTable", isError=True)    # There's really nothing to be done except debug...
     return
 
 
