@@ -531,16 +531,16 @@ fanacSeriesListByCountry={}     # Key is country code; value is a tuple of (issu
 for elem in fanacIssueList:
     # If this is a new country, create an empty entry for it
     if elem.Country not in fanacSeriesListByCountry.keys():
-        fanacSeriesListByCountry[elem.Country]=(0, 0, [])
+        fanacSeriesListByCountry[elem.Country.lower()]=(0, 0, [])
     fsi=FanzineSeriesInfo(SeriesName=elem.SeriesName, DisplayName=elem.DisplayName, URL=elem.DirURL, Issuecount=1, Pagecount=elem.Pagecount, Editor=elem.Editor, Country=elem.Country)
     # Is this new issue from a series already in the list for this country?
-    lst=fanacSeriesListByCountry[elem.Country]
+    lst=fanacSeriesListByCountry[elem.Country.lower()]
     if fsi in lst[2]:
         # Yes: Just add this issue to the existing series totals
-        fanacSeriesListByCountry[elem.Country][2][lst[2].index(fsi)]+=fsi
+        fanacSeriesListByCountry[elem.Country.lower()][2][lst[2].index(fsi)]+=fsi
     else:
         # No: Add a new series entry from this issue
-        fanacSeriesListByCountry[elem.Country][2].append(fsi)
+        fanacSeriesListByCountry[elem.Country.lower()][2].append(fsi)
 
 # For each country, compute a country total for issues and pages
 for key, val in fanacSeriesListByCountry.items():
@@ -556,7 +556,7 @@ for key, val in fanacSeriesListByCountry.items():
     val[2].sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
 
 
-
+# List out the by country data
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
     for key, val in fanacSeriesListByCountry.items():
         k=key if len(key.strip()) > 0 else "<no country>"
