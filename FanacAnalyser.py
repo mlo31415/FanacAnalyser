@@ -561,6 +561,13 @@ for key, val in fanacSeriesListByCountry.items():
 for key, val in fanacSeriesListByCountry.items():
     val[2].sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
 
+def CapIt(s: str) -> str:
+    if len(s) == 0:
+        return s
+    if len(s) == 2:
+        return s.upper()
+    return s[0].upper()+s[1:]
+
 # List out the by country data
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
     keys=list(fanacSeriesListByCountry.keys())
@@ -568,7 +575,7 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
     for key in keys:
         val=fanacSeriesListByCountry[key]
         k=key if len(key.strip()) > 0 else "<no country>"
-        print("\n"+k+"   "+str(len(val[2]))+" titles,  "+str(val[0])+" issues,  and "+str(val[1])+" pages", file=f)
+        print("\n"+CapIt(k)+"   "+str(len(val[2]))+" titles,  "+str(val[0])+" issues,  and "+str(val[1])+" pages", file=f)
         for series in val[2]:
             print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
 
