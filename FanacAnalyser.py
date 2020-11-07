@@ -563,7 +563,10 @@ for key, val in fanacSeriesListByCountry.items():
 
 # List out the by country data
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
-    for key, val in fanacSeriesListByCountry.items():
+    keys=list(fanacSeriesListByCountry.keys())
+    keys.sort()
+    for key in keys:
+        val=fanacSeriesListByCountry[key]
         k=key if len(key.strip()) > 0 else "<no country>"
         print("\n"+k+"   "+str(len(val[2]))+" titles,  "+str(val[0])+" issues,  and "+str(val[1])+" pages", file=f)
         for series in val[2]:
