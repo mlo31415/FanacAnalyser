@@ -78,10 +78,11 @@ def ReadFile(filename: str) -> Optional[List[str]]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
-               fanacIssueList: List,
-               fButtonText: Optional[Callable[[], str]],
-               fRowHeaderText: Optional[Callable[[], str]],
-               fRowBodyText: Callable[[], str],
+               fanacIssueList: List,        # The sorted input list
+               fButtonText: Optional[Callable[[], str]],    # Function to supply the button text
+               fRowHeaderText: Optional[Callable[[], str]],     # Function to supply the header text
+               fRowBodyText: Callable[[], str],         # Function to supply the row's body text
+               fURL: Optional[Callable[[], str]],         # Function to supply the URL
                countText: Optional[str],
                headerFilename: Optional[str],
                fSelector: Optional[Callable[[], bool]],
@@ -168,7 +169,7 @@ def WriteTable(filename: str,
         # Do we skip this fanzine
         if fSelector is not None and not fSelector(fz):
             continue
-        if html and fz.URL is None:
+        if html and fURL(fz) is None:
             continue
 
         # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
@@ -207,17 +208,7 @@ def WriteTable(filename: str,
         # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
         # The former are easy, but the latter need to be processed
         if html:
-            if "/" not in fz.URL:
-                url=fz.DirURL+"/"+fz.URL
-            else:
-                # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
-                # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
-                parts=fz.URL.split("/")
-                if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
-                    url=fz.DirURL+"/../"+"/".join(parts[-2:])
-                else:
-                    url=fz.URL
-            f.write('        '+FormatLink(url, fz.IssueName))
+            f.write('        '+FormatLink(fURL(fz), fz.IssueName))
             if isAlpha:
                 f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fz.FIS.FD.IsEmpty() else "<small>("+str(fz.FIS.FD.LongDates)+')</small>'))
             f.write('<br>\n')
@@ -344,12 +335,26 @@ def ChronButtonText(fz: FanzineIssueInfo) -> str:
         return " "
     return str(fz.FIS.Year)[0:3]+"0s"
 
+def URL(fz: FanzineIssueInfo) -> str:
+    if "/" not in fz.URL:
+        url=fz.DirURL+"/"+fz.URL
+    else:
+        # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
+        # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
+        parts=fz.URL.split("/")
+        if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
+            url=fz.DirURL+"/../"+"/".join(parts[-2:])
+        else:
+            url=fz.URL
+    return url
+
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: ChronButtonText(fz),
            lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
+           URL,
            countText+"\n"+timestamp+"\n",
            'control-Header (Fanzine, chronological).html',
            None)
@@ -358,6 +363,7 @@ WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            lambda fz: ChronButtonText(fz),
            lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
+           None,
            countText+"\n"+timestamp+"\n",
            None,
            None)
@@ -366,6 +372,7 @@ WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            None,
            None,
            lambda fz: fz.IssueName,
+           URL,
            timestamp,
            "control-Header (Fanzine, alphabetical).html",
            None)
@@ -424,6 +431,7 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            lambda fz: ChronButtonText(fz),
            lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
+           URL,
            countText+"\n"+timestamp+"\n",
            "control-Header (Newszine).html",
            lambda fz: fz.SeriesName.lower() in listOfNewszines)
@@ -460,6 +468,7 @@ WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            lambda fz: fz.SeriesName[0],
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
+           None,
            countText+"\n"+timestamp+"\n",
            None,
            None,
@@ -469,6 +478,7 @@ WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            lambda fz: AlphaButtonText(fz),
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
+           URL,
            countText+"\n"+timestamp+"\n",
            "control-Header (Fanzine, alphabetical).html",
            None,
@@ -498,6 +508,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            lambda fz: fz.SeriesName[0],
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
+           None,
            timestamp+"\n",
            None,
            lambda fx: OddNames(fx.IssueName,  fx.SeriesName))
@@ -524,6 +535,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            lambda fz: fz.SeriesName[0],
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
+           None,
            timestamp,
            None,
            lambda fz: fz.Pagecount > 250)
