@@ -37,6 +37,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
         unskippers=[
             #"MT_Void",
             #"Coventranian_Gazette",
+            #"Syndrome",
             #"Booklist",
             #"Axe",
             #"Opuntia",
