@@ -78,13 +78,13 @@ def ReadFile(filename: str) -> Optional[List[str]]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
-               fanacIssueList: List[FanzineIssueInfo],
-               fButtonText: Optional[Callable[[FanzineIssueInfo], str]],
-               fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]],
-               fRowBodyText: Callable[[FanzineIssueInfo], str],
+               fanacIssueList: List,
+               fButtonText: Optional[Callable[[], str]],
+               fRowHeaderText: Optional[Callable[[], str]],
+               fRowBodyText: Callable[[], str],
                countText: Optional[str],
                headerFilename: Optional[str],
-               fSelector: Optional[Callable[[FanzineIssueInfo], bool]],
+               fSelector: Optional[Callable[[], bool]],
                isAlpha: bool=False)\
                 -> None:
     f: TextIO=open(filename, "w+")
