@@ -169,7 +169,7 @@ def WriteTable(filename: str,
         # Do we skip this fanzine
         if fSelector is not None and not fSelector(fz):
             continue
-        if html and fURL(fz) is None:
+        if html and fURL is not None and fURL(fz) is None:
             continue
 
         # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
@@ -437,8 +437,6 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
-def DatePlusSortVal(fz: FanzineIssueInfo) -> str:
-    return fz.FIS.FormatDateForSorting()+"###"+str(fz.FIS.FormatSerialForSorting())
 def AlphaSortText(fz: FanzineIssueInfo) -> str:
     if fz.SeriesName is None or len(fz.SeriesName) == 0:
         return " "
@@ -543,34 +541,34 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
 # Now generate a list or fanzine series sorted by country
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
 # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-fanacSeriesListByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per title)
+fanacSeriesDictByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per title)
 for elem in fanacIssueList:
     # If this is a new country, create an empty entry for it
     country=elem.Country.lower()
-    if country not in fanacSeriesListByCountry.keys():
-        fanacSeriesListByCountry[country]=(0, 0, [])
+    if country not in fanacSeriesDictByCountry.keys():
+        fanacSeriesDictByCountry[country]=(0, 0, [])
     fsi=FanzineSeriesInfo(SeriesName=elem.SeriesName, DisplayName=elem.DisplayName, URL=elem.DirURL, Issuecount=1, Pagecount=elem.Pagecount, Editor=elem.Editor, Country=elem.Country)
     # Is this new issue from a series already in the list for this country?
-    lst=fanacSeriesListByCountry[country][2]
+    lst=fanacSeriesDictByCountry[country][2]
     if fsi in lst:
         # Yes: If the directories in the URLs match, just add this issue to the existing series totals
         if fsi.URL == lst[lst.index(fsi)].URL:
-            fanacSeriesListByCountry[country][2][lst.index(fsi)]+=fsi
+            fanacSeriesDictByCountry[country][2][lst.index(fsi)]+=fsi
     else:
         # No: Add a new series entry from this issue
-        fanacSeriesListByCountry[country][2].append(fsi)
+        fanacSeriesDictByCountry[country][2].append(fsi)
 
 # For each country, compute a country total for issues and pages
-for key, val in fanacSeriesListByCountry.items():
+for key, val in fanacSeriesDictByCountry.items():
     issues=0
     pages=0
     for series in val[2]:
         issues+=series.Issuecount
         pages+=series.Pagecount
-    fanacSeriesListByCountry[key]=(issues, pages, val[2])
+    fanacSeriesDictByCountry[key]=(issues, pages, val[2])
 
 # Next we sort the individual country lists into order by series name
-for key, val in fanacSeriesListByCountry.items():
+for key, val in fanacSeriesDictByCountry.items():
     val[2].sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
 
 def CapIt(s: str) -> str:
@@ -582,14 +580,27 @@ def CapIt(s: str) -> str:
 
 # List out the by country data
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
-    keys=list(fanacSeriesListByCountry.keys())
+    keys=list(fanacSeriesDictByCountry.keys())
     keys.sort()
     for key in keys:
-        val=fanacSeriesListByCountry[key]
+        val=fanacSeriesDictByCountry[key]
         k=key if len(key.strip()) > 0 else "<no country>"
         print("\n"+CapIt(k)+"   "+str(len(val[2]))+" titles,  "+str(val[0])+" issues,  and "+str(val[1])+" pages", file=f)
         for series in val[2]:
             print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
 
+fanacFanzineIssueListByCountry=[(key, val) for key, val in fanacSeriesDictByCountry.items()]
+fanacFanzineIssueListByCountry.sort(key=lambda elem: elem[0].lower())
+
+WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
+           fanacFanzineIssueListByCountry,
+           None,        # No buttons
+           lambda elem: elem[0],
+           lambda elem: elem[1],
+           lambda elem: "fanac.org",    #ignore the URL for now
+           "timestamp", #countText+"\n"+timestamp+"\n",
+           "control-Header (Fanzine, alphabetical).html",
+           None,
+           isAlpha=True)
 
 LogClose()
