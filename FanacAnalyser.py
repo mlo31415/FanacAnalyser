@@ -1,4 +1,4 @@
-from typing import TextIO, List, Tuple, Optional, Callable
+from typing import TextIO, List, Tuple, Optional, Callable, Any
 from time import localtime, strftime
 import requests
 import os
@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import unidecode
 
 import FanacOrgReaders
-from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo
+from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList
 from HelpersPackage import FormatLink
@@ -79,13 +79,15 @@ def ReadFile(filename: str) -> Optional[List[str]]:
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
                fanacIssueList: List,        # The sorted input list
-               fButtonText: Optional[Callable[[], str]],    # Function to supply the button text
-               fRowHeaderText: Optional[Callable[[], str]],     # Function to supply the header text
-               fRowBodyText: Callable[[], str],         # Function to supply the row's body text
-               fURL: Optional[Callable[[], str]],         # Function to supply the URL
-               countText: Optional[str],
-               headerFilename: Optional[str],
-               fSelector: Optional[Callable[[], bool]],
+               fRowBodyText: Callable[[Any], str],         # Function to supply the row's body text
+               fButtonText: Optional[Callable[[Any], str]]=None,    # Function to supply the button text
+               fRowHeaderText: Optional[Callable[[Any], str]]=None,     # Function to supply the header text
+               fURL: Optional[Callable[[Any], str]]=None,         # Function to supply the URL
+               fDirURL: Optional[Callable[[Any], str]]=None,         # Function to supply the directory or root URL
+               fAnnot: Optional[Callable[[Any], str]]=None,         # Function to supply annotation
+               countText: Optional[str]=None,
+               headerFilename: Optional[str]=None,
+               fSelector: Optional[Callable[[Any], bool]]=None,
                isAlpha: bool=False)\
                 -> None:
     f: TextIO=open(filename, "w+")
@@ -159,7 +161,6 @@ def WriteTable(filename: str,
     #           <a>issue</a> <br>
     #       </div>
     #   </div>
-
     if html:
         f.write('<div>\n')  # Begin the main table
 
@@ -195,7 +196,10 @@ def WriteTable(filename: str,
                 # Write col 1
                 f.write('  <div class=col-md-3>')
                 if isAlpha:
-                    f.write(FormatLink(fz.DirURL, lastRowHeader))
+                    if fDirURL is not None:
+                        f.write(FormatLink(fDirURL(fz), lastRowHeader))
+                    else:
+                        f.write(lastRowHeader)
                 else:
                     f.write(UnicodeToHtml(lastRowHeader))
                 f.write('</div>\n')
@@ -208,9 +212,12 @@ def WriteTable(filename: str,
         # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
         # The former are easy, but the latter need to be processed
         if html:
-            f.write('        '+FormatLink(fURL(fz), fz.IssueName))
+            if fURL is not None:
+                f.write('        '+FormatLink(fURL(fz), fRowBodyText(fz)))
+            else:
+                f.write('        '+fRowBodyText(fz))
             if isAlpha:
-                f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fz.FIS.FD.IsEmpty() else "<small>("+str(fz.FIS.FD.LongDates)+')</small>'))
+                f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fAnnot is None or fAnnot(fz) is None else fAnnot(fz)))
             f.write('<br>\n')
         else:
             f.write("   "+fRowBodyText(fz)+"\n")
@@ -299,7 +306,7 @@ if os.path.exists("control-year.txt"):
         yearCount=0
         for fz in fanacIssueList:
             if fz.FIS.Year == year:
-                file.write("|| "+NoNone(fz.IssueName)+" || "+NoNone(str(fz.FIS))+" || " + NoNone(fz.DirURL) +" || " + NoNone(fz.URL) + " ||\n")
+                file.write("|| "+NoNone(fz.IssueName)+" || "+NoNone(str(fz.FIS))+" || " + NoNone(fz.DirURL) +" || " + NoNone(fz.PageName) + " ||\n")
                 yearCount+=1
         file.close()
         selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
@@ -313,10 +320,10 @@ f=open(os.path.join(reportDir, "Items with No Page Count.txt"), "w+")
 ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
 
 for fz in fanacIssueList:
-    if fz.URL is not None:
+    if fz.DirURL is not None:
         issueCount+=1
         pageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
-        if os.path.splitext(fz.URL)[1] == ".pdf":
+        if os.path.splitext(fz.DirURL)[1] == ".pdf":
             pdfCount+=1
         if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
             f.write(str(fz)+"\n")
@@ -331,51 +338,46 @@ datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
 timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
 def ChronButtonText(fz: FanzineIssueInfo) -> str:
-    if fz.FIS.Year is None:
+    if fz.FIS is None or fz.FIS.Year is None:
         return " "
     return str(fz.FIS.Year)[0:3]+"0s"
 
 def URL(fz: FanzineIssueInfo) -> str:
-    if "/" not in fz.URL:
-        url=fz.DirURL+"/"+fz.URL
+    if fz is None or fz.PageName is None:
+        return "<no url>"
+    if "/" not in fz.PageName:
+        url=fz.DirURL+"/"+fz.PageName
     else:
         # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
         # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
-        parts=fz.URL.split("/")
+        parts=fz.PageName.split("/")
         if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
             url=fz.DirURL+"/../"+"/".join(parts[-2:])
         else:
-            url=fz.URL
+            url=fz.PageName
     return url
 
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
-           lambda fz: ChronButtonText(fz),
-           lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
-           URL,
-           countText+"\n"+timestamp+"\n",
-           'control-Header (Fanzine, chronological).html',
-           None)
+           fButtonText=lambda fz: ChronButtonText(fz),
+           fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+           fURL=URL,
+           countText=countText+"\n"+timestamp+"\n",
+           headerFilename='control-Header (Fanzine, chronological).html')
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
-           lambda fz: ChronButtonText(fz),
-           lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
-           None,
-           countText+"\n"+timestamp+"\n",
-           None,
-           None)
+           fButtonText=lambda fz: ChronButtonText(fz),
+           fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+           countText=countText+"\n"+timestamp+"\n")
 WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            undatedList,
-           None,
-           None,
            lambda fz: fz.IssueName,
-           URL,
-           timestamp,
-           "control-Header (Fanzine, alphabetical).html",
-           None)
+           fURL=URL,
+           countText=timestamp,
+           headerFilename="control-Header (Fanzine, alphabetical).html")
 
 # Get the names of the newszines as a list
 LogFailureAndRaiseIfMissing("control-newszines.txt")
@@ -400,9 +402,9 @@ newsPageCount=0
 newsIssueCount=0
 newsPdfCount=0
 for fz in fanacIssueList:
-    if fz.SeriesName in listOfNewszines and fz.URL is not None:
+    if fz.SeriesName in listOfNewszines and fz.PageName is not None:
         newsIssueCount+=1
-        if os.path.splitext(fz.URL)[1].lower() == ".pdf":
+        if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
             newsPdfCount+=1
             newsPageCount+=1
         else:
@@ -428,13 +430,13 @@ with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"
 countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
-           lambda fz: ChronButtonText(fz),
-           lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            lambda fz: fz.IssueName,
-           URL,
-           countText+"\n"+timestamp+"\n",
-           "control-Header (Newszine).html",
-           lambda fz: fz.SeriesName.lower() in listOfNewszines)
+           fButtonText=lambda fz: ChronButtonText(fz),
+           fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+           fURL=URL,
+           countText=countText+"\n"+timestamp+"\n",
+           headerFilename="control-Header (Newszine).html",
+           fSelector=lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
 # Produce a list of fanzines by title
 def AlphaSortText(fz: FanzineIssueInfo) -> str:
@@ -460,26 +462,28 @@ def AlphaButtonText(fz: FanzineIssueInfo) -> str:
         return "*"
     return c
 
+def Annotate(fz: FanzineIssueInfo) -> str:
+    if type(fz) is not FanzineIssueInfo:
+        assert()
+    if fz.FIS.FD.IsEmpty():
+        return ""
+    return "<small>("+str(fz.FIS.FD.LongDates)+')</small>'
 
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
-           lambda fz: fz.SeriesName[0],
-           lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
-           None,
-           countText+"\n"+timestamp+"\n",
-           None,
-           None,
+           fButtonText=lambda fz: fz.SeriesName[0],
+           fRowHeaderText=lambda fz: fz.SeriesName,
+           countText=countText+"\n"+timestamp+"\n",
            isAlpha=True)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
-           lambda fz: AlphaButtonText(fz),
-           lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
-           URL,
-           countText+"\n"+timestamp+"\n",
-           "control-Header (Fanzine, alphabetical).html",
-           None,
+           fButtonText=lambda fz: AlphaButtonText(fz),
+           fRowHeaderText=lambda fz: fz.SeriesName,
+           fURL=URL,
+           countText=countText+"\n"+timestamp+"\n",
+           headerFilename="control-Header (Fanzine, alphabetical).html",
            isAlpha=True)
 
 def RemoveArticles(name: str) -> str:
@@ -503,13 +507,11 @@ def OddNames(n1: str, n2: str) -> bool:
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            fanacIssueList,
-           lambda fz: fz.SeriesName[0],
-           lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
-           None,
-           timestamp+"\n",
-           None,
-           lambda fx: OddNames(fx.IssueName,  fx.SeriesName))
+           fButtonText=lambda fz: fz.SeriesName[0],
+           fRowHeaderText=lambda fz: fz.SeriesName,
+           countText=timestamp+"\n",
+           fSelector=lambda fx: OddNames(fx.IssueName,  fx.SeriesName))
 
 # Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
 # Create a set of all fanzines run names (the set to eliminate suploicates) and then get its size.
@@ -534,6 +536,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
            None,
+           None,
            timestamp,
            None,
            lambda fz: fz.Pagecount > 250)
@@ -541,35 +544,46 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
 # Now generate a list or fanzine series sorted by country
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
 # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-fanacSeriesDictByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per title)
-for elem in fanacIssueList:
-    # If this is a new country, create an empty entry for it
-    country=elem.Country.lower()
+fanacSeriesDictByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per fanzine series)
+for issue in fanacIssueList:
+    # If this is a new country, create a new, empty entry for it
+    country=issue.Country.lower()
     if country not in fanacSeriesDictByCountry.keys():
-        fanacSeriesDictByCountry[country]=(0, 0, [])
-    fsi=FanzineSeriesInfo(SeriesName=elem.SeriesName, DisplayName=elem.DisplayName, URL=elem.DirURL, Issuecount=1, Pagecount=elem.Pagecount, Editor=elem.Editor, Country=elem.Country)
-    # Is this new issue from a series already in the list for this country?
-    lst=fanacSeriesDictByCountry[country][2]
-    if fsi in lst:
-        # Yes: If the directories in the URLs match, just add this issue to the existing series totals
-        if fsi.URL == lst[lst.index(fsi)].URL:
-            fanacSeriesDictByCountry[country][2][lst.index(fsi)]+=fsi
+        fanacSeriesDictByCountry[country]=([], FanzineCounts())     # Add an empty country entry
+        Log("added "+country)
+
+    # Create an FSI for this issue
+    fsi=FanzineSeriesInfo(SeriesName=issue.SeriesName, DisplayName=issue.DisplayName, DirURL=issue.DirURL, Issuecount=1, Pagecount=issue.Pagecount, Editor=issue.Editor, Country=issue.Country)
+    # Is this new issue from a series that is already in the list for this country?
+    serieslist=fanacSeriesDictByCountry[country][0]
+    # lst is a list of (fanzine series and counts) for this country
+    # Note that we accumulate the series page and issue totals
+    for loc, lfsi in enumerate(serieslist):
+        if fsi == lfsi[0]:
+            # Yes: If the directories in the DirURLs match, just add this issue to the existing series totals.
+            # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
+            if fsi.DirURL == serieslist[loc][0].DirURL:
+                serieslist[loc]=(lfsi[0], lfsi[1]+fsi.Pagecount)
+            break
     else:
         # No: Add a new series entry from this issue
-        fanacSeriesDictByCountry[country][2].append(fsi)
+        serieslist.append((fsi, FanzineCounts(Pagecount=fsi.Pagecount)))
+        Log("appended "+country+"  len(serieslist)="+str(len(serieslist))+"  len(fanacSeriesDictByCountry[country][0])="+str(len(fanacSeriesDictByCountry[country][0])))
 
-# For each country, compute a country total for issues and pages
-for key, val in fanacSeriesDictByCountry.items():
-    issues=0
-    pages=0
-    for series in val[2]:
-        issues+=series.Issuecount
-        pages+=series.Pagecount
-    fanacSeriesDictByCountry[key]=(issues, pages, val[2])
+# For each country, compute a country total for issues and pages using the already-accumulated series totals
+# We run through all the vals for each country and accumulate totals.  Those are then stored in the counts for the country
+for ckey, cval in fanacSeriesDictByCountry.items():
+    # val is (list[FanzineSeriesInfo], FanzineCount)
+    count=cval[1]
+    for series, counts in cval[0]:
+        count+=FanzineCounts(Issuecount=series.Issuecount, Pagecount=series.Pagecount)
+    fanacSeriesDictByCountry[ckey]=(cval[0], count)
 
 # Next we sort the individual country lists into order by series name
-for key, val in fanacSeriesDictByCountry.items():
-    val[2].sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
+for ckey, cval in fanacSeriesDictByCountry.items():
+    serieslist=cval[0]
+    serieslist.sort(key=lambda elem: elem[0].SeriesName.lower())
+    fanacSeriesDictByCountry[ckey]=(serieslist, cval[1])  # Sorts in place on fanzine name
 
 def CapIt(s: str) -> str:
     if len(s) == 0:
@@ -578,29 +592,31 @@ def CapIt(s: str) -> str:
         return s.upper()
     return s[0].upper()+s[1:]
 
-# List out the by country data
+# List out the series by country data
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
     keys=list(fanacSeriesDictByCountry.keys())
     keys.sort()
     for key in keys:
         val=fanacSeriesDictByCountry[key]
         k=key if len(key.strip()) > 0 else "<no country>"
-        print("\n"+CapIt(k)+"   "+str(len(val[2]))+" titles,  "+str(val[0])+" issues,  and "+str(val[1])+" pages", file=f)
-        for series in val[2]:
-            print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
+        print("\n"+CapIt(k)+"   "+str(len(val[0]))+" titles,  "+str(val[1].Issuecount)+" issues,  and "+str(val[1].Pagecount)+" pages", file=f)
+        for series in val[0]:
+            print("    "+series[0].SeriesName+"    ("+str(series[0].Issuecount)+" issues, "+str(series[0].Pagecount)+" pages)", file=f)
 
-fanacFanzineIssueListByCountry=[(key, val) for key, val in fanacSeriesDictByCountry.items()]
-fanacFanzineIssueListByCountry.sort(key=lambda elem: elem[0].lower())
+fanacFanzineSeriesListByCountry=[]
+for country, countryEntries in fanacSeriesDictByCountry.items():
+    for v in countryEntries[0]:
+        fanacFanzineSeriesListByCountry.append((country, v[0], v[1]))       # (country, series, counts)
+fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[1].SeriesName.lower())
+fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
-           fanacFanzineIssueListByCountry,
-           None,        # No buttons
-           lambda elem: elem[0],
-           lambda elem: elem[1],
-           lambda elem: "fanac.org",    #ignore the URL for now
-           "timestamp", #countText+"\n"+timestamp+"\n",
-           "control-Header (Fanzine, alphabetical).html",
-           None,
+           fanacFanzineSeriesListByCountry,
+           lambda elem: elem[1].SeriesName,
+           fRowHeaderText=lambda elem: elem[0],
+           #fURL=lambda elem: "fanac.org",  #ignore the URL for now
+           countText="timestamp",  #countText+"\n"+timestamp+"\n",
+           headerFilename="control-Header (Fanzine, alphabetical).html",
            isAlpha=True)
 
 LogClose()
