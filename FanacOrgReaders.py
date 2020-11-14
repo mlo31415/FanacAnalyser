@@ -118,7 +118,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
 # Remove the duplicates from a fanzine list
 def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueInfo]:
     # Sort in place on fanzine's Directory's URL followed by file name
-    fanzineList.sort(key=lambda fz: fz.URL if fz.URL is not None else "")
+    fanzineList.sort(key=lambda fz: fz.PageName if fz.PageName is not None else "")
     fanzineList.sort(key=lambda fz: fz.DirURL if fz.DirURL is not None else "")
 
 #TODO Drop external links which duplicate Fanac.org
@@ -126,7 +126,7 @@ def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueIn
     last=""
     dedupedList=[]
     for fz in fanzineList:
-        this=fz.DirURL+(fz.URL if fz.URL is not None else "")
+        this=fz.DirURL+(fz.PageName if fz.PageName is not None else "")
         if this != last:
             dedupedList.append(fz)
         last=this
@@ -440,7 +440,7 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], f
         Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
         return
     fis=FanzineIssueSpec(FD=date)
-    fii=FanzineIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, URL="", FIS=fis, Pagecount=0)
+    fii=FanzineIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, PageName="", FIS=fis, Pagecount=0)
     Log("   (singleton): "+str(fii))
     fanzineIssueList.append(fii)
     return
@@ -538,7 +538,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanzi
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, URL=href, FIS=fis, Pagecount=pages, Country=country)
+        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, PageName=href, FIS=fis, Pagecount=pages, Country=country)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log("   ****Skipping null table row: "+str(fi))
             continue
@@ -549,8 +549,8 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanzi
         # Log it.
         if fi is not None:
             urlT=""
-            if fi.URL is None:
-                urlT="*No URL*"
+            if fi.PageName is None:
+                urlT="*No PageName*"
             Log("Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.FIS)+"]  "+urlT)
         else:
             Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
