@@ -560,27 +560,27 @@ for issue in fanacIssueList:
     # Note that we accumulate the series page and issue totals
     found=False
     for i in range(len(serieslist)):
-        if fsi == serieslist[i][0]:
+        if fsi == serieslist[i]:
             # Yes: If the directories in the DirURLs match, just add this issue to the existing series totals.
             # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
-            if fsi.DirURL == serieslist[i][0].DirURL:
+            if fsi.DirURL == serieslist[i].DirURL:
                 # serieslist[loc] is a specific series in [country]
                 # Update the series by adding the pagecount of this issue to it
-                serieslist[i]=(serieslist[i][0], serieslist[i][1]+fsi.Pagecount)
+                Log("add "+str(fsi.Pagecount)+" to "+str(serieslist[i])+"  yielding "+str(serieslist[i]+fsi.Pagecount))
+                serieslist[i]+=fsi.Pagecount
                 fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+fsi.Pagecount)
-                Log("add "+str(fsi.Pagecount)+" to "+str(serieslist[i][1])+"  yielding "+str(serieslist[i][1]+fsi.Pagecount))
                 found=True
             break
     # No: Add a new series entry from this issue
     if not found:
-        serieslist.append((fsi, FanzineCounts(Pagecount=fsi.Pagecount)))
+        serieslist.append(fsi)
         fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+fsi.Pagecount)
         Log("appended "+country+"  len(serieslist)="+str(len(serieslist))+"  len(fanacSeriesDictByCountry[country][0])="+str(len(fanacSeriesDictByCountry[country][0])))
 
 # Next we sort the individual country lists into order by series name
 for ckey, cval in fanacSeriesDictByCountry.items():
     serieslist=cval[0]
-    serieslist.sort(key=lambda elem: elem[0].SeriesName.lower())
+    serieslist.sort(key=lambda elem: elem.SeriesName.lower())
     fanacSeriesDictByCountry[ckey]=(serieslist, cval[1])  # Sorts in place on fanzine name
 
 def CapIt(s: str) -> str:
@@ -600,14 +600,14 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
         Log("fanacSeriesDictByCountry["+key+"]:  "+str(len(val[0]))+" titles  and "+str(val[1]))
         print("\n"+CapIt(k)+"   "+str(len(val[0]))+" titles,  "+str(val[1].Issuecount)+" issues,  and "+str(val[1].Pagecount)+" pages", file=f)
         for series in val[0]:
-            print("    "+series[0].SeriesName+"    ("+str(series[1].Issuecount)+" issues, "+str(series[1].Pagecount)+" pages)", file=f)
-            Log("    "+series[0].SeriesName+"    ("+str(series[1].Issuecount)+" issues, "+str(series[1].Pagecount)+" pages)")
+            print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
+            Log("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
 
 # Now create a properly ordered flat list suirtable for WriteTable
 fanacFanzineSeriesListByCountry=[]
 for country, countryEntries in fanacSeriesDictByCountry.items():
     for v in countryEntries[0]:
-        fanacFanzineSeriesListByCountry.append((country, v[0], v[1]))       # (country, series, counts)
+        fanacFanzineSeriesListByCountry.append((country, v))       # (country, series)
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[1].SeriesName.lower())
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
