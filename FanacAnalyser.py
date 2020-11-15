@@ -538,6 +538,10 @@ for issue in fanacIssueList:
         fanacSeriesDictByCountry[country]=([], FanzineCounts())     # Add an empty country entry
         Log("added "+country)
 
+    serieslist=fanacSeriesDictByCountry[country][0]
+    # serieslist is the list of fanzine series with counts for this country
+    # Note that we accumulate the series page and issue totals
+
     # Create an FSI for this issue
     fsi=FanzineSeriesInfo(SeriesName=issue.SeriesName, DirURL=issue.DirURL, Issuecount=1, Pagecount=issue.Pagecount, Editor=issue.Editor, Country=issue.Country)
     # Is this new issue from a series that is already in the list for this country?
