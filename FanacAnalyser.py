@@ -586,8 +586,9 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
         Log("fanacSeriesDictByCountry["+key+"]:  "+str(len(val[0]))+" titles  and "+str(val[1]))
         print("\n"+CapIt(k)+"   "+str(len(val[0]))+" titles,  "+str(val[1].Issuecount)+" issues,  and "+str(val[1].Pagecount)+" pages", file=f)
         for series in val[0]:
-            print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
-            Log("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
+            if series.Pagecount > 0:
+                print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
+                Log("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
 
 # Now create a properly ordered flat list suirtable for WriteTable
 fanacFanzineSeriesListByCountry=[]
