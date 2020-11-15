@@ -461,6 +461,8 @@ def AlphaButtonText(fz: FanzineIssueInfo) -> str:
 def Annotate(fz: FanzineIssueInfo) -> str:
     if type(fz) is not FanzineIssueInfo:
         assert()
+    if fz.FIS is None:
+        return ""
     if fz.FIS.FD.IsEmpty():
         return ""
     return "<small>("+str(fz.FIS.FD.LongDates)+')</small>'
