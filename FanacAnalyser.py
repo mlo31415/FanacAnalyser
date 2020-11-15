@@ -577,18 +577,6 @@ for issue in fanacIssueList:
         fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+fsi.Pagecount)
         Log("appended "+country+"  len(serieslist)="+str(len(serieslist))+"  len(fanacSeriesDictByCountry[country][0])="+str(len(fanacSeriesDictByCountry[country][0])))
 
-# For each series, compute a series total for issues and pages
-# For each country, compute a country total for issues and pages using the already-accumulated series totals
-# We run through all the vals for each country and accumulate totals.  Those are then stored in the counts for the country
-#  for ckey, cval in fanacSeriesDictByCountry.items():
-#     # val is (list[FanzineSeriesInfo], FanzineCount)
-#     count=cval[1]
-#     for series, counts in cval[0]:
-#         count+=FanzineCounts(Issuecount=series.Issuecount, Pagecount=series.Pagecount)
-#         Log("added "+str(FanzineCounts(Issuecount=series.Issuecount, Pagecount=series.Pagecount))+"  and count is now "+str(count))
-#     fanacSeriesDictByCountry[ckey]=(cval[0], count)
-#     Log("fanacSeriesDictByCountry["+ckey+"] value is ("+str(len(cval[0]))+" items: "+str(count))
-
 # Next we sort the individual country lists into order by series name
 for ckey, cval in fanacSeriesDictByCountry.items():
     serieslist=cval[0]
