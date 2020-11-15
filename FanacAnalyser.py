@@ -544,10 +544,10 @@ for issue in fanacIssueList:
 
     # Create an FSI for this issue
     fsi=FanzineSeriesInfo(SeriesName=issue.SeriesName, DirURL=issue.DirURL, Issuecount=1, Pagecount=issue.Pagecount, Editor=issue.Editor, Country=issue.Country)
+    if fsi.Pagecount == 0:
+        continue
+
     # Is this new issue from a series that is already in the list for this country?
-    serieslist=fanacSeriesDictByCountry[country][0]
-    # serieslist is a list of (fanzine series and counts) for this country
-    # Note that we accumulate the series page and issue totals
     found=False
     for i in range(len(serieslist)):
         if fsi == serieslist[i]:
@@ -590,9 +590,8 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
         Log("fanacSeriesDictByCountry["+key+"]:  "+str(len(val[0]))+" titles  and "+str(val[1]))
         print("\n"+CapIt(k)+"   "+str(len(val[0]))+" titles,  "+str(val[1].Issuecount)+" issues,  and "+str(val[1].Pagecount)+" pages", file=f)
         for series in val[0]:
-            if series.Pagecount > 0:
-                print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
-                Log("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
+            print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
+            Log("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
 
 # Now create a properly ordered flat list suirtable for WriteTable
 fanacFanzineSeriesListByCountry=[]
