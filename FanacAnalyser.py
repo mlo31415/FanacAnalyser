@@ -519,14 +519,11 @@ with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            fanacIssueList,
-           lambda fz: fz.SeriesName[0],
-           lambda fz: fz.SeriesName,
            lambda fz: fz.IssueName,
-           None,
-           None,
-           timestamp,
-           None,
-           lambda fz: fz.Pagecount > 250)
+           fButtonText=lambda fz: fz.SeriesName[0],
+           fRowHeaderText=lambda fz: fz.SeriesName,
+           countText=timestamp,
+           fSelector=lambda fz: fz.Pagecount > 250)
 
 # Now generate a list or fanzine series sorted by country
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
