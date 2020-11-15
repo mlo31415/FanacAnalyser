@@ -9,10 +9,7 @@ import unidecode
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
-from HelpersPackage import ReadList
-from HelpersPackage import FormatLink
-from HelpersPackage import InterpretNumber
-from HelpersPackage import UnicodeToHtml
+from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
 
 LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
 
@@ -455,7 +452,6 @@ fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts i
 fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
 
 
-
 def AlphaButtonText(fz: FanzineIssueInfo) -> str:
     c=AlphaSortText(fz)[0]
     if c == " " or c.isdigit():
@@ -486,15 +482,6 @@ WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            headerFilename="control-Header (Fanzine, alphabetical).html",
            isAlpha=True)
 
-def RemoveArticles(name: str) -> str:
-    if name[:4] == "The ":
-        return name[4:]
-    if name[:2] == "a ":
-        return name[2:]
-    # It's harder to find a trailing ', The'
-    if name.find(", The") > 0:
-        return name.replace(", The", "")
-    return name
 
 # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
 # This function is used only in the lambda expression following immediately afterwards.
