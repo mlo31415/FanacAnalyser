@@ -536,7 +536,6 @@ for issue in fanacIssueList:
     country=issue.Country.lower()
     if country not in fanacSeriesDictByCountry.keys():
         fanacSeriesDictByCountry[country]=([], FanzineCounts())     # Add an empty country entry
-        Log("added "+country)
 
     serieslist=fanacSeriesDictByCountry[country][0]
     # serieslist is the list of fanzine series with counts for this country
@@ -556,7 +555,6 @@ for issue in fanacIssueList:
             if fsi.DirURL == serieslist[i].DirURL:
                 # serieslist[loc] is a specific series in [country]
                 # Update the series by adding the pagecount of this issue to it
-                Log("add "+str(fsi.Pagecount)+" to "+str(serieslist[i])+"  yielding "+str(serieslist[i]+fsi.Pagecount))
                 serieslist[i]+=fsi.Pagecount
                 fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+fsi.Pagecount)
                 found=True
@@ -565,7 +563,6 @@ for issue in fanacIssueList:
     if not found:
         serieslist.append(fsi)
         fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+fsi.Pagecount)
-        Log("appended "+country+"  len(serieslist)="+str(len(serieslist))+"  len(fanacSeriesDictByCountry[country][0])="+str(len(fanacSeriesDictByCountry[country][0])))
 
 # Next we sort the individual country lists into order by series name
 for ckey, cval in fanacSeriesDictByCountry.items():
@@ -587,7 +584,6 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
     for key in keys:
         val=fanacSeriesDictByCountry[key]
         k=key if len(key.strip()) > 0 else "<no country>"
-        Log("fanacSeriesDictByCountry["+key+"]:  "+str(len(val[0]))+" titles  and "+str(val[1]))
         print("\n"+CapIt(k)+"   "+str(len(val[0]))+" titles,  "+str(val[1].Issuecount)+" issues,  and "+str(val[1].Pagecount)+" pages", file=f)
         for series in val[0]:
             print("    "+series.SeriesName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
