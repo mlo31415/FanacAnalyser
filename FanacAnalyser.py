@@ -24,19 +24,19 @@ def ReadClassicModernPages() -> List[Tuple[str, str]]:
     Log("----Begin reading Classic and Modern tables")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
-    fanacFanzineDirectories=[]
+    fanacFanzineDirectoriesList=[]
     LogFailureAndRaiseIfMissing("control-topleveldirectories.txt")
     directories=ReadList("control-topleveldirectories.txt")
     for dirs in directories:
-        ReadModernOrClassicTable(fanacFanzineDirectories, dirs)
+        ReadModernOrClassicTable(fanacFanzineDirectoriesList, dirs)
 
     Log("----Done reading Classic and Modern tables")
-    return fanacFanzineDirectories
+    return fanacFanzineDirectoriesList
 
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
-def ReadModernOrClassicTable(fanacFanzineDirectories: List[Tuple[str, str]], url: str) -> None:
+def ReadModernOrClassicTable(fanacFanzineDirectoriesList: List[Tuple[str, str]], url: str) -> None:
     h=requests.get(url)
     s=BeautifulSoup(h.content, "html.parser")
     # We look for the first table that does not contain a "navbar"
@@ -51,7 +51,7 @@ def ReadModernOrClassicTable(fanacFanzineDirectories: List[Tuple[str, str]], url
                     if len(trs[i].find_all("td")[1].contents[0].contents[0]) > 0:   # I've seen bogus entries where this isn't true
                         name=trs[i].find_all("td")[1].contents[0].contents[0].contents[0]
                         dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
-                        AddFanacDirectory(fanacFanzineDirectories, name, dirname)
+                        AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
                 except:
                     Log("Bogus row found by ReadModernOrClassicTable", isError=True)    # There's really nothing to be done except debug...
     return
@@ -235,10 +235,10 @@ def WriteTable(filename: str,
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacFanzineDirectories: List[Tuple[str, str]], name: str, dirname: str) -> None:
+def AddFanacDirectory(fanacFanzineDirectoriesList: List[Tuple[str, str]], name: str, dirname: str) -> None:
 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
-    dups=[e2 for e1, e2 in fanacFanzineDirectories if e2 == dirname]
+    dups=[e2 for e1, e2 in fanacFanzineDirectoriesList if e2 == dirname]
     if len(dups) > 0:
         Log("   duplicate: name="+name+"  dirname="+dirname)
         return
@@ -249,7 +249,7 @@ def AddFanacDirectory(fanacFanzineDirectories: List[Tuple[str, str]], name: str,
 
     # Add name and directory reference
     Log("   added to fanacFanzineDirectories:  name='"+name+"'  dirname='"+dirname+"'")
-    fanacFanzineDirectories.append((name, dirname))
+    fanacFanzineDirectoriesList.append((name, dirname))
     return
 
 
@@ -527,7 +527,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            countText=timestamp,
            fSelector=lambda fz: fz.Pagecount > 250)
 
-# Now generate a list or fanzine series sorted by country
+# Now generate a list of fanzine series sorted by country
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
 # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
 fanacSeriesDictByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per fanzine series)
