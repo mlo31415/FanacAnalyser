@@ -20,7 +20,7 @@ LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer 
 #       The name on page is the display named used in the Classic and Modern tables
 #       The name of directory is the name of the directory pointed to
 
-def ReadClassicModernPages() -> List[Tuple[str, str]]:
+def ReadAllFanacFanzineMainPages() -> List[Tuple[str, str]]:
     Log("----Begin reading Classic and Modern tables")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
@@ -54,6 +54,7 @@ def ReadModernOrClassicTable(fanacFanzineDirectoriesList: List[Tuple[str, str]],
                         AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
                 except:
                     Log("Bogus row found by ReadModernOrClassicTable", isError=True)    # There's really nothing to be done except debug...
+                    assert()    #TODO: Remove this, as it is temporary
     return
 
 
@@ -280,11 +281,13 @@ if not os.path.isdir(reportDir):
 Log("Report directory '"+reportDir+"' created")
 LogFlush()
 
-# Read the fanac.org fanzine directory and produce a list of all issues and all newszines present
-fanacFanzineDirectories=ReadClassicModernPages()
+# Read the fanac.org fanzine index page structures and produce a list of all fanzines series directories
+fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
+
+# Read the directories list and produce a list of all fanzine issues
 (fanacIssueList, newszinesFromH2)=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
-# Sort the list of all fanzines by fanzine series name
+# Sort the list of all fanzines issues by fanzine series name
 fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
 
 def NoNone(s: str) -> str:
