@@ -379,24 +379,24 @@ WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            countText=timestamp,
            headerFilename="control-Header (Fanzine, alphabetical).html")
 
-# Get the names of the newszines as a list
+# Generate a list of all the newszines (in lower case)
+# This takes names from the file control-newszines.txt and adds fanzines tagged as newszines on their series index page
+
+# Read the control-newszines.txt file
 LogFailureAndRaiseIfMissing("control-newszines.txt")
-listOfNewszines=ReadList("control-newszines.txt", isFatal=True)
-listOfNewszines=[x.lower() for x in listOfNewszines]  # Need strip() to get rid of trailing /n (at least)
+newszinesSet=set([x.lower() for x in ReadList("control-newszines.txt", isFatal=True)])
 
-# Now add in the newszines discovered in the <h2> blocks
-newszinesFromH2=[fii.SeriesName for fii in fanacIssueList if "newszine" in fii.Taglist]
-listOfNewszines=listOfNewszines+newszinesFromH2
+# Add in the newszines discovered in the <h2> blocks
+newszinesFromH2Set=set([fii.SeriesName.lower() for fii in fanacIssueList if "newszine" in fii.Taglist])
+newszinesFromH2=[x+"\n" for x in newszinesFromH2Set]
+with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
+    f.writelines(newszinesFromH2)
+newszinesSet=newszinesSet.union(newszinesFromH2Set)
 
-# This results in a lot of duplication.  Get rid of duplicates by turning listOfNewszines into a set and back again.
-# Note that this scrambles the order.
-listOfNewszines=list(set(listOfNewszines))
-
-nonNewszines=[fx.SeriesName.lower() for fx in fanacIssueList if fx.SeriesName.lower() not in listOfNewszines]
-nonNewszines=sorted(list(set(nonNewszines)))
-
-newszines=[fx.SeriesName.lower() for fx in fanacIssueList if fx.SeriesName.lower() in listOfNewszines]
-newszines=sorted(list(set(newszines)))
+# Make up a lists of newszines and non-newszines
+allzinesSet=set([fx.SeriesName.lower() for fx in fanacIssueList])
+nonNewszines=sorted(list(allzinesSet-newszinesSet))
+listOfNewszines=sorted(list(newszinesSet))
 
 # Count the number of issue and pages of all fanzines and just newszines
 newsPageCount=0
@@ -411,11 +411,11 @@ for fz in fanacIssueList:
         else:
             newsPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
 
-# Look for lines in the list of newszines which don't match actual newszines ont he site.
-unusedLines=[x for x in listOfNewszines if x.lower() not in newszines]
+# Look for lines in the list of newszines which don't match actual newszines on the site.
+unusedLines=[x for x in listOfNewszines if x.lower() not in listOfNewszines]
 unusedLines=[x+"\n" for x in unusedLines]
 
-newszines=[x+"\n" for x in newszines]
+newszines=[x+"\n" for x in listOfNewszines]
 with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as f:
     f.writelines(newszines)
 with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
@@ -423,10 +423,6 @@ with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+"
 nonNewszines=[x+"\n" for x in nonNewszines]
 with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
     f.writelines(nonNewszines)
-
-newszinesFromH2=[x+"\n" for x in newszinesFromH2]
-with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
-    f.writelines(newszinesFromH2)
 
 countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
