@@ -285,7 +285,7 @@ LogFlush()
 fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
 
 # Read the directories list and produce a list of all fanzine issues
-(fanacIssueList, newszinesFromH2)=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
+fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
 # Sort the list of all fanzines issues by fanzine series name
 fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
@@ -385,6 +385,7 @@ listOfNewszines=ReadList("control-newszines.txt", isFatal=True)
 listOfNewszines=[x.lower() for x in listOfNewszines]  # Need strip() to get rid of trailing /n (at least)
 
 # Now add in the newszines discovered in the <h2> blocks
+newszinesFromH2=[fii.SeriesName for fii in fanacIssueList if "newszine" in fii.Taglist]
 listOfNewszines=listOfNewszines+newszinesFromH2
 
 # This results in a lot of duplication.  Get rid of duplicates by turning listOfNewszines into a set and back again.

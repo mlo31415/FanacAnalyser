@@ -19,7 +19,7 @@ from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt
 
 # ============================================================================================
-def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[List[FanzineIssueInfo], List[str]]:
+def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[FanzineIssueInfo]:
     # Read index.html files on fanac.org
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
@@ -29,7 +29,6 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
     global g_browser
     g_browser=None
     fanacIssueInfo=[]
-    newszineList=[]
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
@@ -102,7 +101,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
         #     Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
         #     continue
 
-        ReadAndAppendFanacFanzineIndexPage(title, url, fanacIssueInfo, newszineList)
+        fanacIssueInfo.extend(ReadAndAppendFanacFanzineIndexPage(title, url))
 
     # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
     Log("----Done reading index.html files on fanac.org")
@@ -111,7 +110,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> Tuple[Lis
 
     fanacIssueInfo=RemoveDuplicates(fanacIssueInfo)
 
-    return fanacIssueInfo, newszineList
+    return fanacIssueInfo
 
 
 #=============================================================================================
@@ -287,7 +286,7 @@ def ExtractCountry(soup: BeautifulSoup) -> str:
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], newszineList: List[str]) -> None:
+def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> List[FanzineIssueInfo]:
     global g_browser
 
     Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
@@ -309,47 +308,51 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, fanz
         specialBiggies=ReadList("control-specialBiggies.txt")
 
     if fanzineName in specialBiggies:
-        ReadSpecialBiggie(directoryUrl, fanzineIssueList, fanzineName)
-        return
+        return ReadSpecialBiggie(directoryUrl,fanzineName)
 
     # It looks like this is a single level directory.
     soup=OpenSoup(directoryUrl)
     if soup is None:
-        return
+        return []
 
     # We need to handle singletons specially
     if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
-        ReadSingleton(directoryUrl, fanzineIssueList, fanzineName, soup)
-        return
+        return ReadSingleton(directoryUrl, fanzineName, soup)
 
     # By elimination, this must be an ordinary page, so read it.
     # Locate the Index Table on this page.
     table=LocateIndexTable(directoryUrl, soup)
     if table is None:
-        return
+        return []
 
     # Check to see if this is marked as a Newszine
     temp=soup.h2
+    isnewszines=False
     if temp.text.find("Newszine") > -1:
         Log(">>>>>> Newszine added: '"+fanzineName+"'")
-        newszineList.append(fanzineName)
+        isnewszines=True
 
     country=ExtractCountry(soup)
 
     # Walk the table and extract the fanzines in it
-    ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, table, country)
-    return
+    fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
+    if isnewszines:
+        for fii in fiiList:
+            fii.Taglist.append("newszine")
+    return fiiList
 
 
 #===================================================================================
 # The "special biggie" pages are few (only two at the time this ie being written) and need to be handled specially
 # The characteristic is that they are a tree of pages which may contain one or more *tagged* fanzine index tables on any level.
 # The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
-def ReadSpecialBiggie(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], fanzineName: str) -> None:
+def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> List[FanzineIssueInfo]:
+
+    fiiList=[]
 
     soup=OpenSoup(directoryUrl)
     if soup is None:
-        return
+        return fiiList
 
     # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
 
@@ -357,7 +360,7 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo
     table=LocateIndexTable(directoryUrl, soup, silence=True)
     country=ExtractCountry(soup)
     if table is not None:
-        ExtractFanzineIndexTableInfo(directoryUrl, fanzineIssueList, fanzineName, table, country)
+        fiiList.extend(ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country))
 
     # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
     links=soup.find_all("a")
@@ -370,8 +373,8 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo
             if m is not None:
                 if url.startswith("index") or url.startswith("archive") or url.startswith("Bullsheet1-00") or url.startswith("Bullsheet2-00"):
                     u=ChangeFileInURL(directoryUrl, url)
-                    ReadSpecialBiggie(u, fanzineIssueList, fanzineName)
-    return
+                    fiiList.extend(ReadSpecialBiggie(u, fanzineName))
+    return fiiList
 
 
 #======================================================================================
@@ -419,11 +422,12 @@ def GetHrefAndTextFromTag(tag: Tag) -> Tuple[str, Optional[str]]:
 
 #======================================================================================
 # Read a singleton-format fanzine page
-def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], fanzineName: str, soup) -> None:
+def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> List[FanzineIssueInfo]:
+
     # Usually, a singleton has the information in the first h2 block
     if soup.h2 is None:
         Log("***Failed to find <h2> block in singleton '"+directoryUrl+"'", isError=True)
-        return
+        return []
 
     content=[str(e) for e in soup.h2.contents if type(e) is NavigableString]
 
@@ -438,12 +442,11 @@ def ReadSingleton(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], f
             break
     if date.IsEmpty():
         Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
-        return
+        return []
     fis=FanzineIssueSpec(FD=date)
     fii=FanzineIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, PageName="", FIS=fis, Pagecount=0)
     Log("   (singleton): "+str(fii))
-    fanzineIssueList.append(fii)
-    return
+    return [fii]
 
 
 #=====================================================================================
@@ -458,7 +461,7 @@ def RemoveNewlineRows(tags: List[Tag]) -> List[Tag]:
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[FanzineIssueInfo], fanzineName: str, table: Tag, country: str) -> None:
+def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, country: str) -> List[FanzineIssueInfo]:
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -481,6 +484,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanzi
     # Each row will be a list of cells
     # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
     tableRows=[]
+    fiiList=[]
     for i in range(1, len(table)):
         tableRow=RemoveNewlineRows(table.contents[i])
         newRow=[]
@@ -544,16 +548,18 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineIssueList: List[Fanzi
             continue
 
         Log("   "+str(fi))
-        fanzineIssueList.append(fi)
 
-        # Log it.
+        # Append it and log it.
         if fi is not None:
             urlT=""
             if fi.PageName is None:
                 urlT="*No PageName*"
             Log("Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.FIS)+"]  "+urlT)
+            fiiList.append(fi)
         else:
             Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
+
+    return fiiList
 
 
 #=====================================================================================
