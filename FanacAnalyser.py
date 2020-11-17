@@ -608,7 +608,7 @@ WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[1].DirURL,
            countText="timestamp",  #countText+"\n"+timestamp+"\n",
-           headerFilename="control-Header (Fanzine, alphabetical).html",
+           headerFilename="control-Header (Fanzine, by country)html",
            isAlpha=True)
 
 LogClose()
