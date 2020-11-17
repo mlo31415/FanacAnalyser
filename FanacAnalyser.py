@@ -605,7 +605,7 @@ fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
            lambda elem: elem[1].SeriesName,
-           fRowHeaderText=lambda elem: elem[0],
+           fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[1].DirURL,
            countText="timestamp",  #countText+"\n"+timestamp+"\n",
            headerFilename="control-Header (Fanzine, alphabetical).html",
