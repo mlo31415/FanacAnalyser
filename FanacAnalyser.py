@@ -388,14 +388,21 @@ newszinesSet=set([x.lower() for x in ReadList("control-newszines.txt", isFatal=T
 
 # Add in the newszines discovered in the <h2> blocks
 newszinesFromH2Set=set([fii.SeriesName.lower() for fii in fanacIssueList if "newszine" in fii.Taglist])
-newszinesFromH2=[x+"\n" for x in newszinesFromH2Set]
 with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
-    f.writelines(newszinesFromH2)
+    newszinesFromH2List=sorted(list(newszinesFromH2Set))
+    for nz in newszinesFromH2List:
+        f.write(nz+"\n")
+
 newszinesSet=newszinesSet.union(newszinesFromH2Set)
 
 # Make up a lists of newszines and non-newszines
 allzinesSet=set([fx.SeriesName.lower() for fx in fanacIssueList])
-nonNewszines=sorted(list(allzinesSet-newszinesSet))
+
+with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
+    nonNewszines=sorted(list(allzinesSet.difference(newszinesSet)))
+    for nnz in nonNewszines:
+        f.write(nnz+"\n")
+
 listOfNewszines=sorted(list(newszinesSet))
 
 # Count the number of issue and pages of all fanzines and just newszines
@@ -420,9 +427,6 @@ with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as
     f.writelines(newszines)
 with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
     f.writelines(unusedLines)
-nonNewszines=[x+"\n" for x in nonNewszines]
-with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
-    f.writelines(nonNewszines)
 
 countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
