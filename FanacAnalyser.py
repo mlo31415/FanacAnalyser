@@ -606,7 +606,7 @@ WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
            lambda elem: elem[1].SeriesName,
            fRowHeaderText=lambda elem: elem[0],
-           #fURL=lambda elem: "fanac.org",  #ignore the URL for now
+           fURL=lambda elem: elem[1].DirURL,
            countText="timestamp",  #countText+"\n"+timestamp+"\n",
            headerFilename="control-Header (Fanzine, alphabetical).html",
            isAlpha=True)
