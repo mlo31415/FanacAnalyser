@@ -223,12 +223,7 @@ def WriteTable(filename: str,
     # And end everything
     if html:
         f.write('</div>\n</div>\n')
-        try:
-            LogFailureAndRaiseIfMissing("control-Default.Footer")
-            with open("control-Default.Footer", "r") as f2:
-                f.writelines(f2.readlines())
-        except e:
-            Log("Exception "+str(e)+" raised while opening control-Default.Footer", isError=True)
+        f.writelines(ReadFile("control-Default.Footer"))
     f.close()
 
 
