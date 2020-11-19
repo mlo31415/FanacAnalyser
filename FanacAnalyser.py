@@ -195,9 +195,9 @@ def WriteTable(filename: str,
                 f.write('  <div class=col-md-3>')
                 if isAlpha:
                     if fDirURL is not None:
-                        f.write(FormatLink(fDirURL(fz), lastRowHeader))
+                        f.write(FormatLink(fDirURL(fz), UnicodeToHtml(lastRowHeader)))
                     else:
-                        f.write(lastRowHeader)
+                        f.write(UnicodeToHtml(lastRowHeader))
                 else:
                     f.write(UnicodeToHtml(lastRowHeader))
                 f.write('</div>\n')
@@ -211,9 +211,9 @@ def WriteTable(filename: str,
         # The former are easy, but the latter need to be processed
         if html:
             if fURL is not None:
-                f.write('        '+FormatLink(fURL(fz), fRowBodyText(fz)))
+                f.write('        '+FormatLink(fURL(fz), UnicodeToHtml(fRowBodyText(fz))))
             else:
-                f.write('        '+fRowBodyText(fz))
+                f.write('        '+UnicodeToHtml(fRowBodyText(fz)))
             if isAlpha:
                 f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fAnnot is None or fAnnot(fz) is None else fAnnot(fz)))
             f.write('<br>\n')
