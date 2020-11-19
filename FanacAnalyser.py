@@ -599,7 +599,7 @@ fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
-           lambda elem: elem[1].DisplayName,
+           lambda elem: elem[1].DisplayName+(" ("+elem[1].Editor+")") if elem[1].Editor is not None else "",
            fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[1].DirURL,
            countText=timestamp,
