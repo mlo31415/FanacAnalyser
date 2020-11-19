@@ -25,7 +25,6 @@ def ReadAllFanacFanzineMainPages() -> List[Tuple[str, str]]:
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectoriesList=[]
-    LogFailureAndRaiseIfMissing("control-topleveldirectories.txt")
     directories=ReadList("control-topleveldirectories.txt")
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectoriesList, dirs)
@@ -383,7 +382,6 @@ WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
 # This takes names from the file control-newszines.txt and adds fanzines tagged as newszines on their series index page
 
 # Read the control-newszines.txt file
-LogFailureAndRaiseIfMissing("control-newszines.txt")
 newszinesSet=set([x.lower() for x in ReadList("control-newszines.txt", isFatal=True)])
 
 # Add in the newszines discovered in the <h2> blocks
