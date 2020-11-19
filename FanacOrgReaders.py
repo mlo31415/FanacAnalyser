@@ -1,5 +1,6 @@
 from typing import Union, Tuple, Optional, List, Dict
 from contextlib import suppress
+from difflib import SequenceMatcher
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
 from bs4 import Tag
@@ -9,7 +10,7 @@ import urllib.parse
 import os
 
 
-from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo
+from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo, FanzineSeriesInfo
 from FanzineIssueSpecPackage import ExtractSerialNumber
 
 from Log import Log, LogSetHeader
@@ -40,6 +41,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[Fanz
             #"Booklist",
             #"Axe",
             #"Opuntia",
+            #"Inside",
             #"Irish_Fandom",
             #"StraightUp",
             #"Vega",
@@ -58,7 +60,9 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[Fanz
             #"Bay_Area_News",
             #"Degler",
             #"BrokenToys",
-            #"Aspidistra"
+            #"Aspidistra",
+            #"FAPA_Mailings",
+            #"Fantasy_Fiction_Field"
         ]
         if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
 
@@ -332,13 +336,58 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> L
         Log(">>>>>> Newszine added: '"+fanzineName+"'")
         isnewszines=True
 
+    # Try to pull the editor information out of the page
+    # The most common format (ignoring a scattering of <br>s) is
+    #   H1
+    #       series name
+    #   /H1
+    #   H2
+    #       Editor
+    #   H2
+    #       dates
+    #       [Newszine]
+    #   /H2
+    #   /H2
+    #...or something else...
+
+    h2s=str(soup.h2)
+    # Split on various flavors of <br> and <h2>
+    #pattern="<br>|</br>|<br/>|<BR>|</BR>|<BR/>|<h2>|</h2>|<h2/>|<H2>|</H2>|<H2/>"
+    pattern="<.+?>"
+    h2s=re.sub(pattern, "|", h2s)
+    h2s=h2s.split("|")
+    h2s=[h.strip() for h in h2s if len(h.strip()) > 0]
+
+    # Because of the sloppiness of fanac.org, sometime the fanzine name is picked up again here.
+    # We ignore the first token if it is too similar to the fanzine name
+    if SequenceMatcher(None, h2s[0], fanzineName).ratio() > 0.7:
+        h2s=h2s[1:]
+
+    # The editor(s) names are usually the line or lines before the date range.
+    # The date range is something like '1964' or '1964-1999' or '1964-1999?'
+    pattern="[0-9-\?]"
+    editor=""
+    for h in h2s:
+        if re.match(pattern, h):
+            break
+        if len(editor) > 0:
+            editor+=", "
+        editor+=h
+
     country=ExtractCountry(soup)
 
     # Walk the table and extract the fanzines in it
     fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
-    if isnewszines:
+
+    if len(fiiList) > 0:
+        fsi=FanzineSeriesInfo(SeriesName=fiiList[0].SeriesName, DirURL=fiiList[0].DirURL, Issuecount=0, Pagecount=0, Editor=editor, Country=country)
+
+        # Add the tags and the series info pointer
         for fii in fiiList:
-            fii.Taglist.append("newszine")
+            fii.Series=fsi
+            if isnewszines:
+                fii.Taglist.append("newszine")
+
     return fiiList
 
 
