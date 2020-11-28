@@ -9,7 +9,7 @@ import unidecode
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
-from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
+from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents
 
 LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
 
@@ -587,7 +587,7 @@ fanacFanzineSeriesListByCountry=[]
 for country, countryEntries in fanacSeriesDictByCountry.items():
     for v in countryEntries[0]:
         fanacFanzineSeriesListByCountry.append((country, v))       # (country, series)
-fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[1].DisplayName.lower())
+fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveArticles(RemoveAccents(elem[1].DisplayName.lower())))
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
