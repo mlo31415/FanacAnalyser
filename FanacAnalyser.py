@@ -591,13 +591,28 @@ for country, countryEntries in fanacSeriesDictByCountry.items():
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[1].DisplayName.lower())).lower())
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
+def Annotate(elem: FanzineCounts) -> str:
+    s=""
+    i=elem.Issuecount
+    p=elem.Pagecount
+    if i > 0:
+        s=str(i)+" issue"+("s" if i > 1 else "")
+        if p > 0:
+            s+=", "+str(p)+" page"+("s" if p > 1 else "")
+    if len(s) > 0:
+        s="("+s+")"
+    return s
+
+
+
+
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
            lambda elem: elem[1].DisplayName+(" ("+elem[1].Editor+")") if elem[1].Editor is not None else "",
            fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[1].DirURL,
            fButtonText=lambda elem: CapIt(elem[0]),
-           fAnnot=lambda elem: "<small>("+str(elem[1].Issuecount)+" issues and "+str(elem[1].Pagecount)+" pages)</small>",
+           fAnnot=lambda elem: "<small>"+Annotate(elem[1])+"</small>",
            countText=timestamp,
            headerFilename="control-Header (Fanzine, by country).html",
            isAlpha=True)
