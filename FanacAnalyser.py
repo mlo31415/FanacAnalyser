@@ -588,7 +588,7 @@ fanacFanzineSeriesListByCountry=[]
 for country, countryEntries in fanacSeriesDictByCountry.items():
     for v in countryEntries[0]:
         fanacFanzineSeriesListByCountry.append((country, v))       # (country, series)
-fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveArticles(RemoveAccents(elem[1].DisplayName.lower())))
+fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[1].DisplayName.lower())).lower())
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
