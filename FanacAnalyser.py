@@ -595,6 +595,8 @@ WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            lambda elem: elem[1].DisplayName+(" ("+elem[1].Editor+")") if elem[1].Editor is not None else "",
            fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[1].DirURL,
+           fButtonText=lambda elem: CapIt(elem[0]),
+           fAnnot=lambda elem: "<small>("+str(elem[1].Issuecount)+" issues and "+str(elem[1].Pagecount)+" pages)</small>",
            countText=timestamp,
            headerFilename="control-Header (Fanzine, by country).html",
            isAlpha=True)
