@@ -548,14 +548,15 @@ for issue in fanacIssueList:
             if issue.Series.DirURL == serieslist[i].DirURL:
                 # serieslist[loc] is a specific series in [country]
                 # Update the series by adding the pagecount of this issue to it
-                serieslist[i]+=issue.Series.Pagecount
-                fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+issue.Series.Pagecount)
+                serieslist[i]+=issue.Pagecount
+                fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+issue.Pagecount)
                 found=True
             break
-    # No: Add a new series entry from this issue
+    # No: Add a new series entry created from this issue
     if not found:
+        issue.Series+=issue.Pagecount
         serieslist.append(issue.Series)
-        fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+issue.Series.Pagecount)
+        fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+issue.Pagecount)
 
 # Next we sort the individual country lists into order by series name
 for ckey, cval in fanacSeriesDictByCountry.items():
