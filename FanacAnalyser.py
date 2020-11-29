@@ -210,9 +210,9 @@ def WriteTable(filename: str,
         # The former are easy, but the latter need to be processed
         if html:
             if fURL is not None:
-                f.write('        '+FormatLink(fURL(fz), UnicodeToHtml(fRowBodyText(fz))))
+                f.write('        '+FormatLink(fURL(fz), fRowBodyText(fz)))
             else:
-                f.write('        '+UnicodeToHtml(fRowBodyText(fz)))
+                f.write('        '+fz)
             if isAlpha:
                 f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fAnnot is None or fAnnot(fz) is None else fAnnot(fz)))
             f.write('<br>\n')
@@ -354,7 +354,7 @@ def URL(fz: FanzineIssueInfo) -> str:
 countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: ChronButtonText(fz),
            fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            fURL=URL,
@@ -362,13 +362,13 @@ WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            headerFilename='control-Header (Fanzine, chronological).html')
 WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
            datedList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: ChronButtonText(fz),
            fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            countText=countText+"\n"+timestamp+"\n")
 WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
            undatedList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fURL=URL,
            countText=timestamp,
            headerFilename="control-Header (Fanzine, alphabetical).html")
@@ -424,7 +424,7 @@ with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+"
 countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: ChronButtonText(fz),
            fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
            fURL=URL,
@@ -466,14 +466,14 @@ def Annotate(fz: FanzineIssueInfo) -> str:
 
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: fz.SeriesName[0],
            fRowHeaderText=lambda fz: fz.SeriesName,
            countText=countText+"\n"+timestamp+"\n",
            isAlpha=True)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: AlphaButtonText(fz),
            fAnnot=lambda fz: Annotate(fz),
            fRowHeaderText=lambda fz: fz.SeriesName,
@@ -494,7 +494,7 @@ def OddNames(n1: str, n2: str) -> bool:
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
            fanacIssueList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: fz.SeriesName[0],
            fRowHeaderText=lambda fz: fz.SeriesName,
            countText=timestamp+"\n",
@@ -519,7 +519,7 @@ with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            fanacIssueList,
-           lambda fz: fz.IssueName,
+           lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: fz.SeriesName[0],
            fRowHeaderText=lambda fz: fz.SeriesName,
            countText=timestamp,
@@ -608,7 +608,7 @@ def Annotate(elem: FanzineCounts) -> str:
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
-           lambda elem: elem[1].DisplayName+(" ("+elem[1].Editor+")") if elem[1].Editor is not None else "",
+           lambda elem: UnicodeToHtml(elem[1].DisplayName)+(" <small>("+elem[1].Editor+")</small>") if elem[1].Editor is not None else "",
            fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[1].DirURL,
            fButtonText=lambda elem: CapIt(elem[0]),
