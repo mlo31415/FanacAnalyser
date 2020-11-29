@@ -208,16 +208,22 @@ def WriteTable(filename: str,
         # The hyperlink goes in column 2
         # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
         # The former are easy, but the latter need to be processed
+        bodytext=fRowBodyText(fz)
         if html:
             if fURL is not None:
-                f.write('        '+FormatLink(fURL(fz), fRowBodyText(fz)))
+                splitext=bodytext.split("|", 2)     # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
+                if len(splitext) == 2:
+                    f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
+                else:
+                    f.write('        '+FormatLink(fURL(fz), bodytext))
             else:
                 f.write('        '+fz)
             if isAlpha:
                 f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fAnnot is None or fAnnot(fz) is None else fAnnot(fz)))
             f.write('<br>\n')
         else:
-            f.write("   "+fRowBodyText(fz)+"\n")
+            bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
+            f.write("   "+bodytext+"\n")
 
     #....... Cleanup .......
     # And end everything
@@ -608,7 +614,7 @@ def Annotate(elem: FanzineCounts) -> str:
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
-           lambda elem: UnicodeToHtml(elem[1].DisplayName)+(" <small>("+elem[1].Editor+")</small>") if elem[1].Editor is not None else "",
+           lambda elem: UnicodeToHtml(elem[1].DisplayName)+("| <small>("+elem[1].Editor+")</small>") if elem[1].Editor is not None else "",
            fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[1].DirURL,
            fButtonText=lambda elem: CapIt(elem[0]),
