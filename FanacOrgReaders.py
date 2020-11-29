@@ -380,7 +380,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> L
     fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
 
     if len(fiiList) > 0:
-        fsi=FanzineSeriesInfo(SeriesName=fiiList[0].SeriesName, DirURL=fiiList[0].DirURL, Issuecount=0, Pagecount=0, Editor=editor, Country=country)
+        fsi=FanzineSeriesInfo(SeriesName=fiiList[0].SeriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country)
 
         # Add the tags and the series info pointer
         for fii in fiiList:
