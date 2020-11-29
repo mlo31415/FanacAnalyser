@@ -591,6 +591,7 @@ for country, countryEntries in fanacSeriesDictByCountry.items():
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[1].DisplayName.lower())).lower())
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
+# Provides the annotation for rows in the following output table
 def Annotate(elem: FanzineCounts) -> str:
     s=""
     i=elem.Issuecount
@@ -602,9 +603,6 @@ def Annotate(elem: FanzineCounts) -> str:
     if len(s) > 0:
         s="("+s+")"
     return s
-
-
-
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
