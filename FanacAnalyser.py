@@ -287,6 +287,9 @@ fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
 # Read the directories list and produce a list of all fanzine issues
 fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
+# Remove issues which have entries, but don't actually point to anything.
+fanacIssueList=[x for x in fanacIssueList if x.PageName is not None]
+
 # Sort the list of all fanzines issues by fanzine series name
 fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
 
