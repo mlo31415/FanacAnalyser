@@ -412,13 +412,11 @@ newsPageCount=0
 newsIssueCount=0
 newsPdfCount=0
 for fz in fanacIssueList:
-    if fz.SeriesName in listOfNewszines and fz.PageName is not None:
+    if fz.SeriesName.lower() in listOfNewszines and fz.PageName is not None:
         newsIssueCount+=1
-        if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+        newsPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
+        if os.path.splitext(fz.DirURL)[1] == ".pdf":
             newsPdfCount+=1
-            newsPageCount+=1
-        else:
-            newsPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
 
 # Look for lines in the list of newszines which don't match actual newszines on the site.
 unusedLines=[x for x in listOfNewszines if x.lower() not in listOfNewszines]
