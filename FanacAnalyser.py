@@ -5,11 +5,12 @@ import os
 import sys
 from bs4 import BeautifulSoup
 import unidecode
+from collections import namedtuple
 
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
-from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents
+from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents, RemoveAllHTMLTags2
 
 LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
 
@@ -75,17 +76,18 @@ def ReadFile(filename: str) -> Optional[List[str]]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
-               fanacIssueList: List,        # The sorted input list
-               fRowBodyText: Callable[[Any], str],         # Function to supply the row's body text
-               fButtonText: Optional[Callable[[Any], str]]=None,    # Function to supply the button text
-               fRowHeaderText: Optional[Callable[[Any], str]]=None,     # Function to supply the header text
-               fURL: Optional[Callable[[Any], str]]=None,         # Function to supply the URL
-               fDirURL: Optional[Callable[[Any], str]]=None,         # Function to supply the directory or root URL
-               fAnnot: Optional[Callable[[Any], str]]=None,         # Function to supply annotation
+               fanacIssueList: List,  # The sorted input list
+               fRowBodyText: Callable[[Any], str],  # Function to supply the row's body text
+               fButtonText: Optional[Callable[[Any], str]]=None,  # Function to supply the button text
+               fRowHeaderText: Optional[Callable[[Any], str]]=None,  # Function to supply the header text
+               fURL: Optional[Callable[[Any], str]]=None,  # Function to supply the URL
+               fDirURL: Optional[Callable[[Any], str]]=None,  # Function to supply the directory or root URL
+               fRowAnnot: Optional[Callable[[Any], str]]=None,  # Function to supply annotation to the rows
+               fHeaderAnnot: Optional[Callable[[Any], str]] = None,  # Function to supply annotation to the headers
                countText: Optional[str]=None,
                headerFilename: Optional[str]=None,
                fSelector: Optional[Callable[[Any], bool]]=None,
-               isAlpha: bool=False)\
+               inAlphaOrder: bool=False)\
                 -> None:
     f: TextIO=open(filename, "w+")
 
@@ -192,17 +194,20 @@ def WriteTable(filename: str,
                 f.write('<div class="row border">\n')  # Start a new sub-box
                 # Write col 1
                 f.write('  <div class=col-md-3>')
-                if isAlpha:
-                    if fDirURL is not None:
-                        f.write(FormatLink(fDirURL(fz), UnicodeToHtml(lastRowHeader)))
-                    else:
-                        f.write(UnicodeToHtml(lastRowHeader))
+                if inAlphaOrder and fDirURL is not None:
+                    f.write(FormatLink(fDirURL(fz), UnicodeToHtml(lastRowHeader)))
                 else:
                     f.write(UnicodeToHtml(lastRowHeader))
+                if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
+                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
                 f.write('</div>\n')
                 f.write('    <div class=col-md-9>\n') # Start col 2
             else:
-                f.write("\n"+lastRowHeader+"\n")
+                f.write("\n"+lastRowHeader)
+                if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
+                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
+                f.write("\n")
+
 
         # Deal with Column 2
         # The hyperlink goes in column 2
@@ -211,15 +216,16 @@ def WriteTable(filename: str,
         bodytext=fRowBodyText(fz)
         if html:
             if fURL is not None:
-                splitext=bodytext.split("|", 2)     # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
+                # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
+                splitext=bodytext.split("|", 2)
                 if len(splitext) == 2:
                     f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
                 else:
                     f.write('        '+FormatLink(fURL(fz), bodytext))
             else:
                 f.write('        '+fz)
-            if isAlpha:
-                f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+("" if fAnnot is None or fAnnot(fz) is None else fAnnot(fz)))
+            if inAlphaOrder and fRowAnnot is not None and fRowAnnot(fz) is not None:
+                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+ fRowAnnot(fz))
             f.write('<br>\n')
         else:
             bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
@@ -477,17 +483,17 @@ WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fButtonText=lambda fz: fz.SeriesName[0],
            fRowHeaderText=lambda fz: fz.SeriesName,
            countText=countText+"\n"+timestamp+"\n",
-           isAlpha=True)
+           inAlphaOrder=True)
 WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
            fanacIssueList,
            lambda fz: UnicodeToHtml(fz.IssueName),
            fButtonText=lambda fz: AlphaButtonText(fz),
-           fAnnot=lambda fz: Annotate(fz),
+           fRowAnnot=lambda fz: Annotate(fz),
            fRowHeaderText=lambda fz: fz.SeriesName,
            fURL=URL,
            countText=countText+"\n"+timestamp+"\n",
            headerFilename="control-Header (Fanzine, alphabetical).html",
-           isAlpha=True)
+           inAlphaOrder=True)
 
 
 # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
@@ -535,16 +541,18 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
 # Now generate a list of fanzine series sorted by country
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
 # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-fanacSeriesDictByCountry={}     # Key is country code; value is a tuple of (issuecount, pagecount, list of newly-constructed FSIs, one per fanzine series)
+fanacSeriesDictByCountry={}     # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
+Country = namedtuple('Country', 'SeriesList SeriesCount')
+
 for issue in fanacIssueList:
     # If this is a new country, create a new, empty entry for it
-    country=issue.Country.lower()
-    if country == "":
-        country="US"     # Joe wants fanzines with no country to be treated as US
-    if country not in fanacSeriesDictByCountry.keys():
-        fanacSeriesDictByCountry[country]=([], FanzineCounts())     # Add an empty country entry
+    countryName=issue.Country.lower()
+    if countryName == "":
+        countryName="us"     # Joe wants fanzines with no country to be treated as US
+    if countryName not in fanacSeriesDictByCountry.keys():
+        fanacSeriesDictByCountry[countryName]=Country([], FanzineCounts())     # Add an empty country entry
 
-    serieslist=fanacSeriesDictByCountry[country][0]
+    serieslist=fanacSeriesDictByCountry[countryName].SeriesList
     # serieslist is the list of fanzine series with counts for this country
     # Note that we accumulate the series page and issue totals
 
@@ -558,14 +566,16 @@ for issue in fanacIssueList:
                 # serieslist[loc] is a specific series in [country]
                 # Update the series by adding the pagecount of this issue to it
                 serieslist[i]+=issue.Pagecount
-                fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+issue.Pagecount)
+                fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount)
                 found=True
             break
     # No: Add a new series entry created from this issue
     if not found:
         issue.Series+=issue.Pagecount
         serieslist.append(issue.Series)
-        fanacSeriesDictByCountry[country]=(fanacSeriesDictByCountry[country][0], fanacSeriesDictByCountry[country][1]+issue.Pagecount)
+        count=fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount
+        count.Titlecount+=1
+        fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, count)
 
 # Next we sort the individual country lists into order by series name
 for ckey, cval in fanacSeriesDictByCountry.items():
@@ -594,34 +604,39 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
 
 # Now create a properly ordered flat list suitable for WriteTable
 fanacFanzineSeriesListByCountry=[]
-for country, countryEntries in fanacSeriesDictByCountry.items():
+for countryName, countryEntries in fanacSeriesDictByCountry.items():
     for v in countryEntries[0]:
-        fanacFanzineSeriesListByCountry.append((country, v))       # (country, series)
-fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[1].DisplayName.lower())).lower())
+        fanacFanzineSeriesListByCountry.append((countryName, countryEntries[1], v))       # (country, countryCount, series)
+fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())
 fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
 # Provides the annotation for rows in the following output table
+def plural(i: int) -> str:
+    return "s" if i > 1 else ""
+
 def Annotate(elem: FanzineCounts) -> str:
     s=""
+    if elem.Titlecount > 0:
+        s=str(elem.Titlecount)+" title"+plural(elem.Titlecount)+", "
     i=elem.Issuecount
     p=elem.Pagecount
     if i > 0:
-        s=str(i)+" issue"+("s" if i > 1 else "")
-        if p > 0:
-            s+=", "+str(p)+" page"+("s" if p > 1 else "")
+        s+=str(i)+" issue"+plural(i)+", "
+        s+=str(p)+" page"+plural(p)
     if len(s) > 0:
         s="("+s+")"
     return s
 
 WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fanacFanzineSeriesListByCountry,
-           lambda elem: UnicodeToHtml(elem[1].DisplayName)+("| <small>("+elem[1].Editor+")</small>") if elem[1].Editor is not None else "",
+           lambda elem: UnicodeToHtml(elem[2].DisplayName)+("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor is not None else "",
            fRowHeaderText=lambda elem: CapIt(elem[0]),
-           fURL=lambda elem: elem[1].DirURL,
+           fURL=lambda elem: elem[2].DirURL,
            fButtonText=lambda elem: CapIt(elem[0]),
-           fAnnot=lambda elem: "<small>"+Annotate(elem[1])+"</small>",
+           fRowAnnot=lambda elem: "<small>"+Annotate(elem[2])+"</small>",
+           fHeaderAnnot=lambda elem: "<small>"+Annotate(elem[1])+"</small>",
            countText=timestamp,
            headerFilename="control-Header (Fanzine, by country).html",
-           isAlpha=True)
+           inAlphaOrder=True)
 
 LogClose()
