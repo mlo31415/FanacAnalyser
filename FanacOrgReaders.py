@@ -97,7 +97,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[Fanz
         url=RelPathToURL(dirname)
         if url is None:
             continue
-        if not url.startswith("http://www.fanac.org"):
+        if not url.startswith("https://www.fanac.org"):
             Log("...Skipped because not a fanac.org url: "+url, isError=True)
             continue
 
@@ -572,7 +572,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
                 href=href.replace(directoryUrl, "")
                 if href[0] == "/":
                     href=href[1:]   # Delete any remnant leading "/"
-            elif href.startswith("http://www.fanac.org/") or href.startswith("http://fanac.org/"):
+            elif href.startswith("http://www.fanac.org/") or href.startswith("http://fanac.org/") or href.startswith("https://www.fanac.org/") or href.startswith("https://fanac.org/"):
                 # OK, this is a fanac URL.  Divide it into a file and a path
                 fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
                 if len(fname) == 0:
