@@ -3,6 +3,7 @@ from time import localtime, strftime
 import requests
 import os
 import sys
+import re
 from bs4 import BeautifulSoup
 import unidecode
 from collections import namedtuple
@@ -354,14 +355,23 @@ def ChronButtonText(fz: FanzineIssueInfo) -> str:
 def URL(fz: FanzineIssueInfo) -> str:
     if fz is None or fz.PageName is None:
         return "<no url>"
+    # Sometimes the url will be to a page in a PDF, so the URL will end with #page=nnn
+    # Detect that, since the page needs to be handled specially.
+    page=""
+    url=fz.DirURL
+    m=re.match("(.*)(#page=[0-9]+)$", url)
+    if m is not None:
+        url=m.groups()[0]
+        page=m.groups()[1]
+
     if "/" not in fz.PageName:
-        url=fz.DirURL+"/"+fz.PageName
+        url=url+"/"+fz.PageName+page
     else:
         # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
         # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
         parts=fz.PageName.split("/")
         if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
-            url=fz.DirURL+"/../"+"/".join(parts[-2:])
+            url=url+"/../"+"/".join(parts[-2:])+page
         else:
             url=fz.PageName
     return url
