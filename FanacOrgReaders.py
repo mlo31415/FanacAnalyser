@@ -282,15 +282,21 @@ def ExtractHrefAndTitle(columnHeaders: List[str], row: List[str]) -> Tuple[Optio
 
 # ============================================================================================
 def ExtractCountry(soup: BeautifulSoup) -> str:
-    country=""
     temp=FindBracketedText(str(soup.body), "fanac-type")
     if temp[0] is not None and len(temp[0]) > 0:
+        # There are two formats for this text:
+        #       Country: <country>
+        #       <country>:<city>, <state>
         temp=RemoveAllHTMLTags2(temp[0])
-        loc=temp.find(":")
-        if loc > 0 and loc+1 < len(temp):
-            country=temp[loc+1:].strip()
-    return country
+        m=re.search("\s*Country:\s*([a-zA-Z ]+)", temp)
+        if m is not None:
+            return m.groups()[0]
+        else:
+            m=re.search("\s([a-zA-Z ])+:([a-zA-Z ])[,]?/s([a-zA-Z ])", temp)
+            if m is not None:
+                return m.groups()[0]
 
+    return ""
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
