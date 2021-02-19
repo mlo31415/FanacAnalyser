@@ -292,7 +292,7 @@ def ExtractCountry(soup: BeautifulSoup) -> str:
         if m is not None:
             return m.groups()[0]
         else:
-            m=re.search("\s([a-zA-Z ])+:([a-zA-Z ])[,]?/s([a-zA-Z ])", temp)
+            m=re.search("\s([a-zA-Z. ])+:([a-zA-Z. ])[,]?/s([a-zA-Z. ])", temp)
             if m is not None:
                 return m.groups()[0]
 
