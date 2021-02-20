@@ -324,8 +324,9 @@ if os.path.exists("control-year.txt"):
 
 # Count the number of pages, issues and PDFs and also generate a report listing all fanzines for which a page count can't be locatedpageCount=0
 issueCount=0
-pdfCount=0
+pdfIssueCount=0
 pageCount=0
+pdfPageCount=0
 f=open(os.path.join(reportDir, "Items with No Page Count.txt"), "w+")
 ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
 
@@ -333,8 +334,9 @@ for fz in fanacIssueList:
     if fz.DirURL is not None:
         issueCount+=1
         pageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
-        if os.path.splitext(fz.DirURL)[1] == ".pdf":
-            pdfCount+=1
+        if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+            pdfIssueCount+=1
+            pdfPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
         if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
             f.write(str(fz)+"\n")
 f.close()
@@ -426,13 +428,13 @@ listOfNewszines=sorted(list(newszinesSet))
 # Count the number of issue and pages of all fanzines and just newszines
 newsPageCount=0
 newsIssueCount=0
-newsPdfCount=0
+newsPdfIssueCount=0
 for fz in fanacIssueList:
     if fz.SeriesName.lower() in listOfNewszines and fz.PageName is not None:
         newsIssueCount+=1
         newsPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
-        if os.path.splitext(fz.DirURL)[1] == ".pdf":
-            newsPdfCount+=1
+        if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+            newsPdfIssueCount+=1
 
 # Look for lines in the list of newszines which don't match actual newszines on the site.
 unusedLines=[x for x in listOfNewszines if x.lower() not in listOfNewszines]
@@ -530,13 +532,15 @@ nzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList if fz.SeriesName
 
 # Print to the console and also the statistics file
 Log("\n")
-Log("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfCount))
-Log("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfCount))
+Log("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfIssueCount))
+Log("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfIssueCount))
+Log("All PDF fanzines: Issues: "+"{:,}".format(pdfIssueCount)+"  Pages: "+"{:,}".format(pdfPageCount))
 for selectedYear in selectedYears:
     Log(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
-    print("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfCount), file=f)
-    print("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfCount), file=f)
+    print("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfIssueCount), file=f)
+    print("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfIssueCount), file=f)
+    print("All PDF fanzines: Issues: "+"{:,}".format(pdfIssueCount)+"  Pages: "+"{:,}".format(pdfPageCount), file=f)
     for selectedYear in selectedYears:
         print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]), file=f)
 
