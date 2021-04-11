@@ -4,6 +4,8 @@ import requests
 import os
 import sys
 import re
+import math
+import datetime
 from bs4 import BeautifulSoup
 import unidecode
 from collections import namedtuple
@@ -652,5 +654,40 @@ WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            countText=timestamp,
            headerFilename="control-Header (Fanzine, by country).html",
            inAlphaOrder=True)
+
+
+# Compute counts of issues and series by decade.
+# We get the issue numbers by simply going through the list and adding one to the appropriate decade.
+# For series, we create a set of series found for that decade
+
+# issueDecadeCount and seriesDecadeCount are  dictionaries keyed by decade: 190, 191, ...199, 200...
+# For issueDecadeCount, the value is a count for that decade
+# For seriesDecadeCount, the value is a set of series names which we will count in the end.
+issueDecadeCount={}
+seriesDecadeCount={}
+for issue in fanacIssueList:
+    year=0
+    if issue.FIS is not None and issue.FIS.Year is not None:
+        year=issue.FIS.Year
+    decade=math.floor(year/10)
+    if decade not in issueDecadeCount:
+        issueDecadeCount[decade]=0
+        seriesDecadeCount[decade]=set()
+    issueDecadeCount[decade]+=1
+    seriesDecadeCount[decade].add(issue.SeriesName)
+
+# Print the report
+with open(os.path.join(reportDir, "Decade counts.txt"), "w+") as f:
+    f.write(str(datetime.date.today())+"\n")
+    f.write("Counts of fanzines and fanzine series by decade\n\n")
+    f.write(" Decade  Series  Issues\n")
+    decades=sorted([x for x in issueDecadeCount.keys()])
+    for decade in decades:
+        if decade == 0:
+            print("undated   {:5}   {:5}".format(len(seriesDecadeCount[decade]), issueDecadeCount[decade]), file=f)
+        else:
+            print("  {:3}0s   {:5}   {:5}".format(decade, len(seriesDecadeCount[decade]), issueDecadeCount[decade]), file=f)
+
+
 
 LogClose()
