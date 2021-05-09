@@ -695,6 +695,6 @@ with open(os.path.join(reportDir, "Decade counts.txt"), "w+") as f:
         else:
             print("  {:3}0s   {:5}   {:5}".format(decade, len(seriesDecadeCount[decade]), issueDecadeCount[decade]), file=f)
 
-
+Log("FanacAnalyzer has Completed.")
 
 LogClose()
