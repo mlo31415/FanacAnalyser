@@ -562,7 +562,7 @@ Country = namedtuple('Country', 'SeriesList SeriesCount')
 
 for issue in fanacIssueList:
     # If this is a new country, create a new, empty entry for it
-    countryName=issue.Country.lower()
+    countryName=issue.Country.lower().strip()
     if countryName == "":
         countryName="us"     # Joe wants fanzines with no country to be treated as US
     if countryName not in fanacSeriesDictByCountry.keys():
