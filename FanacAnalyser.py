@@ -599,12 +599,19 @@ for ckey, cval in fanacSeriesDictByCountry.items():
     serieslist.sort(key=lambda elem: elem.SeriesName.lower())
     fanacSeriesDictByCountry[ckey]=(serieslist, cval[1])  # Sorts in place on fanzine name
 
+# Take a string which is lc and turn it to City, State, US sort of capitalization
 def CapIt(s: str) -> str:
     if len(s) == 0:
         return s
     if len(s) == 2:
         return s.upper()
-    return s[0].upper()+s[1:]
+    ret=""
+    splits=s.split()
+    for split in splits:
+        if len(ret) > 0:
+            ret+=" "
+        ret+=split[0].upper()+split[1:]
+    return ret
 
 # List out the series by country data
 with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
