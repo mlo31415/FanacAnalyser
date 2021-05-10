@@ -281,20 +281,25 @@ def ExtractHrefAndTitle(columnHeaders: List[str], row: List[str]) -> Tuple[Optio
 
 
 # ============================================================================================
-def ExtractCountry(soup: BeautifulSoup) -> str:
-    temp=FindBracketedText(str(soup.body), "fanac-type")
-    if temp[0] is not None and len(temp[0]) > 0:
-        # There are two formats for this text:
-        #       Country: <country>
-        #       <country>:<city>, <state>
-        temp=RemoveAllHTMLTags2(temp[0])
-        m=re.search("\s*Country:\s*([a-zA-Z ]+)", temp)
-        if m is not None:
-            return m.groups()[0]
-        else:
-            m=re.search("\s([a-zA-Z. ])+:([a-zA-Z. ])[,]?/s([a-zA-Z. ])", temp)
-            if m is not None:
-                return m.groups()[0]
+def ExtractCountry(h: str) -> str:
+    temp=FindBracketedText(h, "fanac-type")
+    if temp[0] is None or len(temp[0]) == 0:
+        return ""
+
+    # There are two formats for this text:
+    #       Country: <country>
+    #       <country>:<city>, <state>
+    temp=RemoveAllHTMLTags2(temp[0])
+
+    # Look for "Country: <country>
+    m=re.search("\s*Country:\s*([a-zA-Z ]+)", temp)
+    if m is not None:
+        return m.groups()[0]
+
+    # Look for <country>:<state/city>
+    m=re.search("\s*([a-zA-Z. ]+):([a-zA-Z. ]*)[,]?\s*([a-zA-Z. ]?)", temp)
+    if m is not None:
+        return m.groups()[0]
 
     return ""
 
@@ -384,7 +389,10 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> L
             editor+=", "
         editor+=h
 
-    country=ExtractCountry(soup)
+    html=str(soup.body)
+    country=ExtractCountry(html)
+    if country == "":
+        Log("No country found for "+fanzineName)
 
     # Walk the table and extract the fanzines in it
     fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
@@ -417,7 +425,10 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> List[FanzineIssueI
 
     # Scan for flagged tables on this page
     table=LocateIndexTable(directoryUrl, soup, silence=True)
-    country=ExtractCountry(soup)
+    html=str(soup.body)
+    country=ExtractCountry(html)
+    if country == "":
+        Log("No country found for "+fanzineName)
     if table is not None:
         fiiList.extend(ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country))
 
