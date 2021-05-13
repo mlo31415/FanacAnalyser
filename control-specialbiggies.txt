@@ -2,5 +2,5 @@
 # They *are* supported
 # ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
-Australian Science Fiction Bullsheet, The
+#Australian Science Fiction Bullsheet, The
 MT Void, The
