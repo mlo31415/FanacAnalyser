@@ -335,10 +335,10 @@ ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
 for fz in fanacIssueList:
     if fz.DirURL is not None:
         issueCount+=1
-        pageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
+        pageCount+=fz.Pagecount
         if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
             pdfIssueCount+=1
-            pdfPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
+            pdfPageCount+=fz.Pagecount
         if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
             f.write(str(fz)+"\n")
 f.close()
@@ -434,7 +434,7 @@ newsPdfIssueCount=0
 for fz in fanacIssueList:
     if fz.SeriesName.lower() in listOfNewszines and fz.PageName is not None:
         newsIssueCount+=1
-        newsPageCount+=(fz.Pagecount if fz.Pagecount > 0 else 1)
+        newsPageCount+=fz.Pagecount
         if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
             newsPdfIssueCount+=1
 
