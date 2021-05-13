@@ -563,9 +563,9 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
 
 #TODO: We need to skip entries which point to a directory: E.g., Axe in Irish_Fandom
     # Now we process the table rows, extracting the information for each fanzine issue.
-    for iRow in range(len(tableRows)):
-        # We need to skip the column headers
-        tableRow=tableRows[iRow]
+    fiiList: List[FanzineIssueInfo]=[]
+    for iRow, tableRow in enumerate(tableRows):
+        # Skip the column headers row
         if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
             continue
         Log("   row="+str(tableRow))
