@@ -27,9 +27,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[Fanz
     # Loop over the list of all fanzines, building up a list of those on fanac.org
     Log("----Begin reading index.html files on fanac.org")
 
-    global g_browser
-    g_browser=None
-    fanacIssueInfo=[]
+    fanacIssueInfo: List[FanzineIssueInfo]=[]
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
@@ -113,8 +111,6 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[Fanz
 
     # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
     Log("----Done reading index.html files on fanac.org")
-    if g_browser is not None:
-        g_browser.quit()
 
     fanacIssueInfo=RemoveDuplicates(fanacIssueInfo)
 
@@ -131,7 +127,7 @@ def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueIn
 #TODO Drop external links which duplicate Fanac.org
     # Any duplicates will be adjacent, so search for adjacent directoryURL+URL
     last=""
-    dedupedList=[]
+    dedupedList: List[FanzineIssueInfo]=[]
     for fz in fanzineList:
         this=fz.DirURL+(fz.PageName if fz.PageName is not None else "")
         if this != last:
@@ -246,10 +242,10 @@ def ExtractPageCount(columnHeaders: List[str], row: List[str]) -> int:
 def FindIssueCell(columnHeaders: List[str], row: List[str]) -> str:
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
     issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
-    if issueCell is None:
+    if issueCell == ("", ""):
         issueCell=GetCellValueByColHeader(columnHeaders, row, "Title")
-    if issueCell is None:
-        issueCell="<not found>"
+    if issueCell == ("", ""):
+        issueCell="<not found>", ''
 
     return issueCell
 
@@ -306,7 +302,6 @@ def ExtractCountry(h: str) -> str:
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> List[FanzineIssueInfo]:
-    global g_browser
 
     Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
 
@@ -415,7 +410,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> L
 # The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
 def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> List[FanzineIssueInfo]:
 
-    fiiList=[]
+    fiiList: List[FanzineIssueInfo]=[]
 
     soup=OpenSoup(directoryUrl)
     if soup is None:
@@ -653,7 +648,6 @@ def LookForTable(soup: BeautifulSoup, flags: Dict[str, str]) -> Optional[Tag]:
 #===============================================================================
 # Locate a fanzine index table.
 def LocateIndexTable(directoryUrl: str, soup: BeautifulSoup, silence: bool=False) -> Optional[Tag]:
-    global g_browser
 
     # Because the structures of the pages are so random, we need to search the body for the table.
     # *So far* nearly all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.

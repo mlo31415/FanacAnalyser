@@ -1,4 +1,4 @@
-from typing import TextIO, List, Tuple, Optional, Callable, Any
+from typing import TextIO, List, Tuple, Optional, Callable, Any, Dict, Set
 from time import localtime, strftime
 import requests
 import os
@@ -11,7 +11,7 @@ import unidecode
 from collections import namedtuple
 
 import FanacOrgReaders
-from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo, FanzineCounts
+from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents, RemoveAllHTMLTags2
 
@@ -28,7 +28,7 @@ def ReadAllFanacFanzineMainPages() -> List[Tuple[str, str]]:
     Log("----Begin reading Classic and Modern tables")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
-    fanacFanzineDirectoriesList=[]
+    fanacFanzineDirectoriesList: List[Tuple[str, str]]=[]
     directories=ReadList("control-topleveldirectories.txt")
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectoriesList, dirs)
@@ -309,7 +309,7 @@ def NoNone(s: str) -> str:
 
 
 # Read the control-year.txt file to get the year to be dumped out
-selectedYears=[]
+selectedYears: List[Tuple[int, int]]=[]
 if os.path.exists("control-year.txt"):
     years=ReadList("control-year.txt")
     for year in years:      # For each year in the list of years to be dumped
@@ -557,8 +557,8 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
 # Now generate a list of fanzine series sorted by country
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
 # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-fanacSeriesDictByCountry={}     # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 Country = namedtuple('Country', 'SeriesList SeriesCount')
+fanacSeriesDictByCountry: Dict[str, Country]={}     # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
 for issue in fanacIssueList:
     # If this is a new country, create a new, empty entry for it
@@ -626,7 +626,7 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
             Log("    "+series.DisplayName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
 
 # Now create a properly ordered flat list suitable for WriteTable
-fanacFanzineSeriesListByCountry=[]
+fanacFanzineSeriesListByCountry: List[Tuple[str, int, str]]=[]
 for countryName, countryEntries in fanacSeriesDictByCountry.items():
     for v in countryEntries[0]:
         fanacFanzineSeriesListByCountry.append((countryName, countryEntries[1], v))       # (country, countryCount, series)
@@ -670,8 +670,8 @@ WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
 # issueDecadeCount and seriesDecadeCount are  dictionaries keyed by decade: 190, 191, ...199, 200...
 # For issueDecadeCount, the value is a count for that decade
 # For seriesDecadeCount, the value is a set of series names which we will count in the end.
-issueDecadeCount={}
-seriesDecadeCount={}
+issueDecadeCount: Dict[int, int]={}
+seriesDecadeCount: Dict[int, Set[str]]={}
 for issue in fanacIssueList:
     year=0
     if issue.FIS is not None and issue.FIS.Year is not None:
