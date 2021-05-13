@@ -324,7 +324,7 @@ if os.path.exists("control-year.txt"):
         selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
 
 
-# Count the number of pages, issues and PDFs and also generate a report listing all fanzines for which a page count can't be locatedpageCount=0
+# Count the number of pages, issues and PDFs and also generate a report listing all fanzines for which a page count can't be located
 issueCount=0
 pdfIssueCount=0
 pageCount=0
@@ -599,7 +599,7 @@ for ckey, cval in fanacSeriesDictByCountry.items():
     serieslist.sort(key=lambda elem: elem.SeriesName.lower())
     fanacSeriesDictByCountry[ckey]=(serieslist, cval[1])  # Sorts in place on fanzine name
 
-# Take a string which is lc and turn it to City, State, US sort of capitalization
+# Take a string which is lower case and turn it to City, State, US sort of capitalization
 def CapIt(s: str) -> str:
     if len(s) == 0:
         return s
