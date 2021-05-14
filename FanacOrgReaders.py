@@ -658,6 +658,11 @@ def LocateIndexTable(directoryUrl: str, soup: BeautifulSoup, silence: bool=False
     if table is not None:
         return table
 
+    # And Toto...
+    table=LookForTable(soup, {"border" : "1", "cellpadding" : "2"})
+    if table is not None:
+        return table
+
     # Then there's Bable-On...
     table=LookForTable(soup, {"cellpadding" : "10"})
     if table is not None:
