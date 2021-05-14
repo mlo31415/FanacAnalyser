@@ -431,8 +431,7 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> List[FanzineIssueI
         # If it's an html file it's probably worth investigating
         if "href" in link.attrs.keys():     # Some pages have <A NAME="1"> tags which we need to ignore
             url=link.attrs["href"]
-            p=re.compile("^[a-zA-Z0-9\-_]*.html$")
-            m=p.match(url)
+            m=re.match("^[a-zA-Z0-9\-_]*.html$", url)
             if m is not None:
                 if url.startswith("index") or url.startswith("archive") or url.startswith("Bullsheet1-00") or url.startswith("Bullsheet2-00"):
                     u=ChangeFileInURL(directoryUrl, url)
