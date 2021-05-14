@@ -626,12 +626,13 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
 def LookForTable(soup: BeautifulSoup, flags: Dict[str, str]) -> Optional[Tag]:
 
     tables=soup.find_all("table")
+    # Look through all tables on the page
     for table in tables:
+        # If a table matches *all* of the flags, return the table
         ok=True
         for key in flags.keys():
             if key not in table.attrs or table.attrs[key] is None or table.attrs[key] != flags[key]:
                 ok=False
-                break
         if ok:
             return table
     return None
