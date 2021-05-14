@@ -157,7 +157,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: List[Tuple[str, str]], cel
 #=============================================================================================
 # Extract a date from a table row
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
-def ExtractDate(columnHeaders: List[str], row: List[str]) -> FanzineDate:
+def ExtractDate(columnHeaders: List[str], row: List[Tuple[str, str]]) -> FanzineDate:
 
     # Does this have a Date column?  If so, that's all we need. (I hope...)
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")[0]
@@ -220,7 +220,7 @@ def ExtractSerial(columnHeaders: List[str], row: List[Tuple[str, str]]) -> Fanzi
 
 #============================================================================================
 # Find the cell containing the page count and return its value
-def ExtractPageCount(columnHeaders: List[str], row: List[str]) -> int:
+def ExtractPageCount(columnHeaders: List[str], row: List[Tuple[str, str]]) -> int:
 
     pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])[0]
     if pageText is None:
