@@ -496,9 +496,6 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> List[FanzineIssu
 
     content=[str(e) for e in soup.h2.contents if type(e) is NavigableString]
 
-    # The title is the first line
-    title=content[0]
-
     # The date is the first line that looks like a date
     date=None
     for c in content:
