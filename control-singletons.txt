@@ -3,7 +3,7 @@
 # ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
 BNF_of_IZ
-emu
+#emu
 Enchanted_Duplicator
 Entropy
 Flight of the Kangaroo, The
@@ -12,8 +12,8 @@ LeeHoffman
 Memoirs_of_a_Superflous_Fan
 Monster
 Sense_FAPA
-SF_Digest
-SFSFS
+#SF_Digest
+#SFSFS
 Smorgasbord
 SpaceFlight
 Willis_Papers
