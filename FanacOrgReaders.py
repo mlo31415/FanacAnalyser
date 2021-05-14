@@ -581,7 +581,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
                 # OK, this is a fanac URL.  Divide it into a file and a path
                 fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
                 if len(fname) == 0:
-                    Log("***FanacOrgReaders: href='"+href+"' seems to be pointing to a directory, not a file. Skipped", isError=True)
+                    Log("   FanacOrgReaders: href='"+href+"' seems to be pointing to a directory, not a file. Skipped", isError=True)
                     continue
                 path=href.replace("/"+fname, "")
                 href=fname
