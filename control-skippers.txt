@@ -2,6 +2,6 @@
 # These probably need to be dealt with on the fanac.org side of things
 # ("#" marks a comment and everything from the # to the end of the lis is ignored)
 
-#Legal Rules, The                # This is off in the conventions directory
-#NOLAzine                        # BeautifulSoup found no index table in index.html
-#Cosmag                          # Another weired one-off format
+# Legal Rules, The                # This is off in the conventions directory
+# NOLAzine                        # BeautifulSoup found no index table in index.html
+# Cosmag                          # Another weired one-off format
