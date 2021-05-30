@@ -3,9 +3,9 @@
 # This file lists them in order to supporess error messages in certain error reports.
 MT Void, The
 IGOTS
-Stratus SF SIG News
-Bullsheet
-Australian Science Fiction Bullsheet, The
+sfnews      # Stratus SF SIG News
+# Bullsheet
+# Australian Science Fiction Bullsheet, The
 TommyWorld
-Bable-On
-Futuria Fantasia
+Bable_On
+FuturiaFantasia
