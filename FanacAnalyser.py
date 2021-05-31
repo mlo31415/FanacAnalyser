@@ -565,8 +565,7 @@ for issue in fanacIssueList:
     countryName=issue.Country.lower().strip()
     if countryName == "":
         countryName="us"     # Joe wants fanzines with no country to be treated as US
-    if countryName not in fanacSeriesDictByCountry.keys():
-        fanacSeriesDictByCountry[countryName]=Country([], FanzineCounts())     # Add an empty country entry
+    fanacSeriesDictByCountry.setdefault(countryName, Country([], FanzineCounts()))  # If needed, add an empty country entry
 
     serieslist=fanacSeriesDictByCountry[countryName].SeriesList
     # serieslist is the list of fanzine series with counts for this country
@@ -677,9 +676,10 @@ for issue in fanacIssueList:
     if issue.FIS is not None and issue.FIS.Year is not None:
         year=issue.FIS.Year
     decade=math.floor(year/10)
-    if decade not in issueDecadeCount:
-        issueDecadeCount[decade]=0
-        seriesDecadeCount[decade]=set()
+
+    issueDecadeCount.setdefault(decade, 0)
+    seriesDecadeCount.setdefault(decade, set())
+
     issueDecadeCount[decade]+=1
     seriesDecadeCount[decade].add(issue.SeriesName)
 
