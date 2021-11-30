@@ -114,9 +114,9 @@ def WriteTable(filename: str,
             # Do the substitutions
             for i in range(0, len(basicHeadertext)):
                 if basicHeadertext[i].strip() == "<title>title</title>":
-                    basicHeadertext[i]="<title>" + title + "</title>"
+                    basicHeadertext[i]=f"<title>{title}</title>"
                 if basicHeadertext[i].strip() == "<h1>title</h1>":
-                    basicHeadertext[i]="<h1>" + title + "</h1>"
+                    basicHeadertext[i]=f"<h1>{title}</h1>"
             basicHeadertext.extend(specialText)
 
         f.writelines(basicHeadertext)
@@ -250,15 +250,15 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: List[Tuple[str, str]], name: 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectoriesList if e2 == dirname]
     if len(dups) > 0:
-        Log("   duplicate: name="+name+"  dirname="+dirname)
+        Log(f"   duplicate: {name=}  {dirname=}")
         return
 
-    if dirname[:3]=="http":
-        Log("    ignored, because is HTML: "+dirname)
+    if dirname.startswith("http"):
+        Log(f"    ignored, because is HTML: {dirname}")
         return
 
     # Add name and directory reference
-    Log("   added to fanacFanzineDirectories:  name='"+name+"'  dirname='"+dirname+"'")
+    Log(f"   added to fanacFanzineDirectories:  {name=}  {dirname=}")
     fanacFanzineDirectoriesList.append((name, dirname))
     return
 
@@ -448,7 +448,7 @@ with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as
 with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
     f.writelines(unusedLines)
 
-countText="{:,}".format(newsIssueCount)+" issues consisting of "+"{:,}".format(newsPageCount)+" pages."
+countText=f"{newsIssueCount:,} issues consisting of {newsPageCount:,} pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
            fanacIssueList,
            lambda fz: UnicodeToHtml(fz.IssueName),
@@ -471,7 +471,7 @@ def AlphaSortText(fz: FanzineIssueInfo) -> str:
         elif c.isdigit():
             out+=c
     return out
-countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
+countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
 fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
 fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
 
@@ -489,7 +489,7 @@ def Annotate(fz: FanzineIssueInfo) -> str:
         return ""
     if fz.FIS.FD.IsEmpty():
         return ""
-    return "<small>("+str(fz.FIS.FD.LongDates)+')</small>'
+    return f"<small>({fz.FIS.FD.LongDates}</small>"
 
 WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
            fanacIssueList,
@@ -534,15 +534,15 @@ nzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList if fz.SeriesName
 
 # Print to the console and also the statistics file
 Log("\n")
-Log("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfIssueCount))
-Log("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfIssueCount))
-Log("All PDF fanzines: Issues: "+"{:,}".format(pdfIssueCount)+"  Pages: "+"{:,}".format(pdfPageCount))
+Log(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}")
+Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}")
+Log(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}")
 for selectedYear in selectedYears:
     Log(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]))
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
-    print("All fanzines: Titles: "+"{:,}".format(fzCount)+"  Issues: "+"{:,}".format(issueCount)+"  Pages: "+"{:,}".format(pageCount)+"  PDFs: "+"{:,}".format(pdfIssueCount), file=f)
-    print("Newszines:  Titles: "+"{:,}".format(nzCount)+"  Issues: "+"{:,}".format(newsIssueCount)+"  Pages: "+"{:,}".format(newsPageCount)+"  PDFs: "+"{:,}".format(newsPdfIssueCount), file=f)
-    print("All PDF fanzines: Issues: "+"{:,}".format(pdfIssueCount)+"  Pages: "+"{:,}".format(pdfPageCount), file=f)
+    print(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: "+"{pageCount:,}  PDFs: {pdfIssueCount:,}", file=f)
+    print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}", file=f)
+    print(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}", file=f)
     for selectedYear in selectedYears:
         print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]), file=f)
 
