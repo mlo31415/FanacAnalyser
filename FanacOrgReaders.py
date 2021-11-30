@@ -461,7 +461,8 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
     Log("...loaded", noNewLine=True)
 
     # Next, parse the page looking for the body
-    soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
+    # soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
+    soup=BeautifulSoup(h.content, "html.parser")
     Log("...BeautifulSoup opened")
     return soup
 
