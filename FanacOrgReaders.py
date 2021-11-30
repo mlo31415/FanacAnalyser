@@ -574,8 +574,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         if href is not None:
             if href.startswith(directoryUrl):
                 href=href.replace(directoryUrl, "")
-                if href[0] == "/":
-                    href=href[1:]   # Delete any remnant leading "/"
+                href=href.removeprefix("/")   # Delete any remnant leading "/"
             elif href.startswith("http://www.fanac.org/") or href.startswith("http://fanac.org/") or href.startswith("https://www.fanac.org/") or href.startswith("https://fanac.org/"):
                 # OK, this is a fanac URL.  Divide it into a file and a path
                 fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
