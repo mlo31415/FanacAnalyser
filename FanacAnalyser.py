@@ -380,7 +380,7 @@ def URL(fz: FanzineIssueInfo) -> str:
             url=fz.PageName
     return url
 
-countText=f"{issueCount:,} issues consisting of "+"{pageCount:,} pages."
+countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: UnicodeToHtml(fz.IssueName),
