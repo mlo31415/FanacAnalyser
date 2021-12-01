@@ -540,7 +540,7 @@ Log(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}")
 for selectedYear in selectedYears:
     Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
-    print(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: "+"{pageCount:,}  PDFs: {pdfIssueCount:,}", file=f)
+    print(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}", file=f)
     print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}", file=f)
     print(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}", file=f)
     for selectedYear in selectedYears:
