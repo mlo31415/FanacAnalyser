@@ -285,7 +285,7 @@ if not os.path.isdir(reportDir):
     try:
         os.mkdir(reportDir)
     except Exception as e:
-        Log("***Fatal Error: Attempt to create directory "+reportDir+" yields exception: "+str(e), isError=True)
+        Log(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}", isError=True)
         exit(1)
 Log("Report directory '"+reportDir+"' created")
 LogFlush()
@@ -318,7 +318,7 @@ if os.path.exists("control-year.txt"):
         yearCount=0
         for fz in fanacIssueList:
             if fz.FIS.Year == year:
-                file.write("|| "+NoNone(fz.IssueName)+" || "+NoNone(str(fz.FIS))+" || " + NoNone(fz.DirURL) +" || " + NoNone(fz.PageName) + " ||\n")
+                file.write(f"|| {NoNone(fz.IssueName)} || {NoNone(str(fz.FIS))} || {NoNone(fz.DirURL)} || {NoNone(fz.PageName)} ||\n")
                 yearCount+=1
         file.close()
         selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
@@ -538,13 +538,13 @@ Log(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCou
 Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}")
 Log(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}")
 for selectedYear in selectedYears:
-    Log(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]))
+    Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
 with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
     print(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: "+"{pageCount:,}  PDFs: {pdfIssueCount:,}", file=f)
     print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}", file=f)
     print(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}", file=f)
     for selectedYear in selectedYears:
-        print(str(selectedYear[0])+" Fanzines: "+str(selectedYear[1]), file=f)
+        print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
 
 WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
            fanacIssueList,
@@ -619,10 +619,10 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
     for key in keys:
         val=fanacSeriesDictByCountry[key]
         k=key if len(key.strip()) > 0 else "<no country>"
-        print("\n"+CapIt(k)+"   "+str(len(val[0]))+" titles,  "+str(val[1].Issuecount)+" issues,  and "+str(val[1].Pagecount)+" pages", file=f)
+        print(f"\n{CapIt(k)}   {len(val[0])} titles,  {val[1].Issuecount} issues,  and {val[1].Pagecount} pages", file=f)
         for series in val[0]:
-            print("    "+series.DisplayName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)", file=f)
-            Log("    "+series.DisplayName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
+            print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
+            Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
 
 # Now create a properly ordered flat list suitable for WriteTable
 fanacFanzineSeriesListByCountry: list[tuple[str, int, str]]=[]
@@ -655,8 +655,8 @@ WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
            fRowHeaderText=lambda elem: CapIt(elem[0]),
            fURL=lambda elem: elem[2].DirURL,
            fButtonText=lambda elem: CapIt(elem[0]),
-           fRowAnnot=lambda elem: "<small>"+Annotate(elem[2])+"</small>",
-           fHeaderAnnot=lambda elem: "<small>"+Annotate(elem[1])+"</small>",
+           fRowAnnot=lambda elem: f"<small>{Annotate(elem[2])}</small>",
+           fHeaderAnnot=lambda elem: f"<small>{Annotate(elem[1])}</small>",
            countText=timestamp,
            headerFilename="control-Header (Fanzine, by country).html",
            inAlphaOrder=True)
@@ -690,10 +690,11 @@ with open(os.path.join(reportDir, "Decade counts.txt"), "w+") as f:
     f.write(" Decade  Series  Issues\n")
     decades=sorted([x for x in issueDecadeCount.keys()])
     for decade in decades:
+        counts=f"{len(seriesDecadeCount[decade]):5}   {issueDecadeCount[decade]:5}"
         if decade == 0:
-            print("undated   {:5}   {:5}".format(len(seriesDecadeCount[decade]), issueDecadeCount[decade]), file=f)
+            print(f"undated   {counts}", file=f)
         else:
-            print("  {:3}0s   {:5}   {:5}".format(decade, len(seriesDecadeCount[decade]), issueDecadeCount[decade]), file=f)
+            print(f"  {decade:3}0s   {counts}", file=f)
 
 Log("FanacAnalyzer has Completed.")
 
