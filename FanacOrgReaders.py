@@ -141,14 +141,11 @@ def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueIn
 # If cellname is a list of names, try them all and return the first that hits
 def GetCellValueByColHeader(columnHeaders: list, row: List[Tuple[str, str]], cellnames: Union[str, List[str]]) -> Tuple[str, str]:
 
-    if type(cellnames) is list:
-        for i in range(0, len(columnHeaders)):
-            for cn in cellnames:
-                if CanonicizeColumnHeaders(columnHeaders[i]) == CanonicizeColumnHeaders(cn):
-                    return ChangeNBSPToSpace(row[i][0]), row[i][1]
-    else:
-        for i in range(0, len(columnHeaders)):
-            if CanonicizeColumnHeaders(columnHeaders[i]) == CanonicizeColumnHeaders(cellnames):
+    # Make sure we have a list of cell names
+    celllist=cellnames if type(cellnames) is list else [cellnames]
+    for cn in celllist:
+        for i, header in enumerate(columnHeaders):
+            if CanonicizeColumnHeaders(header) == CanonicizeColumnHeaders(cn):
                 return ChangeNBSPToSpace(row[i][0]), row[i][1]
 
     return "", ""
