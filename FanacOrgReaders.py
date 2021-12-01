@@ -378,7 +378,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> L
     for h in h2s:
         if re.match(pattern, h):
             break
-        if len(editor) > 0:
+        if editor:
             editor+=", "
         editor+=h
 
@@ -390,7 +390,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> L
     # Walk the table and extract the fanzines in it
     fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
 
-    if len(fiiList) > 0:
+    if fiiList:
         fsi=FanzineSeriesInfo(SeriesName=fiiList[0].SeriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country)
 
         # Add the tags and the series info pointer

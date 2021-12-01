@@ -87,8 +87,8 @@ def WriteTable(filename: str,
                fDirURL: Optional[Callable[[Any], str]]=None,  # Function to supply the directory or root URL
                fRowAnnot: Optional[Callable[[Any], str]]=None,  # Function to supply annotation to the rows
                fHeaderAnnot: Optional[Callable[[Any], str]] = None,  # Function to supply annotation to the headers
-               countText: Optional[str]=None,
-               headerFilename: Optional[str]=None,
+               countText: str="",
+               headerFilename: str="",
                fSelector: Optional[Callable[[Any], bool]]=None,
                inAlphaOrder: bool=False)\
                 -> None:
@@ -121,7 +121,7 @@ def WriteTable(filename: str,
 
         f.writelines(basicHeadertext)
 
-    if countText is not None:
+    if countText:
         if html:
             countText=countText.replace("\n", "<p>")
             countText="<p>"+countText+"</p>\n"
@@ -145,7 +145,7 @@ def WriteTable(filename: str,
         headerlist.sort()
         buttonlist=""
         for item in headerlist:
-            if len(buttonlist) > 0:
+            if buttonlist:
                 buttonlist=buttonlist+" &mdash; "
             buttonlist+=FormatLink("#"+ item, item)
 
@@ -166,8 +166,8 @@ def WriteTable(filename: str,
     if html:
         f.write('<div>\n')  # Begin the main table
 
-    lastRowHeader=None
-    lastButtonLinkString=None
+    lastRowHeader: str=""
+    lastButtonLinkString: str=""
     for fz in fanacIssueList:
         # Do we skip this fanzine
         if fSelector is not None and not fSelector(fz):
@@ -185,7 +185,7 @@ def WriteTable(filename: str,
         # Start a new row
         # Deal with Column 1
         if fRowHeaderText is not None and lastRowHeader != fRowHeaderText(fz):
-            if lastRowHeader is not None:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
+            if lastRowHeader:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                 if html: f.write('    </div></div>\n')
             lastRowHeader=fRowHeaderText(fz)
 
@@ -249,7 +249,7 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: List[Tuple[str, str]], name: 
 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectoriesList if e2 == dirname]
-    if len(dups) > 0:
+    if dups:
         Log(f"   duplicate: {name=}  {dirname=}")
         return
 
@@ -607,7 +607,7 @@ def CapIt(s: str) -> str:
     ret=""
     splits=s.split()
     for split in splits:
-        if len(ret) > 0:
+        if ret:
             ret+=" "
         ret+=split[0].upper()+split[1:]
     return ret
@@ -645,7 +645,7 @@ def Annotate(elem: FanzineCounts) -> str:
     if i > 0:
         s+=str(i)+" issue"+plural(i)+", "
         s+=str(p)+" page"+plural(p)
-    if len(s) > 0:
+    if s:
         s="("+s+")"
     return s
 
