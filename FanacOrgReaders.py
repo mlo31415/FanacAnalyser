@@ -579,8 +579,8 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
             elif href.startswith("http://www.fanac.org/") or href.startswith("http://fanac.org/") or href.startswith("https://www.fanac.org/") or href.startswith("https://fanac.org/"):
                 # OK, this is a fanac URL.  Divide it into a file and a path
                 fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
-                if len(fname) == 0:
-                    Log("   FanacOrgReaders: href='"+href+"' seems to be pointing to a directory, not a file. Skipped", isError=True)
+                if fname:
+                    Log(f"   FanacOrgReaders: href='{href}' seems to be pointing to a directory, not a file. Skipped", isError=True)
                     continue
                 path=href.replace("/"+fname, "")
                 href=fname

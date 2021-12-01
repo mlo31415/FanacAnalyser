@@ -124,7 +124,7 @@ def WriteTable(filename: str,
     if countText:
         if html:
             countText=countText.replace("\n", "<p>")
-            countText="<p>"+countText+"</p>\n"
+            countText=f"<p>{countText}</p>\n"
         f.write(countText)
 
 
@@ -380,7 +380,7 @@ def URL(fz: FanzineIssueInfo) -> str:
             url=fz.PageName
     return url
 
-countText="{:,}".format(issueCount)+" issues consisting of "+"{:,}".format(pageCount)+" pages."
+countText=f"{issueCount:,} issues consisting of "+"{pageCount:,} pages."
 WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
            datedList,
            lambda fz: UnicodeToHtml(fz.IssueName),
