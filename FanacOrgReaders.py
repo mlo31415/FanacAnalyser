@@ -1,4 +1,4 @@
-from typing import Union, Tuple, Optional, List, Dict
+from typing import Union, Optional
 from contextlib import suppress
 from difflib import SequenceMatcher
 from bs4 import BeautifulSoup
@@ -20,14 +20,14 @@ from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt
 
 # ============================================================================================
-def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[FanzineIssueInfo]:
+def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[FanzineIssueInfo]:
     # Read index.html files on fanac.org
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
     # Loop over the list of all fanzines, building up a list of those on fanac.org
     Log("----Begin reading index.html files on fanac.org")
 
-    fanacIssueInfo: List[FanzineIssueInfo]=[]
+    fanacIssueInfo: list[FanzineIssueInfo]=[]
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
@@ -119,7 +119,7 @@ def ReadFanacFanzineIssues(fanacDirectories: List[Tuple[str, str]]) -> List[Fanz
 
 #=============================================================================================
 # Remove the duplicates from a fanzine list
-def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueInfo]:
+def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueInfo]:
     # Sort in place on fanzine's Directory's URL followed by file name
     fanzineList.sort(key=lambda fz: fz.PageName if fz.PageName is not None else "")
     fanzineList.sort(key=lambda fz: fz.DirURL if fz.DirURL is not None else "")
@@ -127,7 +127,7 @@ def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueIn
 #TODO Drop external links which duplicate Fanac.org
     # Any duplicates will be adjacent, so search for adjacent directoryURL+URL
     last=""
-    dedupedList: List[FanzineIssueInfo]=[]
+    dedupedList: list[FanzineIssueInfo]=[]
     for fz in fanzineList:
         this=fz.DirURL+(fz.PageName if fz.PageName is not None else "")
         if this != last:
@@ -139,7 +139,7 @@ def RemoveDuplicates(fanzineList: List[FanzineIssueInfo]) -> List[FanzineIssueIn
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
 # If cellname is a list of names, try them all and return the first that hits
-def GetCellValueByColHeader(columnHeaders: list, row: List[Tuple[str, str]], cellnames: Union[str, List[str]]) -> Tuple[str, str]:
+def GetCellValueByColHeader(columnHeaders: list, row: list[tuple[str, str]], cellnames: Union[str, list[str]]) -> tuple[str, str]:
 
     # Make sure we have a list of cell names
     celllist=cellnames if type(cellnames) is list else [cellnames]
@@ -154,7 +154,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: List[Tuple[str, str]], cel
 #=============================================================================================
 # Extract a date from a table row
 # We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
-def ExtractDate(columnHeaders: List[str], row: List[Tuple[str, str]]) -> FanzineDate:
+def ExtractDate(columnHeaders: list[str], row: list[tuple[str, str]]) -> FanzineDate:
 
     # Does this have a Date column?  If so, that's all we need. (I hope...)
     dateText=GetCellValueByColHeader(columnHeaders, row, "Date")[0]
@@ -201,7 +201,7 @@ def ExtractDate(columnHeaders: List[str], row: List[Tuple[str, str]]) -> Fanzine
 # Some fanzines have a whole number --> returned as VolNone, Num=nnn
 # Others have a Volume and a number --> returned as Vol=nn, Num=nn
 # Sometimes the number is composite V2#3 and stored who-knows-where and we gotta find it.
-def ExtractSerial(columnHeaders: List[str], row: List[Tuple[str, str]]) -> FanzineSerial:
+def ExtractSerial(columnHeaders: list[str], row: list[tuple[str, str]]) -> FanzineSerial:
 
     wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole")[0]
     volText=GetCellValueByColHeader(columnHeaders, row, "Volume")[0]
@@ -217,7 +217,7 @@ def ExtractSerial(columnHeaders: List[str], row: List[Tuple[str, str]]) -> Fanzi
 
 #============================================================================================
 # Find the cell containing the page count and return its value
-def ExtractPageCount(columnHeaders: List[str], row: List[Tuple[str, str]]) -> int:
+def ExtractPageCount(columnHeaders: list[str], row: list[tuple[str, str]]) -> int:
 
     pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])[0]
     if pageText is None:
@@ -236,7 +236,7 @@ def ExtractPageCount(columnHeaders: List[str], row: List[Tuple[str, str]]) -> in
 
 # ============================================================================================
 # Find the cell containing the issue name
-def FindIssueCell(columnHeaders: List[str], row: List[Tuple[str, str]]) -> Tuple[str, str]:
+def FindIssueCell(columnHeaders: list[str], row: list[tuple[str, str]]) -> tuple[str, str]:
     # Now find the column containing the issue designation. It could be "Issue" or "Title"
     issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
     if issueCell == ("", ""):
@@ -249,7 +249,7 @@ def FindIssueCell(columnHeaders: List[str], row: List[Tuple[str, str]]) -> Tuple
 
 # ============================================================================================
 # Scan the row and locate the issue cell, title and href and return them as a tuple
-def ExtractHrefAndTitle(columnHeaders: List[str], row: List[Tuple[str, str]]) -> Tuple[str, str]:
+def ExtractHrefAndTitle(columnHeaders: list[str], row: list[tuple[str, str]]) -> tuple[str, str]:
 
     issueCell=FindIssueCell(columnHeaders, row)
 
@@ -296,7 +296,7 @@ def ExtractCountry(h: str) -> str:
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> List[FanzineIssueInfo]:
+def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
 
     Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
 
@@ -403,9 +403,9 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> L
 # The "special biggie" pages are few (only two at the time this ie being written) and need to be handled specially
 # The characteristic is that they are a tree of pages which may contain one or more *tagged* fanzine index tables on any level.
 # The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
-def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> List[FanzineIssueInfo]:
+def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> list[FanzineIssueInfo]:
 
-    fiiList: List[FanzineIssueInfo]=[]
+    fiiList: list[FanzineIssueInfo]=[]
 
     soup=OpenSoup(directoryUrl)
     if soup is None:
@@ -468,7 +468,7 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
 # Function to pull an href and the accompanying text from a Tag
 # The structure is "<a href='URL'>LINKTEXT</a>
 # We want to extract the URL and LINKTEXT
-def GetHrefAndTextFromTag(tag: Tag) -> Tuple[str, str]:
+def GetHrefAndTextFromTag(tag: Tag) -> tuple[str, str]:
     try:
         href=tag.contents[0].attrs.get("href", "")
     except:
@@ -484,7 +484,7 @@ def GetHrefAndTextFromTag(tag: Tag) -> Tuple[str, str]:
 
 #======================================================================================
 # Read a singleton-format fanzine page
-def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> List[FanzineIssueInfo]:
+def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssueInfo]:
 
     # Usually, a singleton has the information in the first h2 block
     if soup.h2 is None:
@@ -510,7 +510,7 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> List[FanzineIssu
 
 #=====================================================================================
 # Function to compress newline elements from a list of Tags.
-def RemoveNewlineRows(tags: List[Tag]) -> List[Tag]:
+def RemoveNewlineRows(tags: list[Tag]) -> list[Tag]:
     compressedTags = []
     for row in tags:
         if not isinstance(row, NavigableString):
@@ -520,7 +520,7 @@ def RemoveNewlineRows(tags: List[Tag]) -> List[Tag]:
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, country: str) -> List[FanzineIssueInfo]:
+def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, country: str) -> list[FanzineIssueInfo]:
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -533,23 +533,23 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     if len(table.contents[0]) == 0:
         Log("***FanacOrgReaders: No table column headers found. Skipped", isError=True)
     columnHeaders=table.contents[0].text.strip().split("\n")
-    columnHeaders: List[str]=[CanonicizeColumnHeaders(c) for c in columnHeaders]
+    columnHeaders: list[str]=[CanonicizeColumnHeaders(c) for c in columnHeaders]
 
     # We need to pull the fanzine rows in from BeautifulSoup and save them in the same format for later analysis.
     # The format will be a list of rows
     # Each row will be a list of cells
     # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
-    tableRows: List[List[Tuple[str, str]]]=[]
+    tableRows: list[list[tuple[str, str]]]=[]
     for i in range(1, len(table)):
-        tr: List[Tag]=RemoveNewlineRows(table.contents[i])
-        newRow: List[Tuple[str, str]]=[]
+        tr: list[Tag]=RemoveNewlineRows(table.contents[i])
+        newRow: list[tuple[str, str]]=[]
         for cell in tr:
             newRow.append(GetHrefAndTextFromTag(cell))
         tableRows.append(newRow)
 
 #TODO: We need to skip entries which point to a directory: E.g., Axe in Irish_Fandom
     # Now we process the table rows, extracting the information for each fanzine issue.
-    fiiList: List[FanzineIssueInfo]=[]
+    fiiList: list[FanzineIssueInfo]=[]
     for iRow, tableRow in enumerate(tableRows):
         # Skip the column headers row
         if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
@@ -616,7 +616,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
 # Function to search recursively for the table containing the fanzines listing
 # flags is a dictionary of attributes and values to be matched, e.g., {"class" : "indextable", ...}
 # We must match all of them
-def LookForTable(soup: BeautifulSoup, flags: Dict[str, str]) -> Optional[Tag]:
+def LookForTable(soup: BeautifulSoup, flags: dict[str, str]) -> Optional[Tag]:
 
     tables=soup.find_all("table")
     # Look through all tables on the page

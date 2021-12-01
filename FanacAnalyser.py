@@ -1,4 +1,4 @@
-from typing import TextIO, List, Tuple, Optional, Callable, Any, Dict, Set
+from typing import TextIO, Optional, Callable, Any, Set
 from time import localtime, strftime
 import requests
 import os
@@ -24,11 +24,11 @@ LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer 
 #       The name on page is the display named used in the Classic and Modern tables
 #       The name of directory is the name of the directory pointed to
 
-def ReadAllFanacFanzineMainPages() -> List[Tuple[str, str]]:
+def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
     Log("----Begin reading Classic and Modern tables")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
-    fanacFanzineDirectoriesList: List[Tuple[str, str]]=[]
+    fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
     directories=ReadList("control-topleveldirectories.txt")
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectoriesList, dirs)
@@ -39,7 +39,7 @@ def ReadAllFanacFanzineMainPages() -> List[Tuple[str, str]]:
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
-def ReadModernOrClassicTable(fanacFanzineDirectoriesList: List[Tuple[str, str]], url: str) -> None:
+def ReadModernOrClassicTable(fanacFanzineDirectoriesList: list[tuple[str, str]], url: str) -> None:
     h=requests.get(url)
     s=BeautifulSoup(h.content, "html.parser")
     # We look for the first table that does not contain a "navbar"
@@ -61,7 +61,7 @@ def ReadModernOrClassicTable(fanacFanzineDirectoriesList: List[Tuple[str, str]],
     return
 
 
-def ReadFile(filename: str) -> Optional[List[str]]:
+def ReadFile(filename: str) -> Optional[list[str]]:
     try:
         with open(filename, "r") as f2:
             return f2.readlines()
@@ -79,7 +79,7 @@ def ReadFile(filename: str) -> Optional[List[str]]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
-               fanacIssueList: List,  # The sorted input list
+               fanacIssueList: list,  # The sorted input list
                fRowBodyText: Callable[[Any], str],  # Function to supply the row's body text
                fButtonText: Optional[Callable[[Any], str]]=None,  # Function to supply the button text
                fRowHeaderText: Optional[Callable[[Any], str]]=None,  # Function to supply the header text
@@ -176,7 +176,7 @@ def WriteTable(filename: str,
             continue
 
         # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
-        buttonLinkString=""
+        buttonLinkString: str=""
         if html:
             if fButtonText is not None:
                 if fButtonText(fz) is not None:
@@ -245,7 +245,7 @@ def WriteTable(filename: str,
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacFanzineDirectoriesList: List[Tuple[str, str]], name: str, dirname: str) -> None:
+def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: str, dirname: str) -> None:
 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectoriesList if e2 == dirname]
@@ -309,7 +309,7 @@ def NoNone(s: str) -> str:
 
 
 # Read the control-year.txt file to get the year to be dumped out
-selectedYears: List[Tuple[int, int]]=[]
+selectedYears: list[tuple[int, int]]=[]
 if os.path.exists("control-year.txt"):
     years=ReadList("control-year.txt")
     for year in years:      # For each year in the list of years to be dumped
@@ -558,7 +558,7 @@ WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
 # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
 # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
 Country = namedtuple('Country', 'SeriesList SeriesCount')
-fanacSeriesDictByCountry: Dict[str, Country]={}     # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
+fanacSeriesDictByCountry: dict[str, Country]={}     # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
 for issue in fanacIssueList:
     # If this is a new country, create a new, empty entry for it
@@ -625,7 +625,7 @@ with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
             Log("    "+series.DisplayName+"    ("+str(series.Issuecount)+" issues, "+str(series.Pagecount)+" pages)")
 
 # Now create a properly ordered flat list suitable for WriteTable
-fanacFanzineSeriesListByCountry: List[Tuple[str, int, str]]=[]
+fanacFanzineSeriesListByCountry: list[tuple[str, int, str]]=[]
 for countryName, countryEntries in fanacSeriesDictByCountry.items():
     for v in countryEntries[0]:
         fanacFanzineSeriesListByCountry.append((countryName, countryEntries[1], v))       # (country, countryCount, series)
@@ -669,8 +669,8 @@ WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
 # issueDecadeCount and seriesDecadeCount are  dictionaries keyed by decade: 190, 191, ...199, 200...
 # For issueDecadeCount, the value is a count for that decade
 # For seriesDecadeCount, the value is a set of series names which we will count in the end.
-issueDecadeCount: Dict[int, int]={}
-seriesDecadeCount: Dict[int, Set[str]]={}
+issueDecadeCount: dict[int, int]={}
+seriesDecadeCount: dict[int, Set[str]]={}
 for issue in fanacIssueList:
     year=0
     if issue.FIS is not None and issue.FIS.Year is not None:
