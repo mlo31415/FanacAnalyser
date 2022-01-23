@@ -313,7 +313,7 @@ selectedYears: list[tuple[int, int]]=[]
 if os.path.exists("control-year.txt"):
     years=ReadList("control-year.txt")
     for year in years:      # For each year in the list of years to be dumped
-        file=open(os.path.join(reportDir, year+" fanac.org Fanzines.txt"), "w+")
+        file=open(os.path.join(reportDir, f"{year} fanac.org Fanzines.txt"), "w+")
         year=InterpretNumber(year)
         yearCount=0
         for fz in fanacIssueList:

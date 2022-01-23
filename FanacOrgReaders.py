@@ -179,7 +179,7 @@ def ExtractDate(columnHeaders: list[str], row: list[tuple[str, str]]) -> Fanzine
                 constructedDate=dayText+" "+yearText
             else:
                 constructedDate=yearText
-        Log("   constructed date='"+constructedDate+"'")
+        Log(f"   constructed date='{constructedDate}'")
         if constructedDate is not None:
             fd=FanzineDate().Match(constructedDate)
             if not fd.IsEmpty():
@@ -191,7 +191,7 @@ def ExtractDate(columnHeaders: list[str], row: list[tuple[str, str]]) -> Fanzine
 
     # Try to build up a FanzineDate "by hand", so to speak
     fd=FanzineDate(Year=yearText, MonthText=monthText)
-    Log("By hand: "+str(fd))
+    Log(f"By hand: {fd}")
     return fd
 
 
@@ -298,7 +298,7 @@ def ExtractCountry(h: str) -> str:
 # Function to extract information from a fanac.org fanzine index.html page
 def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
 
-    Log("ReadAndAppendFanacFanzineIndexPage: "+fanzineName+"   "+directoryUrl)
+    Log(f"ReadAndAppendFanacFanzineIndexPage: {fanzineName}   {directoryUrl}")
 
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
@@ -338,7 +338,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> l
     temp=soup.h2
     isnewszines=False
     if temp.text.find("Newszine") > -1:
-        Log(">>>>>> Newszine added: '"+fanzineName+"'")
+        Log(f">>>>>> Newszine added: '{fanzineName}'")
         isnewszines=True
 
     # Try to pull the editor information out of the page
@@ -382,7 +382,7 @@ def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> l
     html=str(soup.body)
     country=ExtractCountry(html)
     if country == "":
-        Log("No country found for "+fanzineName)
+        Log(f"No country found for {fanzineName}")
 
     # Walk the table and extract the fanzines in it
     fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
@@ -418,7 +418,7 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> list[FanzineIssueI
     html=str(soup.body)
     country=ExtractCountry(html)
     if country == "":
-        Log("No country found for "+fanzineName)
+        Log(f"No country found for {fanzineName}")
     if table is not None:
         fiiList.extend(ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country))
 
@@ -443,7 +443,7 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
     # * The fanzine's Issue Index Table page
     # * A singleton page
     # * The root of a tree with multiple Issue Index Pages
-    Log("    opening "+directoryUrl, noNewLine=True)
+    Log(f"    opening {directoryUrl}", noNewLine=True)
     try:
         h=requests.get(directoryUrl, timeout=1)
     except:
@@ -500,11 +500,11 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
         if not date.IsEmpty():
             break
     if date.IsEmpty():
-        Log("***Failed to find date in <h2> block in singleton '"+directoryUrl+"'", isError=True)
+        Log(f"***Failed to find date in <h2> block in singleton '{directoryUrl}'", isError=True)
         return []
     fis=FanzineIssueSpec(FD=date)
     fii=FanzineIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, PageName="", FIS=fis, Pagecount=0)
-    Log("   (singleton): "+str(fii))
+    Log(f"   (singleton): {fii}")
     return [fii]
 
 
@@ -554,7 +554,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # Skip the column headers row
         if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
             continue
-        Log("   row="+str(tableRow))
+        Log(f"   row={tableRow}")
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
@@ -594,20 +594,20 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # And save the results
         fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, PageName=href, FIS=fis, Pagecount=pages, Country=country)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
-            Log("   ****Skipping null table row: "+str(fi))
+            Log(f"   ****Skipping null table row: {fi}")
             continue
 
-        Log("   "+str(fi))
+        Log(f"   {fi}")
 
         # Append it and log it.
         if fi is not None:
             urlT=""
             if fi.PageName is None:
                 urlT="*No PageName*"
-            Log("Row "+str(iRow)+"  '"+str(fi.IssueName)+"'  ["+str(fi.FIS)+"]  "+urlT)
+            Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
             fiiList.append(fi)
         else:
-            Log(fanzineName+"      ***Can't handle "+dirUrl, isError=True)
+            Log(f"{fanzineName}      ***Can't handle {dirUrl}", isError=True)
 
     return fiiList
 
