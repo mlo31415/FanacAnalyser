@@ -76,7 +76,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         except NameError:
             skippers=ReadList("control-skippers.txt")
         if dirname in skippers:
-            Log("...Skipping because it is in skippers: "+dirname, isError=True)
+            Log(f"...Skipping because it is in skippers: {dirname}", isError=True)
             continue
 
         # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
@@ -86,12 +86,12 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         except NameError:
             offsite=ReadList("control-offsite.txt")
         if dirname in offsite:
-            Log("...Skipping because it is in offsite: "+dirname)
+            Log(f"...Skipping because it is in offsite: {dirname}")
             continue
 
         # Besides the offsite table, we try to detect references which are offsite from their URLs
         if dirname.startswith("http://"):
-            Log("...Skipped because the index page pointed to is not on fanac.org: "+dirname, isError=True)
+            Log(f"...Skipped because the index page pointed to is not on fanac.org: {dirname}", isError=True)
             continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
@@ -100,7 +100,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         if url is None:
             continue
         if not url.startswith("https://www.fanac.org"):
-            Log("...Skipped because not a fanac.org url: "+url, isError=True)
+            Log(f"...Skipped because not a fanac.org url: {url}", isError=True)
             continue
 
         # if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
