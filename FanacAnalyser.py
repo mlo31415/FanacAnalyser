@@ -96,7 +96,7 @@ def WriteTable(filename: str,
 
     #....... Header .......
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
-    html=os.path.splitext(filename)[1].lower() == ".html"
+    html=filename.lower().endswith(".html")
     if html:
         # When we're generating HTML output, we need to include a header.
         # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
