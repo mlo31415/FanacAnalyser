@@ -562,9 +562,9 @@ fanacSeriesDictByCountry: dict[str, Country]={}     # Key is country code; value
 
 for issue in fanacIssueList:
     # If this is a new country, create a new, empty entry for it
-    countryName=issue.Country.lower().strip()
+    countryName=issue.Locale.Country
     if countryName == "":
-        countryName="us"     # Joe wants fanzines with no country to be treated as US
+        countryName="US"     # Joe wants fanzines with no country to be treated as US
     fanacSeriesDictByCountry.setdefault(countryName, Country([], FanzineCounts()))  # If needed, add an empty country entry
 
     serieslist=fanacSeriesDictByCountry[countryName].SeriesList

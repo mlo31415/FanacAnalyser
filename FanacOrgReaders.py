@@ -12,6 +12,7 @@ import os
 
 from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo, FanzineSeriesInfo
 from FanzineIssueSpecPackage import ExtractSerialNumber
+from Locale import Locale
 
 from Log import Log, LogSetHeader
 from HelpersPackage import ReadList, FindBracketedText
@@ -277,22 +278,26 @@ def ExtractCountry(h: str) -> str:
     if temp[0] is None or len(temp[0]) == 0:
         return ""
 
-    # There are two formats for this text:
-    #       Country: <country>
-    #       <country>:<city>, <state>
-    temp=RemoveAllHTMLTags2(temp[0])
+    loc=Locale(temp[0])
+    Log(f'ExtractCountry: "{temp[0]}" --> {loc}')
+    return loc.Country
 
-    # Look for "Country: <country>
-    m=re.search("\s*Country:\s*([a-zA-Z ]+)", temp)
-    if m is not None:
-        return m.groups()[0]
-
-    # Look for <country>:<state/city>
-    m=re.search("\s*([a-zA-Z. ]+):([a-zA-Z. ]*)[,]?\s*([a-zA-Z. ]?)", temp)
-    if m is not None:
-        return m.groups()[0]
-
-    return ""
+    # # There are two formats for this text:
+    # #       Country: <country>
+    # #       <country>:<city>, <state>
+    # temp=RemoveAllHTMLTags2(temp[0])
+    #
+    # # Look for "Country: <country>
+    # m=re.search("\s*Country:\s*([a-zA-Z ]+)", temp)
+    # if m is not None:
+    #     return m.groups()[0]
+    #
+    # # Look for <country>:<state/city>
+    # m=re.search("\s*([a-zA-Z. ]+):([a-zA-Z. ]*)[,]?\s*([a-zA-Z. ]?)", temp)
+    # if m is not None:
+    #     return m.groups()[0]
+    #
+    # return ""
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
