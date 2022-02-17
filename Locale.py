@@ -6,27 +6,30 @@ from Log import Log
 
 class Locale:
     def __init__(self, rawtext:str):
-        self._rawString=rawtext
+        self._rawString=""
         self._country=""
         self._state=""
         self._city=""
+        self._weirdo=""
         self.Value=rawtext
 
     def __str__(self) -> str:
         if self._country != "" or self._state != "" or self._city != "":
             return f"{self._country}: {self._state}: {self._city}"
+        if self._weirdo != "":
+            return self._weirdo
         return self._rawString
 
     def __eq__(self, other: Locale) -> bool:
-        if self._country != "" or self._state != "" or self._city != "" and other._country != "" or other._state != "" or other._city != "":
-            return self._country == other._country and self._state == other._state and self._city == other._city
+        if self._country != "" or self._state != "" or self._city != "" or self._weirdo != "" or \
+                other._country != "" or other._state != "" or other._city != "" or other._weirdo != "":
+            return self._country == other._country and self._state == other._state and self._city == other._city and self._weirdo == other._weirdo
         return True
 
     def __hash__(self):
-        if self._country != "" or self._state != "" or self._city != "":
-            return hash(self._country)+hash(self._state)+hash(self._city)+hash(self._rawString)
+        if self._country != "" or self._state != "" or self._city != "" or self._weirdo != "":
+            return hash(self._country)+hash(self._state)+hash(self._city)+hash(self._weirdo)+hash(self._rawString)
         return hash(self._rawString)
-
 
 
     @property
@@ -38,11 +41,18 @@ class Locale:
             return self._country
         if self._state != "":
             return self._state
+        if self._weirdo != "":
+            return self._weirdo
         return self._rawString
 
     @property
     def Country(self) -> str:
-        return self._country
+        if self._country != "":
+            return self._country
+        if self._weirdo != "":  # If there's no country, but there is a weirdo, return it.
+            return self._weirdo
+        return "US"     # Per Joe, default for no country is US
+
 
     @property
     def State(self) -> str:
@@ -66,6 +76,8 @@ class Locale:
             val=""
         val=val.strip()
         self._rawString=val
+        if val == "":
+            return
 
         # Sometimes the Locale is just the name of a country
         JustPlainCountries={"US": "US",
@@ -199,6 +211,7 @@ class Locale:
                 return
 
         Log(f"ExtractCountry: Can't interpret {val}", isError=True)
+        self._weirdo=val
 
 
     STATES_TUPLE=[("AL", "Alabama"), ("AK", "Alaska"), ("AZ", "Arizona"), ("AR", "Arkansas"), ("CA", "California"), ("CO", "Colorado"),
