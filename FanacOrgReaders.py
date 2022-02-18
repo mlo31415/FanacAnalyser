@@ -16,7 +16,7 @@ from Log import Log, LogSetHeader
 from HelpersPackage import ReadList, FindBracketedText
 from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace, RemoveAllHTMLTags2
 from HelpersPackage import CanonicizeColumnHeaders
-from HelpersPackage import IsInt
+from HelpersPackage import IsInt, Int0
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[FanzineIssueInfo]:
@@ -235,8 +235,8 @@ def ExtractPageCount(columnHeaders: list[str], row: list[tuple[str, str]]) -> in
             return 1    # All cards have a pagecount of 1
         return 0
 
-    with suppress(Exception):
-        return int(pageText)
+    return Int0(pageText)
+
 
 #============================================================================================
 # Find the cell containing the page count and return its value
