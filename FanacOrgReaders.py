@@ -14,7 +14,7 @@ from Locale import Locale
 
 from Log import Log, LogSetHeader
 from HelpersPackage import ReadList, FindBracketedText
-from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace, RemoveAllHTMLTags2
+from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace
 from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt, Int0
 
