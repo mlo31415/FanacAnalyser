@@ -1,13 +1,11 @@
 from typing import Union, Optional
 from contextlib import suppress
-from difflib import SequenceMatcher
-from bs4 import BeautifulSoup
-from bs4 import NavigableString
-from bs4 import Tag
-import requests
-import re
-import urllib.parse
 import os
+import re
+from difflib import SequenceMatcher
+from bs4 import BeautifulSoup, NavigableString, Tag
+import requests
+import urllib.parse
 
 
 from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo, FanzineSeriesInfo
@@ -240,8 +238,28 @@ def ExtractPageCount(columnHeaders: list[str], row: list[tuple[str, str]]) -> in
     with suppress(Exception):
         return int(pageText)
 
-    return 0
+#============================================================================================
+# Find the cell containing the page count and return its value
+def ExtractMailings(columnHeaders: list[str], row: list[tuple[str, str]]) -> list[str]:
 
+    mailingText=GetCellValueByColHeader(columnHeaders, row, ["Mailing"])[0]
+    if mailingText is None or len(mailingText) == 0:
+        return []
+    # The mailing text is a series of APA names followed by alphanumerics separated by semicolons
+    pattern="([a-zA-Z0-9\-]\w+[[a-zA-Z0-9\-])[,;]\w*"
+
+    mailingslist=[]
+    mailingText=mailingText.strip()
+
+    def subber(m) -> str:
+        mailingslist.append(m.groups(0))
+        return ""
+
+    mailingtext=re.sub(pattern, subber, mailingText)
+    if mailingtext:
+        mailingslist.append(mailingtext)
+
+    return mailingslist
 
 # ============================================================================================
 # Find the cell containing the issue name
@@ -576,6 +594,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         fis=FanzineIssueSpec(FD=date, FS=ser)
         name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
+        mailings=ExtractMailings(columnHeaders, tableRow)
 
         # Sometimes we have a reference in one directory be to a fanzine in another. (Sometimes these are duplicate, but this will be taken care of elsewhere.)
         # If the href is a complete fanac.org URL and not relative (i.e, 'http://www.fanac.org/fanzines/FAPA-Misc/FAPA-Misc24-01.html' and not 'FAPA-Misc24-01.html'),
@@ -605,7 +624,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, PageName=href, FIS=fis, Pagecount=pages, Country=country)
+        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, PageName=href, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
