@@ -43,7 +43,14 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"Opuntia",
             #"Inside",
             #"Irish_Fandom",
-            #"StraightUp",
+            # "StraightUp",
+            # "Trumpet",
+            # "Tumbrils",
+            # "Vanations",
+            # "Viewpoints",
+            #"Riverside_Quarterly",
+            #"Texas-SF-Inquirer",
+            #"Mimosa",
             #"Vega",
             #="Classifications",
             #"Fantasy_News",
@@ -76,6 +83,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             skippers
         except NameError:
             skippers=ReadList("control-skippers.txt")
+            #skippers.append("ScienceFictionFan")
         if dirname in skippers:
             Log(f"...Skipping because it is in skippers: {dirname}", isError=True)
             continue
