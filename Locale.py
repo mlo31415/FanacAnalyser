@@ -80,29 +80,32 @@ class Locale:
             return
 
         # Sometimes the Locale is just the name of a country
-        JustPlainCountries={"US": "US",
-                            "Canada": "Canada",
-                            "UK": "UK",
-                            "Australia": "Australia",
-                            "AUS": "Australia",
-                            "AU": "Australia",
-                            "New Zealand": "NZ",
-                            "NZ": "NZ",
-                            "Ireland": "Ireland",
-                            "Germany": "Germany",
-                            "Sweden": "Sweden",
-                            "France": "France",
-                            "Belgium": "Belgium",
-                            "Netherlands": "Netherlands",
+        JustPlainCountries={
                             "Argentina": "Argentina",
                             "Austria": "Austria",
+                            "Australia": "Australia",
+                            "AUSTRALIA": "Australia",
+                            "AUS": "Australia",
+                            "AU": "Australia",
+                            "Belgium": "Belgium",
+                            "Brazil": "Brazil",
+                            "Canada": "Canada",
+                            "CANADA": "Canada",
+                            "Denmark": "Denmark",
+                            "France": "France",
+                            "Germany": "Germany",
+                            "Ireland": "Ireland",
                             "Israel": "Israel",
                             "Japan": "Japan",
+                            "Netherlands": "Netherlands",
+                            "New Zealand": "NZ",
+                            "NZ": "NZ",
                             "Norway": "Norway",
-                            "Denmark": "Denmark",
+                            "Sweden": "Sweden",
                             "Switzerland": "Switzerland",
                             "Turkey": "Turkey",
-                            "Brazil": "Brazil"
+                            "UK": "UK",
+                            "US": "US"
                             }
         if val in JustPlainCountries.keys():
             self._country=JustPlainCountries[val]
