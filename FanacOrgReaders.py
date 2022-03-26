@@ -17,6 +17,8 @@ from HelpersPackage import ReadList, FindBracketedText
 from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace
 from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt, Int0
+from HelpersPackage import RemoveFunnyWhitespace
+
 
 # ============================================================================================
 def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[FanzineIssueInfo]:
@@ -35,6 +37,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
     # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
     # We also skip these
     offsite=ReadList("control-offsite.txt")
+
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
@@ -550,6 +553,10 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
             continue
         Log(f"   row={tableRow}")
+
+        # The first element of the table sometimes comes in qith embedded non-breaking spaces which must be turned to real spaces.
+        # (They were apparently put there deliberately some time in the past.)
+        tableRow[0]=RemoveFunnyWhitespace(tableRow[0][0]), tableRow[0][1]
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
