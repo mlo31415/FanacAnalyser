@@ -38,7 +38,7 @@ def main():
             exit(1)
     Log("Report directory '"+reportDir+"' created")
 
-    # Read the fanac.org fanzine index page structures and produce a list of all fanzines series directories
+    # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
     fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
 
     # Read the directories list and produce a list of all fanzine issues
@@ -452,7 +452,7 @@ def main():
 # Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html
 # Read the table to get a list of all the fanzines on Fanac.org
 # Return a list of tuples (name on page, name of directory)
-#       The name on page is the display named used in the Classic and Modern tables
+#       The name on page is the display named used in the fanzine series tables (e.g., "Classic Fanzines")
 #       The name of directory is the name of the directory pointed to
 
 def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
