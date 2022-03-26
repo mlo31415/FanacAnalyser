@@ -572,20 +572,19 @@ for issue in fanacIssueList:
     # Note that we accumulate the series page and issue totals
 
     # Is this new issue from a series that is already in the list for this country?
-    found=False
-    for i in range(len(serieslist)):
-        if issue.Series == serieslist[i]:
-            # Yes: If the directories in the DirURLs match, just add this issue to the existing series totals.
-            # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
-            if issue.Series.DirURL == serieslist[i].DirURL:
-                # serieslist[loc] is a specific series in [country]
-                # Update the series by adding the pagecount of this issue to it
-                serieslist[i]+=issue.Pagecount
-                fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount)
-                found=True
-            break
-    # No: Add a new series entry created from this issue
-    if not found:
+    if issue.Series in serieslist:
+        series=serieslist[serieslist.index(issue.Series)]
+        # Yes: If the directories in the DirURLs match, just add this issue to the existing series totals.
+        # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
+        if issue.Series.DirURL == series.DirURL:
+            # serieslist[loc] is a specific series in [country]
+            # Update the series by adding the pagecount of this issue to it
+            series+=issue.Pagecount
+            fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount)
+        else:
+            Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
+    else:
+        # No: Add a new series entry created from this issue
         issue.Series+=issue.Pagecount
         serieslist.append(issue.Series)
         count=fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount
