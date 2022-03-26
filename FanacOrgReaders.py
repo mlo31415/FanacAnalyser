@@ -31,6 +31,8 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
+        # If unskippers is empty, *everything will be scanned.
+        # If unskippers is not empty, just the directories listed in it will be scanned.
         unskippers=[
             #"MT_Void",
             #"Coventranian_Gazette",
