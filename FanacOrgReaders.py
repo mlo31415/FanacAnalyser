@@ -290,10 +290,10 @@ def ExtractCountry(h: str) -> str:
     # return ""
 
 # ============================================================================================
-# Function to extract information from a fanac.org fanzine index.html page
+# Function to extract fanzine information from a fanac.org fanzine index.html page
 def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
 
-    Log(f"ReadAndAppendFanacFanzineIndexPage: {fanzineName}   {directoryUrl}")
+    Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
 
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
