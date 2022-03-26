@@ -12,7 +12,7 @@ from collections import namedtuple
 
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
-from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
+from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents, RemoveAllHTMLTags2
 
 def main():
@@ -27,7 +27,6 @@ def main():
         os.mkdir(outputDir)
 
     Log("Output directory '"+outputDir+"' set")
-    LogFlush()
 
     # Create a Reports directory if needed.
     reportDir=os.path.join(outputDir, "Reports")
@@ -38,7 +37,6 @@ def main():
             Log(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}", isError=True)
             exit(1)
     Log("Report directory '"+reportDir+"' created")
-    LogFlush()
 
     # Read the fanac.org fanzine index page structures and produce a list of all fanzines series directories
     fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
