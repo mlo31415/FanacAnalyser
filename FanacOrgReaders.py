@@ -81,11 +81,10 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
 
         fanacIssueInfo.extend(ReadFanacFanzineIndexPage(title, url))
 
-    # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
-    Log("----Done reading index.html files on fanac.org")
-
     fanacIssueInfo=RemoveDuplicates(fanacIssueInfo)
 
+    # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
+    Log("----Done reading index.html files on fanac.org")
     return fanacIssueInfo
 
 
