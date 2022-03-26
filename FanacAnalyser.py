@@ -15,7 +15,444 @@ from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFlush, LogFailureAndRaiseIfMissing
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents, RemoveAllHTMLTags2
 
-LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
+def main():
+    LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
+    # ===========================================================================
+    # ===========================================================================
+    # Main
+    Log("Started")
+    LogFlush()
+
+    # Read the command line arguments
+    outputDir="."
+    if len(sys.argv) > 1:
+        outputDir=sys.argv[1]
+    if not os.path.isdir(outputDir):
+        os.mkdir(outputDir)
+
+    Log("Output directory '"+outputDir+"' set")
+    LogFlush()
+
+    # Create a Reports directory if needed.
+    reportDir=os.path.join(outputDir, "Reports")
+    if not os.path.isdir(reportDir):
+        try:
+            os.mkdir(reportDir)
+        except Exception as e:
+            Log(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}", isError=True)
+            exit(1)
+    Log("Report directory '"+reportDir+"' created")
+    LogFlush()
+
+    # Read the fanac.org fanzine index page structures and produce a list of all fanzines series directories
+    fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
+
+    # Read the directories list and produce a list of all fanzine issues
+    fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
+
+    # Remove issues which have entries, but don't actually point to anything.
+    fanacIssueList=[x for x in fanacIssueList if x.PageName is not None]
+
+    # Sort the list of all fanzines issues by fanzine series name
+    fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
+
+    def NoNone(s: str) -> str:
+        if s is None:
+            return ""
+        return s
+
+    # Read the control-year.txt file to get the year to be dumped out
+    selectedYears: list[tuple[int, int]]=[]
+    if os.path.exists("control-year.txt"):
+        years=ReadList("control-year.txt")
+        for year in years:  # For each year in the list of years to be dumped
+            file=open(os.path.join(reportDir, f"{year} fanac.org Fanzines.txt"), "w+")
+            year=InterpretNumber(year)
+            yearCount=0
+            for fz in fanacIssueList:
+                if fz.FIS.Year == year:
+                    file.write(f"|| {NoNone(fz.IssueName)} || {NoNone(str(fz.FIS))} || {NoNone(fz.DirURL)} || {NoNone(fz.PageName)} ||\n")
+                    yearCount+=1
+            file.close()
+            selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
+
+    # Count the number of pages, issues and PDFs and also generate a report listing all fanzines for which a page count can't be located
+    issueCount=0
+    pdfIssueCount=0
+    pageCount=0
+    pdfPageCount=0
+    f=open(os.path.join(reportDir, "Items with No Page Count.txt"), "w+")
+    ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
+
+    for fz in fanacIssueList:
+        if fz.DirURL is not None:
+            issueCount+=1
+            pageCount+=fz.Pagecount
+            if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+                pdfIssueCount+=1
+                pdfPageCount+=fz.Pagecount
+            if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
+                f.write(str(fz)+"\n")
+    f.close()
+
+    # Produce a list of fanzines listed by date
+    fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
+    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
+    datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
+
+    timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
+
+    def ChronButtonText(fz: FanzineIssueInfo) -> str:
+        if fz.FIS is None or fz.FIS.Year is None:
+            return " "
+        return str(fz.FIS.Year)[0:3]+"0s"
+
+    def URL(fz: FanzineIssueInfo) -> str:
+        if fz is None or fz.PageName is None:
+            return "<no url>"
+        # Sometimes the url will be to a page in a PDF, so the URL will end with #page=nnn
+        # Detect that, since the page needs to be handled specially.
+        page=""
+        url=fz.DirURL
+        m=re.match("(.*)(#page=[0-9]+)$", url)
+        if m is not None:
+            url=m.groups()[0]
+            page=m.groups()[1]
+
+        if "/" not in fz.PageName:
+            url=url+"/"+fz.PageName+page
+        else:
+            # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
+            # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
+            parts=fz.PageName.split("/")
+            if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
+                url=url+"/../"+"/".join(parts[-2:])+page
+            else:
+                url=fz.PageName
+        return url
+
+    countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
+    WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
+               datedList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fButtonText=lambda fz: ChronButtonText(fz),
+               fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+               fURL=URL,
+               countText=countText+"\n"+timestamp+"\n",
+               headerFilename='control-Header (Fanzine, chronological).html')
+    WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
+               datedList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fButtonText=lambda fz: ChronButtonText(fz),
+               fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+               countText=countText+"\n"+timestamp+"\n")
+    WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
+               undatedList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fURL=URL,
+               countText=timestamp,
+               headerFilename="control-Header (Fanzine, alphabetical).html")
+
+    # Generate a list of all the newszines (in lower case)
+    # This takes names from the file control-newszines.txt and adds fanzines tagged as newszines on their series index page
+
+    # Read the control-newszines.txt file
+    newszinesSet=set([x.lower() for x in ReadList("control-newszines.txt", isFatal=True)])
+
+    # Add in the newszines discovered in the <h2> blocks
+    newszinesFromH2Set=set([fii.SeriesName.lower() for fii in fanacIssueList if "newszine" in fii.Taglist])
+    with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
+        newszinesFromH2List=sorted(list(newszinesFromH2Set))
+        for nz in newszinesFromH2List:
+            f.write(nz+"\n")
+
+    newszinesSet=newszinesSet.union(newszinesFromH2Set)
+
+    # Make up a lists of newszines and non-newszines
+    allzinesSet=set([fx.SeriesName.lower() for fx in fanacIssueList])
+
+    with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
+        nonNewszines=sorted(list(allzinesSet.difference(newszinesSet)))
+        for nnz in nonNewszines:
+            f.write(nnz+"\n")
+
+    listOfNewszines=sorted(list(newszinesSet))
+
+    # Count the number of issue and pages of all fanzines and just newszines
+    newsPageCount=0
+    newsIssueCount=0
+    newsPdfIssueCount=0
+    for fz in fanacIssueList:
+        if fz.SeriesName.lower() in listOfNewszines and fz.PageName is not None:
+            newsIssueCount+=1
+            newsPageCount+=fz.Pagecount
+            if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+                newsPdfIssueCount+=1
+
+    # Look for lines in the list of newszines which don't match actual newszines on the site.
+    unusedLines=[x for x in listOfNewszines if x.lower() not in listOfNewszines]
+    unusedLines=[x+"\n" for x in unusedLines]
+
+    newszines=[x+"\n" for x in listOfNewszines]
+    with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as f:
+        f.writelines(newszines)
+    with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
+        f.writelines(unusedLines)
+
+    countText=f"{newsIssueCount:,} issues consisting of {newsPageCount:,} pages."
+    WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
+               fanacIssueList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fButtonText=lambda fz: ChronButtonText(fz),
+               fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+               fURL=URL,
+               countText=countText+"\n"+timestamp+"\n",
+               headerFilename="control-Header (Newszine).html",
+               fSelector=lambda fz: fz.SeriesName.lower() in listOfNewszines)
+
+    # Produce a list of fanzines by title
+    def AlphaSortText(fz: FanzineIssueInfo) -> str:
+        if fz.SeriesName is None or len(fz.SeriesName) == 0:
+            return " "
+        # Replace lower case and accented alphas, ignore punctuation, retain digits; the Unidecode is so that things like 'á Bas' sort with A
+        out=""
+        for c in fz.SeriesName:
+            if c.isalpha():
+                out+=unidecode.unidecode(c.upper())
+            elif c.isdigit():
+                out+=c
+        return out
+
+    countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
+    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
+    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
+
+    def AlphaButtonText(fz: FanzineIssueInfo) -> str:
+        c=AlphaSortText(fz)[0]
+        if c == " " or c.isdigit():
+            return "*"
+        return c
+
+    def Annotate(fz: FanzineIssueInfo) -> str:
+        if type(fz) is not FanzineIssueInfo:
+            assert ()
+        if fz.FIS is None:
+            return ""
+        if fz.FIS.FD.IsEmpty():
+            return ""
+        return f"<small>({fz.FIS.FD.LongDates}</small>"
+
+    WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
+               fanacIssueList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fButtonText=lambda fz: fz.SeriesName[0],
+               fRowHeaderText=lambda fz: fz.SeriesName,
+               countText=countText+"\n"+timestamp+"\n",
+               inAlphaOrder=True)
+    WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
+               fanacIssueList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fButtonText=lambda fz: AlphaButtonText(fz),
+               fRowAnnot=lambda fz: Annotate(fz),
+               fRowHeaderText=lambda fz: fz.SeriesName,
+               fURL=URL,
+               countText=countText+"\n"+timestamp+"\n",
+               headerFilename="control-Header (Fanzine, alphabetical).html",
+               inAlphaOrder=True)
+
+    # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
+    # This function is used only in the lambda expression following immediately afterwards.
+    def OddNames(n1: str, n2: str) -> bool:
+        n1=RemoveArticles(n1).lower().strip()
+        n2=RemoveArticles(n2).lower().strip()
+        # We'd like them to match to the length of the shorter name
+        length=min(len(n1), len(n2))
+        return n1[:length] != n2[:length]
+
+    WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
+               fanacIssueList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fButtonText=lambda fz: fz.SeriesName[0],
+               fRowHeaderText=lambda fz: fz.SeriesName,
+               countText=timestamp+"\n",
+               fSelector=lambda fx: OddNames(fx.IssueName, fx.SeriesName))
+
+    # Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
+    # Create a set of all fanzines run names (the set to eliminate suploicates) and then get its size.
+    fzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList]))
+    nzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList if fz.SeriesName.lower() in listOfNewszines]))
+
+    # Print to the console and also the statistics file
+    Log("\n")
+    Log(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}")
+    Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}")
+    Log(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}")
+    for selectedYear in selectedYears:
+        Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
+    with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
+        print(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}", file=f)
+        print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}", file=f)
+        print(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}", file=f)
+        for selectedYear in selectedYears:
+            print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
+
+    WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
+               fanacIssueList,
+               lambda fz: UnicodeToHtml(fz.IssueName),
+               fButtonText=lambda fz: fz.SeriesName[0],
+               fRowHeaderText=lambda fz: fz.SeriesName,
+               countText=timestamp,
+               fSelector=lambda fz: fz.Pagecount > 250)
+
+    # Now generate a list of fanzine series sorted by country
+    # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
+    # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
+    Country=namedtuple('Country', 'SeriesList SeriesCount')
+    fanacSeriesDictByCountry: dict[str, Country]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
+
+    for issue in fanacIssueList:
+        # If this is a new country, create a new, empty, entry for it
+        countryName=issue.Locale.Country
+        if countryName == "":
+            countryName="US"  # Joe wants fanzines with no country to be treated as US
+        fanacSeriesDictByCountry.setdefault(countryName, Country([], FanzineCounts()))  # If needed, add an empty country entry
+
+        serieslist=fanacSeriesDictByCountry[countryName].SeriesList
+        # serieslist is the list of fanzine series with counts for this country
+        # Note that we accumulate the series page and issue totals
+
+        # Is this new issue from a series that is already in the list for this country?
+        if issue.Series in serieslist:
+            series=serieslist[serieslist.index(issue.Series)]
+            # Yes: If the directories in the DirURLs match, just add this issue to the existing series totals.
+            # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
+            if issue.Series.DirURL == series.DirURL:
+                # serieslist[loc] is a specific series in [country]
+                # Update the series by adding the pagecount of this issue to it
+                series+=issue.Pagecount
+                fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount)
+            else:
+                Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
+        else:
+            # No: Add a new series entry created from this issue
+            issue.Series+=issue.Pagecount
+            serieslist.append(issue.Series)
+            count=fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount
+            count.Titlecount+=1
+            fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, count)
+
+    # Next we sort the individual country lists into order by series name
+    for ckey, cval in fanacSeriesDictByCountry.items():
+        serieslist=cval[0]
+        serieslist.sort(key=lambda elem: elem.SeriesName.lower())
+        fanacSeriesDictByCountry[ckey]=(serieslist, cval[1])  # Sorts in place on fanzine name
+
+    # Take a string which is lower case and turn it to City, State, US sort of capitalization
+    def CapIt(s: str) -> str:
+        if len(s) == 0:
+            return s
+        if len(s) == 2:
+            return s.upper()
+        ret=""
+        splits=s.split()
+        for split in splits:
+            if ret:
+                ret+=" "
+            ret+=split[0].upper()+split[1:]
+        return ret
+
+    # List out the series by country data
+    with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
+        keys=list(fanacSeriesDictByCountry.keys())
+        keys.sort()  # We want to list the countries in alphabetical order
+        for key in keys:
+            val=fanacSeriesDictByCountry[key]
+            k=key if len(key.strip()) > 0 else "<no country>"
+            print(f"\n{CapIt(k)}   {len(val[0])} titles,  {val[1].Issuecount} issues,  and {val[1].Pagecount} pages", file=f)
+            for series in val[0]:
+                print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
+                Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
+
+    # Now create a properly ordered flat list suitable for WriteTable
+    fanacFanzineSeriesListByCountry: list[tuple[str, int, str]]=[]
+    for countryName, countryEntries in fanacSeriesDictByCountry.items():
+        for v in countryEntries[0]:
+            fanacFanzineSeriesListByCountry.append((countryName, countryEntries[1], v))  # (country, countryCount, series)
+    fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())
+    fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
+
+    # Provides the annotation for rows in the following output table
+    def plural(i: int) -> str:
+        return "s" if i > 1 else ""
+
+    def Annotate(elem: FanzineCounts) -> str:
+        s=""
+        if elem.Titlecount > 0:
+            s=str(elem.Titlecount)+" title"+plural(elem.Titlecount)+", "
+        i=elem.Issuecount
+        p=elem.Pagecount
+        if i > 0:
+            s+=str(i)+" issue"+plural(i)+", "
+            s+=str(p)+" page"+plural(p)
+        if s:
+            s="("+s+")"
+        return s
+
+    WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
+               fanacFanzineSeriesListByCountry,
+               lambda elem: UnicodeToHtml(elem[2].DisplayName)+("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor is not None else "",
+               fRowHeaderText=lambda elem: CapIt(elem[0]),
+               fURL=lambda elem: elem[2].DirURL,
+               fButtonText=lambda elem: CapIt(elem[0]),
+               fRowAnnot=lambda elem: f"<small>{Annotate(elem[2])}</small>",
+               fHeaderAnnot=lambda elem: f"<small>{Annotate(elem[1])}</small>",
+               countText=timestamp,
+               headerFilename="control-Header (Fanzine, by country).html",
+               inAlphaOrder=True)
+
+    # Compute counts of issues and series by decade.
+    # We get the issue numbers by simply going through the list and adding one to the appropriate decade.
+    # For series, we create a set of series found for that decade
+
+    # issueDecadeCount and seriesDecadeCount are  dictionaries keyed by decade: 190, 191, ...199, 200...
+    # For issueDecadeCount, the value is a count for that decade
+    # For seriesDecadeCount, the value is a set of series names which we will count in the end.
+    issueDecadeCount: dict[int, int]={}
+    seriesDecadeCount: dict[int, Set[str]]={}
+    for issue in fanacIssueList:
+        year=0
+        if issue.FIS is not None and issue.FIS.Year is not None:
+            year=issue.FIS.Year
+        decade=math.floor(year/10)
+
+        issueDecadeCount.setdefault(decade, 0)
+        seriesDecadeCount.setdefault(decade, set())
+
+        issueDecadeCount[decade]+=1
+        seriesDecadeCount[decade].add(issue.SeriesName)
+
+    # Print the report
+    with open(os.path.join(reportDir, "Decade counts.txt"), "w+") as f:
+        f.write(str(datetime.date.today())+"\n")
+        f.write("Counts of fanzines and fanzine series by decade\n\n")
+        f.write(" Decade  Series  Issues\n")
+        decades=sorted([x for x in issueDecadeCount.keys()])
+        for decade in decades:
+            counts=f"{len(seriesDecadeCount[decade]):5}   {issueDecadeCount[decade]:5}"
+            if decade == 0:
+                print(f"undated   {counts}", file=f)
+            else:
+                print(f"  {decade:3}0s   {counts}", file=f)
+
+    Log("FanacAnalyzer has Completed.")
+
+    LogClose()
+# End of main()
+##################################################################
+##################################################################
+##################################################################
+
 
 # ====================================================================================
 # Read fanac.org/fanzines/Classic_Fanzines.html amd /Modern_Fanzines.html
@@ -263,438 +700,6 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: 
     return
 
 
-#===========================================================================
-#===========================================================================
-# Main
-Log("Started")
-LogFlush()
-
-# Read the command line arguments
-outputDir="."
-if len(sys.argv) > 1:
-    outputDir=sys.argv[1]
-if not os.path.isdir(outputDir):
-    os.mkdir(outputDir)
-
-Log("Output directory '"+outputDir+"' set")
-LogFlush()
-
-# Create a Reports directory if needed.
-reportDir=os.path.join(outputDir, "Reports")
-if not os.path.isdir(reportDir):
-    try:
-        os.mkdir(reportDir)
-    except Exception as e:
-        Log(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}", isError=True)
-        exit(1)
-Log("Report directory '"+reportDir+"' created")
-LogFlush()
-
-# Read the fanac.org fanzine index page structures and produce a list of all fanzines series directories
-fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
-
-# Read the directories list and produce a list of all fanzine issues
-fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
-
-# Remove issues which have entries, but don't actually point to anything.
-fanacIssueList=[x for x in fanacIssueList if x.PageName is not None]
-
-# Sort the list of all fanzines issues by fanzine series name
-fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
-
-def NoNone(s: str) -> str:
-    if s is None:
-        return ""
-    return s
-
-
-# Read the control-year.txt file to get the year to be dumped out
-selectedYears: list[tuple[int, int]]=[]
-if os.path.exists("control-year.txt"):
-    years=ReadList("control-year.txt")
-    for year in years:      # For each year in the list of years to be dumped
-        file=open(os.path.join(reportDir, f"{year} fanac.org Fanzines.txt"), "w+")
-        year=InterpretNumber(year)
-        yearCount=0
-        for fz in fanacIssueList:
-            if fz.FIS.Year == year:
-                file.write(f"|| {NoNone(fz.IssueName)} || {NoNone(str(fz.FIS))} || {NoNone(fz.DirURL)} || {NoNone(fz.PageName)} ||\n")
-                yearCount+=1
-        file.close()
-        selectedYears.append((year, yearCount)) # Create a list of tuples (selected year, count)
-
-
-# Count the number of pages, issues and PDFs and also generate a report listing all fanzines for which a page count can't be located
-issueCount=0
-pdfIssueCount=0
-pageCount=0
-pdfPageCount=0
-f=open(os.path.join(reportDir, "Items with No Page Count.txt"), "w+")
-ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
-
-for fz in fanacIssueList:
-    if fz.DirURL is not None:
-        issueCount+=1
-        pageCount+=fz.Pagecount
-        if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
-            pdfIssueCount+=1
-            pdfPageCount+=fz.Pagecount
-        if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
-            f.write(str(fz)+"\n")
-f.close()
-
-# Produce a list of fanzines listed by date
-fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
-fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
-undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
-datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
-
-timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
-
-def ChronButtonText(fz: FanzineIssueInfo) -> str:
-    if fz.FIS is None or fz.FIS.Year is None:
-        return " "
-    return str(fz.FIS.Year)[0:3]+"0s"
-
-def URL(fz: FanzineIssueInfo) -> str:
-    if fz is None or fz.PageName is None:
-        return "<no url>"
-    # Sometimes the url will be to a page in a PDF, so the URL will end with #page=nnn
-    # Detect that, since the page needs to be handled specially.
-    page=""
-    url=fz.DirURL
-    m=re.match("(.*)(#page=[0-9]+)$", url)
-    if m is not None:
-        url=m.groups()[0]
-        page=m.groups()[1]
-
-    if "/" not in fz.PageName:
-        url=url+"/"+fz.PageName+page
-    else:
-        # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
-        # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
-        parts=fz.PageName.split("/")
-        if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
-            url=url+"/../"+"/".join(parts[-2:])+page
-        else:
-            url=fz.PageName
-    return url
-
-countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
-WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
-           datedList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fButtonText=lambda fz: ChronButtonText(fz),
-           fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
-           fURL=URL,
-           countText=countText+"\n"+timestamp+"\n",
-           headerFilename='control-Header (Fanzine, chronological).html')
-WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
-           datedList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fButtonText=lambda fz: ChronButtonText(fz),
-           fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
-           countText=countText+"\n"+timestamp+"\n")
-WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
-           undatedList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fURL=URL,
-           countText=timestamp,
-           headerFilename="control-Header (Fanzine, alphabetical).html")
-
-# Generate a list of all the newszines (in lower case)
-# This takes names from the file control-newszines.txt and adds fanzines tagged as newszines on their series index page
-
-# Read the control-newszines.txt file
-newszinesSet=set([x.lower() for x in ReadList("control-newszines.txt", isFatal=True)])
-
-# Add in the newszines discovered in the <h2> blocks
-newszinesFromH2Set=set([fii.SeriesName.lower() for fii in fanacIssueList if "newszine" in fii.Taglist])
-with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
-    newszinesFromH2List=sorted(list(newszinesFromH2Set))
-    for nz in newszinesFromH2List:
-        f.write(nz+"\n")
-
-newszinesSet=newszinesSet.union(newszinesFromH2Set)
-
-# Make up a lists of newszines and non-newszines
-allzinesSet=set([fx.SeriesName.lower() for fx in fanacIssueList])
-
-with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
-    nonNewszines=sorted(list(allzinesSet.difference(newszinesSet)))
-    for nnz in nonNewszines:
-        f.write(nnz+"\n")
-
-listOfNewszines=sorted(list(newszinesSet))
-
-# Count the number of issue and pages of all fanzines and just newszines
-newsPageCount=0
-newsIssueCount=0
-newsPdfIssueCount=0
-for fz in fanacIssueList:
-    if fz.SeriesName.lower() in listOfNewszines and fz.PageName is not None:
-        newsIssueCount+=1
-        newsPageCount+=fz.Pagecount
-        if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
-            newsPdfIssueCount+=1
-
-# Look for lines in the list of newszines which don't match actual newszines on the site.
-unusedLines=[x for x in listOfNewszines if x.lower() not in listOfNewszines]
-unusedLines=[x+"\n" for x in unusedLines]
-
-newszines=[x+"\n" for x in listOfNewszines]
-with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as f:
-    f.writelines(newszines)
-with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
-    f.writelines(unusedLines)
-
-countText=f"{newsIssueCount:,} issues consisting of {newsPageCount:,} pages."
-WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
-           fanacIssueList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fButtonText=lambda fz: ChronButtonText(fz),
-           fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
-           fURL=URL,
-           countText=countText+"\n"+timestamp+"\n",
-           headerFilename="control-Header (Newszine).html",
-           fSelector=lambda fz: fz.SeriesName.lower() in listOfNewszines)
-
-# Produce a list of fanzines by title
-def AlphaSortText(fz: FanzineIssueInfo) -> str:
-    if fz.SeriesName is None or len(fz.SeriesName) == 0:
-        return " "
-    # Replace lower case and accented alphas, ignore punctuation, retain digits; the Unidecode is so that things like 'á Bas' sort with A
-    out=""
-    for c in fz.SeriesName:
-        if c.isalpha():
-            out+=unidecode.unidecode(c.upper())
-        elif c.isdigit():
-            out+=c
-    return out
-countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
-fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
-
-
-def AlphaButtonText(fz: FanzineIssueInfo) -> str:
-    c=AlphaSortText(fz)[0]
-    if c == " " or c.isdigit():
-        return "*"
-    return c
-
-def Annotate(fz: FanzineIssueInfo) -> str:
-    if type(fz) is not FanzineIssueInfo:
-        assert()
-    if fz.FIS is None:
-        return ""
-    if fz.FIS.FD.IsEmpty():
-        return ""
-    return f"<small>({fz.FIS.FD.LongDates}</small>"
-
-WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
-           fanacIssueList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fButtonText=lambda fz: fz.SeriesName[0],
-           fRowHeaderText=lambda fz: fz.SeriesName,
-           countText=countText+"\n"+timestamp+"\n",
-           inAlphaOrder=True)
-WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
-           fanacIssueList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fButtonText=lambda fz: AlphaButtonText(fz),
-           fRowAnnot=lambda fz: Annotate(fz),
-           fRowHeaderText=lambda fz: fz.SeriesName,
-           fURL=URL,
-           countText=countText+"\n"+timestamp+"\n",
-           headerFilename="control-Header (Fanzine, alphabetical).html",
-           inAlphaOrder=True)
-
-
-# Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
-# This function is used only in the lambda expression following immediately afterwards.
-def OddNames(n1: str, n2: str) -> bool:
-    n1=RemoveArticles(n1).lower().strip()
-    n2=RemoveArticles(n2).lower().strip()
-    # We'd like them to match to the length of the shorter name
-    length=min(len(n1), len(n2))
-    return n1[:length] != n2[:length]
-
-WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
-           fanacIssueList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fButtonText=lambda fz: fz.SeriesName[0],
-           fRowHeaderText=lambda fz: fz.SeriesName,
-           countText=timestamp+"\n",
-           fSelector=lambda fx: OddNames(fx.IssueName,  fx.SeriesName))
-
-# Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
-# Create a set of all fanzines run names (the set to eliminate suploicates) and then get its size.
-fzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList]))
-nzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList if fz.SeriesName.lower() in listOfNewszines]))
-
-# Print to the console and also the statistics file
-Log("\n")
-Log(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}")
-Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}")
-Log(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}")
-for selectedYear in selectedYears:
-    Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
-with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
-    print(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}", file=f)
-    print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}", file=f)
-    print(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}", file=f)
-    for selectedYear in selectedYears:
-        print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
-
-WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
-           fanacIssueList,
-           lambda fz: UnicodeToHtml(fz.IssueName),
-           fButtonText=lambda fz: fz.SeriesName[0],
-           fRowHeaderText=lambda fz: fz.SeriesName,
-           countText=timestamp,
-           fSelector=lambda fz: fz.Pagecount > 250)
-
-# Now generate a list of fanzine series sorted by country
-# For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
-# FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-Country = namedtuple('Country', 'SeriesList SeriesCount')
-fanacSeriesDictByCountry: dict[str, Country]={}     # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
-
-for issue in fanacIssueList:
-    # If this is a new country, create a new, empty, entry for it
-    countryName=issue.Locale.Country
-    if countryName == "":
-        countryName="US"     # Joe wants fanzines with no country to be treated as US
-    fanacSeriesDictByCountry.setdefault(countryName, Country([], FanzineCounts()))  # If needed, add an empty country entry
-
-    serieslist=fanacSeriesDictByCountry[countryName].SeriesList
-    # serieslist is the list of fanzine series with counts for this country
-    # Note that we accumulate the series page and issue totals
-
-    # Is this new issue from a series that is already in the list for this country?
-    if issue.Series in serieslist:
-        series=serieslist[serieslist.index(issue.Series)]
-        # Yes: If the directories in the DirURLs match, just add this issue to the existing series totals.
-        # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
-        if issue.Series.DirURL == series.DirURL:
-            # serieslist[loc] is a specific series in [country]
-            # Update the series by adding the pagecount of this issue to it
-            series+=issue.Pagecount
-            fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount)
-        else:
-            Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
-    else:
-        # No: Add a new series entry created from this issue
-        issue.Series+=issue.Pagecount
-        serieslist.append(issue.Series)
-        count=fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount
-        count.Titlecount+=1
-        fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, count)
-
-# Next we sort the individual country lists into order by series name
-for ckey, cval in fanacSeriesDictByCountry.items():
-    serieslist=cval[0]
-    serieslist.sort(key=lambda elem: elem.SeriesName.lower())
-    fanacSeriesDictByCountry[ckey]=(serieslist, cval[1])  # Sorts in place on fanzine name
-
-# Take a string which is lower case and turn it to City, State, US sort of capitalization
-def CapIt(s: str) -> str:
-    if len(s) == 0:
-        return s
-    if len(s) == 2:
-        return s.upper()
-    ret=""
-    splits=s.split()
-    for split in splits:
-        if ret:
-            ret+=" "
-        ret+=split[0].upper()+split[1:]
-    return ret
-
-# List out the series by country data
-with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
-    keys=list(fanacSeriesDictByCountry.keys())
-    keys.sort() # We want to list the countries in alphabetical order
-    for key in keys:
-        val=fanacSeriesDictByCountry[key]
-        k=key if len(key.strip()) > 0 else "<no country>"
-        print(f"\n{CapIt(k)}   {len(val[0])} titles,  {val[1].Issuecount} issues,  and {val[1].Pagecount} pages", file=f)
-        for series in val[0]:
-            print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
-            Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
-
-# Now create a properly ordered flat list suitable for WriteTable
-fanacFanzineSeriesListByCountry: list[tuple[str, int, str]]=[]
-for countryName, countryEntries in fanacSeriesDictByCountry.items():
-    for v in countryEntries[0]:
-        fanacFanzineSeriesListByCountry.append((countryName, countryEntries[1], v))       # (country, countryCount, series)
-fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())
-fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
-
-# Provides the annotation for rows in the following output table
-def plural(i: int) -> str:
-    return "s" if i > 1 else ""
-
-def Annotate(elem: FanzineCounts) -> str:
-    s=""
-    if elem.Titlecount > 0:
-        s=str(elem.Titlecount)+" title"+plural(elem.Titlecount)+", "
-    i=elem.Issuecount
-    p=elem.Pagecount
-    if i > 0:
-        s+=str(i)+" issue"+plural(i)+", "
-        s+=str(p)+" page"+plural(p)
-    if s:
-        s="("+s+")"
-    return s
-
-WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
-           fanacFanzineSeriesListByCountry,
-           lambda elem: UnicodeToHtml(elem[2].DisplayName)+("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor is not None else "",
-           fRowHeaderText=lambda elem: CapIt(elem[0]),
-           fURL=lambda elem: elem[2].DirURL,
-           fButtonText=lambda elem: CapIt(elem[0]),
-           fRowAnnot=lambda elem: f"<small>{Annotate(elem[2])}</small>",
-           fHeaderAnnot=lambda elem: f"<small>{Annotate(elem[1])}</small>",
-           countText=timestamp,
-           headerFilename="control-Header (Fanzine, by country).html",
-           inAlphaOrder=True)
-
-
-# Compute counts of issues and series by decade.
-# We get the issue numbers by simply going through the list and adding one to the appropriate decade.
-# For series, we create a set of series found for that decade
-
-# issueDecadeCount and seriesDecadeCount are  dictionaries keyed by decade: 190, 191, ...199, 200...
-# For issueDecadeCount, the value is a count for that decade
-# For seriesDecadeCount, the value is a set of series names which we will count in the end.
-issueDecadeCount: dict[int, int]={}
-seriesDecadeCount: dict[int, Set[str]]={}
-for issue in fanacIssueList:
-    year=0
-    if issue.FIS is not None and issue.FIS.Year is not None:
-        year=issue.FIS.Year
-    decade=math.floor(year/10)
-
-    issueDecadeCount.setdefault(decade, 0)
-    seriesDecadeCount.setdefault(decade, set())
-
-    issueDecadeCount[decade]+=1
-    seriesDecadeCount[decade].add(issue.SeriesName)
-
-# Print the report
-with open(os.path.join(reportDir, "Decade counts.txt"), "w+") as f:
-    f.write(str(datetime.date.today())+"\n")
-    f.write("Counts of fanzines and fanzine series by decade\n\n")
-    f.write(" Decade  Series  Issues\n")
-    decades=sorted([x for x in issueDecadeCount.keys()])
-    for decade in decades:
-        counts=f"{len(seriesDecadeCount[decade]):5}   {issueDecadeCount[decade]:5}"
-        if decade == 0:
-            print(f"undated   {counts}", file=f)
-        else:
-            print(f"  {decade:3}0s   {counts}", file=f)
-
-Log("FanacAnalyzer has Completed.")
-
-LogClose()
+# Run main()
+if __name__ == "__main__":
+    main()
