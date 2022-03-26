@@ -60,7 +60,6 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         if dirname in offsite:
             Log(f"...Skipping because it is in offsite: {dirname}")
             continue
-
         # Besides the offsite table, we try to detect references which are offsite from their URLs
         if dirname.startswith("http://"):
             Log(f"...Skipped because the index page pointed to is not on fanac.org: {dirname}", isError=True)
@@ -69,6 +68,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
         # We need to turn relPath into a URL
         url=RelPathToURL(dirname)
+        Log(f"{url=}")
         if url is None:
             continue
         if not url.startswith("https://www.fanac.org"):
