@@ -561,7 +561,7 @@ Country = namedtuple('Country', 'SeriesList SeriesCount')
 fanacSeriesDictByCountry: dict[str, Country]={}     # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
 for issue in fanacIssueList:
-    # If this is a new country, create a new, empty entry for it
+    # If this is a new country, create a new, empty, entry for it
     countryName=issue.Locale.Country
     if countryName == "":
         countryName="US"     # Joe wants fanzines with no country to be treated as US
