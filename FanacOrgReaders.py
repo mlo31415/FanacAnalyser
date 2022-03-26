@@ -42,7 +42,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"Axe",
             #"Fantasy_Fiction_Field"
         ]
-        if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip everything else
+        if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip directories not in unskippers
 
         LogSetHeader("'"+dirname+"'      '"+title+"'")
 
