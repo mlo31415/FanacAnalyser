@@ -17,11 +17,7 @@ from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml,
 
 def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
-    # ===========================================================================
-    # ===========================================================================
-    # Main
     Log("Started")
-    LogFlush()
 
     # Read the command line arguments
     outputDir="."
