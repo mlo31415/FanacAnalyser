@@ -297,7 +297,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
 
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
-    global singletons   # Not actually used anywhere else, but for performance sake, should be read once and retained
+    global singletons   # Not actually used anywhere else, but for performance sake should be read once and retained
     try:
         singletons
     except NameError:
@@ -305,7 +305,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
 
     # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
     # If this is the root of one of them...
-    global specialBiggies   # Not actually used anywhere else, but for performance sake, should be read once and retained
+    global specialBiggies   # Not actually used anywhere else, but for performance sake should be read once and retained
     try:
         specialBiggies
     except NameError:
@@ -358,7 +358,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     h2s=h2s.split("|")
     h2s=[h.strip() for h in h2s if len(h.strip()) > 0]
 
-    # Because of the sloppiness of fanac.org, sometime the fanzine name is picked up again here.
+    # Because of the sloppiness of fanac.org, sometimes the fanzine name is picked up again here.
     # We ignore the first token if it is too similar to the fanzine name
     if SequenceMatcher(None, h2s[0], fanzineName).ratio() > 0.7:
         h2s=h2s[1:]
@@ -522,7 +522,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     # Subsequent rows are fanzine issue rows
     Log(directoryUrl+"\n")
 
-    # Create a composition of all columns. The header column may have newline eleemnts, so compress them out.
+    # Create a composition of all columns. The header column may have newline elements, so compress them out.
     # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
     table.contents=[t for t in table.contents if not isinstance(t, NavigableString)]
     if len(table.contents[0]) == 0:
