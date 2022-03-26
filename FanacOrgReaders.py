@@ -28,6 +28,14 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
 
     fanacIssueInfo: list[FanzineIssueInfo]=[]
 
+    # We read in a list of directories to be skipped.
+    skippers=ReadList("control-skippers.txt")
+    # skippers.append("ScienceFictionFan")
+
+    # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
+    # We also skip these
+    offsite=ReadList("control-offsite.txt")
+
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
@@ -46,22 +54,9 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
 
         LogSetHeader("'"+dirname+"'      '"+title+"'")
 
-        global skippers  # Not actually used anywhere else, but for performance sake, should be read once and retained
-        try:
-            skippers
-        except NameError:
-            skippers=ReadList("control-skippers.txt")
-            #skippers.append("ScienceFictionFan")
         if dirname in skippers:
             Log(f"...Skipping because it is in skippers: {dirname}", isError=True)
             continue
-
-        # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
-        global offsite  # Not actually used anywhere else, but for performance sake, should be read once and retained
-        try:
-            offsite
-        except NameError:
-            offsite=ReadList("control-offsite.txt")
         if dirname in offsite:
             Log(f"...Skipping because it is in offsite: {dirname}")
             continue
