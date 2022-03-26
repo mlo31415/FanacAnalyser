@@ -79,7 +79,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         #     Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
         #     continue
 
-        fanacIssueInfo.extend(ReadAndAppendFanacFanzineIndexPage(title, url))
+        fanacIssueInfo.extend(ReadFanacFanzineIndexPage(title, url))
 
     # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
     Log("----Done reading index.html files on fanac.org")
@@ -292,7 +292,7 @@ def ExtractCountry(h: str) -> str:
 
 # ============================================================================================
 # Function to extract information from a fanac.org fanzine index.html page
-def ReadAndAppendFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
 
     Log(f"ReadAndAppendFanacFanzineIndexPage: {fanzineName}   {directoryUrl}")
 
