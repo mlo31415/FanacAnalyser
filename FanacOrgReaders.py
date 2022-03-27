@@ -431,6 +431,11 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> list[FanzineIssueI
                 if url.startswith("index") or url.startswith("archive") or url.startswith("Bullsheet1-00") or url.startswith("Bullsheet2-00"):
                     u=ChangeFileInURL(directoryUrl, url)
                     fiiList.extend(ReadSpecialBiggie(u, fanzineName))
+
+    # Fill in the FanzineSeriesInfo for this issue
+    fsi=FanzineSeriesInfo(SeriesName=fanzineName, DirURL=directoryUrl, Country=country)
+    for fii in fiiList:
+        fii.Series=fsi
     return fiiList
 
 
