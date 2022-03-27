@@ -312,9 +312,9 @@ def main():
             countryName="US"  # Joe wants fanzines with no country to be treated as US
         fanacSeriesDictByCountry.setdefault(countryName, Country([], FanzineCounts()))  # If needed, add an empty country entry
 
-        serieslist=fanacSeriesDictByCountry[countryName].SeriesList
         # serieslist is the list of fanzine series with counts for this country
         # Note that we accumulate the series page and issue totals
+        serieslist=fanacSeriesDictByCountry[countryName].SeriesList
 
         # Is this new issue from a series that is already in the list for this country?
         if issue.Series in serieslist:
