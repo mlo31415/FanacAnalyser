@@ -398,7 +398,7 @@ def main():
 
     WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
                fanacFanzineSeriesListByCountry,
-               lambda elem: UnicodeToHtml(elem[2].DisplayName)+("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor is not None else "",
+               lambda elem: UnicodeToHtml(elem[2].DisplayName)+(("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor is not None else ""),
                fRowHeaderText=lambda elem: CapIt(elem[0]),
                fURL=lambda elem: elem[2].DirURL,
                fButtonText=lambda elem: CapIt(elem[0]),
