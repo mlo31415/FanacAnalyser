@@ -95,7 +95,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
 # Remove the duplicates from a fanzine list
 def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueInfo]:
     # Sort in place on fanzine's Directory's URL followed by file name
-    fanzineList.sort(key=lambda fz: fz.PageName if fz.PageName is not None else "")
+    fanzineList.sort(key=lambda fz: fz.PageName)
     fanzineList.sort(key=lambda fz: fz.DirURL)
 
 #TODO Drop external links which duplicate Fanac.org
@@ -103,7 +103,7 @@ def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueIn
     last=""
     dedupedList: list[FanzineIssueInfo]=[]
     for fz in fanzineList:
-        this=fz.DirURL+(fz.PageName if fz.PageName is not None else "")
+        this=fz.DirURL+fz.PageName
         if this != last:
             dedupedList.append(fz)
         last=this
@@ -610,7 +610,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # Append it and log it.
         if fi is not None:
             urlT=""
-            if fi.PageName is None:
+            if fi.PageName == "":
                 urlT="*No PageName*"
             Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
             fiiList.append(fi)

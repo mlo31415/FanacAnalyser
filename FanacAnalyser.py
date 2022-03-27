@@ -45,7 +45,7 @@ def main():
     fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
     # Remove issues which have entries, but don't actually point to anything.
-    fanacIssueList=[x for x in fanacIssueList if x.PageName is not None]
+    fanacIssueList=[x for x in fanacIssueList if x.PageName != ""]
 
     # Sort the list of all fanzines issues by fanzine series name
     fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
@@ -65,7 +65,7 @@ def main():
             yearCount=0
             for fz in fanacIssueList:
                 if fz.FIS.Year == year:
-                    file.write(f"|| {NoNone(fz.IssueName)} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {NoNone(fz.PageName)} ||\n")
+                    file.write(f"|| {fz.IssueName} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {fz.PageName} ||\n")
                     yearCount+=1
             file.close()
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
@@ -103,7 +103,7 @@ def main():
         return str(fz.FIS.Year)[0:3]+"0s"
 
     def URL(fz: FanzineIssueInfo) -> str:
-        if fz is None or fz.PageName is None:
+        if fz is None or fz.PageName == "":
             return "<no url>"
         # Sometimes the url will be to a page in a PDF, so the URL will end with #page=nnn
         # Detect that, since the page needs to be handled specially.
@@ -178,7 +178,7 @@ def main():
     newsIssueCount=0
     newsPdfIssueCount=0
     for fz in fanacIssueList:
-        if fz.SeriesName.lower() in listOfNewszines and fz.PageName is not None:
+        if fz.SeriesName.lower() in listOfNewszines and fz.PageName != "":
             newsIssueCount+=1
             newsPageCount+=fz.Pagecount
             if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
@@ -207,7 +207,7 @@ def main():
 
     # Produce a list of fanzines by title
     def AlphaSortText(fz: FanzineIssueInfo) -> str:
-        if fz.SeriesName is None or len(fz.SeriesName) == 0:
+        if fz.SeriesName == "":
             return " "
         # Replace lower case and accented alphas, ignore punctuation, retain digits; the Unidecode is so that things like 'á Bas' sort with A
         out=""
