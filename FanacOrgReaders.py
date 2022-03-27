@@ -1,9 +1,12 @@
 from typing import Union, Optional
 from contextlib import suppress
+
 import os
 import re
+import time
 from difflib import SequenceMatcher
-from bs4 import BeautifulSoup, NavigableString, Tag
+from bs4 import BeautifulSoup
+from bs4.element import NavigableString, Tag
 import requests
 import urllib.parse
 
@@ -450,13 +453,17 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
     try:
         h=requests.get(directoryUrl, timeout=1)
     except:
+        Log(f"\n***OpenSoup failed. Retrying after 0.5 sec: {directoryUrl}", isError=True)
+        time.sleep(0.5)
         try:    # Do first retry
             h=requests.get(directoryUrl, timeout=2)
         except:
             try:  # Do second retry
+                Log(f"\n***OpenSoup failed again. Retrying after 2.0 sec: {directoryUrl}", isError=True)
+                time.sleep(2.0)
                 h=requests.get(directoryUrl, timeout=2)
             except:
-                Log("\n***OpenSoup failed because it didn't load: "+directoryUrl, isError=True)
+                Log(f"\n***OpenSoup failed three times. Load attempt aborted: {directoryUrl}", isError=True)
                 return None
     Log("...loaded", noNewLine=True)
 
