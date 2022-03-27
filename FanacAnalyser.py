@@ -330,8 +330,8 @@ def main():
                 Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
         else:
             # No: Add a new series entry created from this issue
-            issue.Series+=issue.Pagecount
-            serieslist.append(issue.Series)
+            series=issue.Series.Deepcopy()
+            serieslist.append(series)
             count=fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount
             count.Titlecount+=1
             fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, count)
@@ -365,8 +365,11 @@ def main():
             k=key if len(key.strip()) > 0 else "<no country>"
             print(f"\n{CapIt(k)}   {len(val[0])} titles,  {val[1].Issuecount} issues,  and {val[1].Pagecount} pages", file=f)
             for series in val[0]:
-                print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
-                Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
+                if series.DisplayName != "":
+                    print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
+                    Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
+                else:
+                    Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
 
     # Now create a properly ordered flat list suitable for WriteTable
     fanacFanzineSeriesListByCountry: list[tuple[str, int, str]]=[]
