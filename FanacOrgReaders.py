@@ -561,7 +561,8 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
 
         # The first element of the table sometimes comes in qith embedded non-breaking spaces which must be turned to real spaces.
         # (They were apparently put there deliberately some time in the past.)
-        tableRow[0]=RemoveFunnyWhitespace(tableRow[0][0]), tableRow[0][1]
+        if tableRow[0][0] is not None:  # Some empty rows have no entry in col 1, not even an empty string
+            tableRow[0]=RemoveFunnyWhitespace(tableRow[0][0]), tableRow[0][1]
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Title column specially, since it contains the critical href we need.
