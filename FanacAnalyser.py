@@ -495,7 +495,7 @@ def ReadModernOrClassicTable(fanacFanzineDirectoriesList: list[tuple[str, str]],
     return
 
 
-def ReadFile(filename: str) -> Optional[list[str]]:
+def ReadFile(filename: str) -> list[str]:
     try:
         with open(filename, "r") as f2:
             return f2.readlines()
@@ -503,7 +503,7 @@ def ReadFile(filename: str) -> Optional[list[str]]:
     except:
         # If the expected control header is unavailable, use the default.
         LogFailureAndRaiseIfMissing(filename)
-    return None
+    return []
 
 #================================================================================
 # fRowHeaderText and fRowBodyText and fSelector are all lambdas
@@ -535,12 +535,12 @@ def WriteTable(filename: str,
         # When we're generating HTML output, we need to include a header.
         # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
         basicHeadertext=ReadFile("control-Header (basic).html")
-        if basicHeadertext is None:
+        if not basicHeadertext:
             return
 
         # Read the specialized control.html file for this type of report
         specialText=ReadFile(headerFilename)
-        if specialText is not None:
+        if specialText:
             specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
             title=specialText[0]
             del specialText[0]
