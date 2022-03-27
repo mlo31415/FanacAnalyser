@@ -96,7 +96,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
 def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueInfo]:
     # Sort in place on fanzine's Directory's URL followed by file name
     fanzineList.sort(key=lambda fz: fz.PageName if fz.PageName is not None else "")
-    fanzineList.sort(key=lambda fz: fz.DirURL if fz.DirURL is not None else "")
+    fanzineList.sort(key=lambda fz: fz.DirURL)
 
 #TODO Drop external links which duplicate Fanac.org
     # Any duplicates will be adjacent, so search for adjacent directoryURL+URL

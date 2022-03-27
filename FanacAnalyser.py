@@ -65,7 +65,7 @@ def main():
             yearCount=0
             for fz in fanacIssueList:
                 if fz.FIS.Year == year:
-                    file.write(f"|| {NoNone(fz.IssueName)} || {NoNone(str(fz.FIS))} || {NoNone(fz.DirURL)} || {NoNone(fz.PageName)} ||\n")
+                    file.write(f"|| {NoNone(fz.IssueName)} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {NoNone(fz.PageName)} ||\n")
                     yearCount+=1
             file.close()
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
@@ -79,7 +79,7 @@ def main():
     ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
 
     for fz in fanacIssueList:
-        if fz.DirURL is not None:
+        if fz.DirURL != "":
             issueCount+=1
             pageCount+=fz.Pagecount
             if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
