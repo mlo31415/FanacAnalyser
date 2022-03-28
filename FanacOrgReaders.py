@@ -276,7 +276,7 @@ def ExtractCountry(h: str) -> str:
 
     loc=Locale(temp[0])
     Log(f'ExtractCountry: "{temp[0]}" --> {loc}')
-    return loc.Country
+    return loc.CountryName
 
     # # There are two formats for this text:
     # #       Country: <country>

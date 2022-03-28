@@ -311,7 +311,7 @@ def main():
     fanacSeriesDictByCountry: dict[str, CountryCounts]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
     for issue in fanacIssueList:
-        countryName=issue.Locale.Country
+        countryName=issue.Locale.CountryName
 
         # If this is a new country, create a new, empty, entry for it
         fanacSeriesDictByCountry.setdefault(countryName, CountryCounts([], FanzineCounts()))  # If needed, add an empty country entry
