@@ -302,13 +302,19 @@ def main():
     # Now generate a list of fanzine series sorted by country
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-    Country=namedtuple('Country', 'SeriesList SeriesCount')
-    fanacSeriesDictByCountry: dict[str, Country]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
+    class CountryCounts():
+        def __init__(self, sl: list, sc: FanzineCounts):
+            self.SeriesList: list=sl
+            self.SeriesCount: FanzineCounts=sc
+
+    #Country=namedtuple('Country', 'SeriesList SeriesCount')
+    fanacSeriesDictByCountry: dict[str, CountryCounts]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
     for issue in fanacIssueList:
-        # If this is a new country, create a new, empty, entry for it
         countryName=issue.Locale.Country
-        fanacSeriesDictByCountry.setdefault(countryName, Country([], FanzineCounts()))  # If needed, add an empty country entry
+
+        # If this is a new country, create a new, empty, entry for it
+        fanacSeriesDictByCountry.setdefault(countryName, CountryCounts([], FanzineCounts()))  # If needed, add an empty country entry
 
         # serieslist is the list of fanzine series with counts for this country
         # Note that we accumulate the series page and issue totals
@@ -323,7 +329,7 @@ def main():
                 # serieslist[loc] is a specific series in [country]
                 # Update the series by adding the pagecount of this issue to it
                 series+=issue.Pagecount
-                fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount)
+                fanacSeriesDictByCountry[countryName]=CountryCounts(fanacSeriesDictByCountry[countryName].SeriesList, fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount)
             else:
                 Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
         else:
@@ -332,13 +338,13 @@ def main():
             serieslist.append(series)
             count=fanacSeriesDictByCountry[countryName].SeriesCount+issue.Pagecount
             count.Titlecount+=1
-            fanacSeriesDictByCountry[countryName]=Country(fanacSeriesDictByCountry[countryName].SeriesList, count)
+            fanacSeriesDictByCountry[countryName]=CountryCounts(fanacSeriesDictByCountry[countryName].SeriesList, count)
 
     # Next we sort the individual country lists into order by series name
     for ckey, cval in fanacSeriesDictByCountry.items():
-        serieslist=cval[0]
+        serieslist=cval.SeriesList
         serieslist.sort(key=lambda elem: elem.SeriesName.lower())
-        fanacSeriesDictByCountry[ckey]=(serieslist, cval[1])  # Sorts in place on fanzine name
+        fanacSeriesDictByCountry[ckey]=CountryCounts(serieslist, cval.SeriesCount)  # Sorts in place on fanzine name
 
     # Take a string which is lower case and turn it to City, State, US sort of capitalization
     def CapIt(s: str) -> str:
@@ -367,6 +373,7 @@ def main():
                     print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
                     Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
                 else:
+                    print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
                     Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
 
     # Now create a properly ordered flat list suitable for WriteTable
