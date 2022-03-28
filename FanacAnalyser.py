@@ -504,9 +504,8 @@ def ReadFile(filename: str) -> list[str]:
     try:
         with open(filename, "r") as f2:
             return f2.readlines()
-
     except:
-        # If the expected control header is unavailable, use the default.
+        # If the expected control header is unavailable, bail out. Otherwise return an empty list.
         LogFailureAndRaiseIfMissing(filename)
     return []
 
