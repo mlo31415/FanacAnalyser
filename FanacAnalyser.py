@@ -55,7 +55,7 @@ def main():
             return ""
         return s
 
-    # Read the control-year.txt file to get the year to be dumped out
+    # Read the control-year.txt file to get the year(s) to be dumped out
     selectedYears: list[tuple[int, int]]=[]
     if os.path.exists("control-year.txt"):
         years=ReadList("control-year.txt")
@@ -70,6 +70,18 @@ def main():
             file.close()
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
 
+    # Count the number of pages, issues and PDFs
+    ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
+
+    counts=FanzineCounts()
+    for fz in fanacIssueList:
+        if fz.DirURL != "":
+            counts+=fz.Pagecount
+            if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+                counts.Pdfcount+=1
+                counts.Pdfpagecount+=fz.Pagecount
+            if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
+                Log(f"{fz.IssueName} has no page count: {fz}")
 
     # Produce a list of fanzines listed by date
     fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
