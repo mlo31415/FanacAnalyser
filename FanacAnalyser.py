@@ -70,24 +70,6 @@ def main():
             file.close()
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
 
-    # Count the number of pages, issues and PDFs and also generate a report listing all fanzines for which a page count can't be located
-    issueCount=0
-    pdfIssueCount=0
-    pageCount=0
-    pdfPageCount=0
-    f=open(os.path.join(reportDir, "Items with No Page Count.txt"), "w+")
-    ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
-
-    for fz in fanacIssueList:
-        if fz.DirURL != "":
-            issueCount+=1
-            pageCount+=fz.Pagecount
-            if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
-                pdfIssueCount+=1
-                pdfPageCount+=fz.Pagecount
-            if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
-                f.write(str(fz)+"\n")
-    f.close()
 
     # Produce a list of fanzines listed by date
     fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
