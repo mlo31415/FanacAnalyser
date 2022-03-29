@@ -41,7 +41,6 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
     # We also skip these
     offsite=ReadList("control-offsite.txt")
 
-
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
         # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
@@ -118,12 +117,17 @@ def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueIn
 # If cellname is a list of names, try them all and return the first that hits
 def GetCellValueByColHeader(columnHeaders: list, row: list[tuple[str, str]], cellnames: Union[str, list[str]]) -> tuple[str, str]:
 
-    # Make sure we have a list of cell names
-    celllist=cellnames if type(cellnames) is list else [cellnames]
-    for cn in celllist:
+    # Make sure cell names is a list we can iterate over
+    cellnameslist=cellnames if type(cellnames) is list else [cellnames]
+    for cn in cellnameslist:
+        # Run through the list of all headers looking for a match
         for i, header in enumerate(columnHeaders):
             if CanonicizeColumnHeaders(header) == CanonicizeColumnHeaders(cn):
-                return ChangeNBSPToSpace(row[i][0]), row[i][1]
+                # Deal with missing cells -- apparently due to an LST read problem with certain mal-formed LST files
+                try:
+                    return ChangeNBSPToSpace(row[i][0]), row[i][1]
+                except:
+                    return "", ""
 
     return "", ""
 
