@@ -216,7 +216,7 @@ def ExtractPageCount(columnHeaders: list[str], row: list[tuple[str, str]]) -> in
 # Find the cell containing the page count and return its value
 def ExtractMailings(columnHeaders: list[str], row: list[tuple[str, str]]) -> list[str]:
 
-    mailingText=GetCellValueByColHeader(columnHeaders, row, ["Mailing"])[0]
+    mailingText=GetCellValueByColHeader(columnHeaders, row, "Mailing")[0]
     if mailingText is None or len(mailingText) == 0:
         return []
     # The mailing text is a series of APA names followed by alphanumerics separated by semicolons
