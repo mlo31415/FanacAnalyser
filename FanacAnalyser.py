@@ -126,7 +126,7 @@ def main():
                 url=fz.PageName
         return url
 
-    countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
+    countText=f"{counts.Issuecount:,} issues consisting of {counts.Pagecount:,} pages."
     WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
                datedList,
                lambda fz: UnicodeToHtml(fz.IssueName),
@@ -174,15 +174,12 @@ def main():
     listOfNewszines=sorted(list(newszinesSet))
 
     # Count the number of issue and pages of all fanzines and just newszines
-    newsPageCount=0
-    newsIssueCount=0
-    newsPdfIssueCount=0
+    newsCount=FanzineCounts()
     for fz in fanacIssueList:
         if fz.SeriesName.lower() in listOfNewszines and fz.PageName != "":
-            newsIssueCount+=1
-            newsPageCount+=fz.Pagecount
+            newsCount+=fz
             if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
-                newsPdfIssueCount+=1
+                newsCount.Pdfcount+=1
 
     # Look for lines in the list of newszines which don't match actual newszines on the site.
     unusedLines=[x for x in listOfNewszines if x.lower() not in listOfNewszines]
@@ -194,7 +191,7 @@ def main():
     with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
         f.writelines(unusedLines)
 
-    countText=f"{newsIssueCount:,} issues consisting of {newsPageCount:,} pages."
+    countText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
                fanacIssueList,
                lambda fz: UnicodeToHtml(fz.IssueName),
@@ -218,7 +215,7 @@ def main():
                 out+=c
         return out
 
-    countText=f"{issueCount:,} issues consisting of {pageCount:,} pages."
+    countText=f"{counts.Issuecount:,} issues consisting of {counts.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
     fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
 
@@ -279,15 +276,15 @@ def main():
 
     # Print to the console and also the statistics file
     Log("\n")
-    Log(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}")
-    Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}")
-    Log(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}")
+    Log(f"All fanzines: Titles: {fzCount:,}  Issues: {counts.Issuecount:,}  Pages: {counts.Pagecount:,}  PDFs: {counts.Pdfcount:,}")
+    Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}")
+    Log(f"All PDF fanzines: Issues: {counts.Pdfcount:,}   Pages: {counts.Pdfpagecount:,}")
     for selectedYear in selectedYears:
         Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
     with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
-        print(f"All fanzines: Titles: {fzCount:,}  Issues: {issueCount:,}  Pages: {pageCount:,}  PDFs: {pdfIssueCount:,}", file=f)
-        print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsIssueCount:,}  Pages: {newsPageCount:,}  PDFs: {newsPdfIssueCount:,}", file=f)
-        print(f"All PDF fanzines: Issues: {pdfIssueCount:,}   Pages: {pdfPageCount:,}", file=f)
+        print(f"All fanzines: Titles: {fzCount:,}  Issues: {counts.Issuecount:,}  Pages: {counts.Pagecount:,}  PDFs: {counts.Pdfcount:,}", file=f)
+        print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
+        print(f"All PDF fanzines: Issues: {counts.Pdfcount:,}   Pages: {counts.Pdfpagecount:,}", file=f)
         for selectedYear in selectedYears:
             print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
 
@@ -329,8 +326,7 @@ def main():
 
         # We want to find the series in the list that matches issue.Series
         series=countrycount.SeriesList[countrycount.SeriesList.index(issue.Series)]
-        series.Pagecount=series.Pagecount+issue.Pagecount
-        series.Issuecount=series.Issuecount+1
+        series+=issue
 
         # If the directories in the DirURLs match, just add this issue to the existing series totals.
         # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
@@ -338,8 +334,7 @@ def main():
             # serieslist[loc] is a specific series in [country]
             # Update the series by adding the pagecount of this issue to it
             count=countrycount.SeriesCount
-            count.Pagecount=count.Pagecount+issue.Pagecount
-            count.Issuecount=count.Issuecount+1
+            count+=issue
             count.Titlecount+=1
         else:
             Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
