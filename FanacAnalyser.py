@@ -8,7 +8,6 @@ import math
 import datetime
 from bs4 import BeautifulSoup
 import unidecode
-from collections import namedtuple
 
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineSeriesInfo
