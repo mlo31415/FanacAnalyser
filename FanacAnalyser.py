@@ -271,7 +271,8 @@ def main():
     Log(f"All PDF fanzines: Issues: {counts.Pdfcount:,}   Pages: {counts.Pdfpagecount:,}")
     for selectedYear in selectedYears:
         Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
-    with open(os.path.join(outputDir, "Statistics.txt"), "w+") as f:
+
+    with open(os.path.join(reportDir, "Statistics.txt"), "w+") as f:
         print(f"All fanzines: Titles: {fzCount:,}  Issues: {counts.Issuecount:,}  Pages: {counts.Pagecount:,}  PDFs: {counts.Pdfcount:,}", file=f)
         print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
         print(f"All PDF fanzines: Issues: {counts.Pdfcount:,}   Pages: {counts.Pdfpagecount:,}", file=f)
@@ -390,7 +391,7 @@ def main():
             s="("+s+")"
         return s
 
-    WriteTable(os.path.join(outputDir, "Series_by_Country.html"),
+    WriteTable(os.path.join(reportDir, "Series_by_Country.html"),
                fanacFanzineSeriesListByCountry,
                lambda elem: UnicodeToHtml(elem[2].DisplayName)+(("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor != "" else ""),
                fRowHeaderText=lambda elem: CapIt(elem[0]),
