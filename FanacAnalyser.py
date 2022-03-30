@@ -177,15 +177,9 @@ def main():
             if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
                 newsCount.Pdfcount+=1
 
-    # Look for lines in the list of newszines which don't match actual newszines on the site.
-    unusedLines=[x for x in listOfNewszines if x.lower() not in listOfNewszines]
-    unusedLines=[x+"\n" for x in unusedLines]
-
     newszines=[x+"\n" for x in listOfNewszines]
     with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as f:
         f.writelines(newszines)
-    with open(os.path.join(reportDir, "Unused lines in control-newszines.txt"), "w+") as f:
-        f.writelines(unusedLines)
 
     countText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
