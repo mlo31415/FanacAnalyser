@@ -91,13 +91,12 @@ def main():
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
-    # Compute the button text for chronological listings -- used in calls to WriteTable
+    # Compute the button text and links for chronological listings -- used in calls to WriteTable
     def ChronButtonText(fz: FanzineIssueInfo) -> str:
         if fz.FIS is None or fz.FIS.Year is None:
             return " "
         return str(fz.FIS.Year)[0:3]+"0s"
 
-    # C Compute the URL for a links to a fanzine issue -- used in calls to WriteTable
     def URL(fz: FanzineIssueInfo) -> str:
         if fz is None or fz.PageName == "":
             return "<no url>"
@@ -192,7 +191,7 @@ def main():
                headerFilename="control-Header (Newszine).html",
                fSelector=lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
-    # Produce a list of fanzines by title
+    # Sort function for generating a list of fanzines by title
     def AlphaSortText(fz: FanzineIssueInfo) -> str:
         if fz.SeriesName == "":
             return " "
@@ -209,6 +208,7 @@ def main():
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
     fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
 
+    # Compute the button text and URL for an alphabetic fanzine issue -- used in calls to WriteTable
     def AlphaButtonText(fz: FanzineIssueInfo) -> str:
         c=AlphaSortText(fz)[0]
         if c == " " or c.isdigit():
