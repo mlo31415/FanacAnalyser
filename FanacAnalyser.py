@@ -83,7 +83,7 @@ def main():
             if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
                 Log(f"{fz.IssueName} has no page count: {fz}")
 
-    # Produce a list of fanzines listed by date
+    # Produce various lists of fanzines for upcoming WriteTables
     fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
     undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
@@ -91,11 +91,13 @@ def main():
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
 
+    # Compute the button text for chronological listings -- used in calls to WriteTable
     def ChronButtonText(fz: FanzineIssueInfo) -> str:
         if fz.FIS is None or fz.FIS.Year is None:
             return " "
         return str(fz.FIS.Year)[0:3]+"0s"
 
+    # C Compute the URL for a links to a fanzine issue -- used in calls to WriteTable
     def URL(fz: FanzineIssueInfo) -> str:
         if fz is None or fz.PageName == "":
             return "<no url>"
