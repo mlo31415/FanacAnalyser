@@ -134,8 +134,8 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[tuple[str, str]], cel
 
 
 #=============================================================================================
-# Extract a date from a table row
-# We return a tuple: (yearInt, yearText, monthInt, monthText, dayInt, dayText)
+# Extract a date from a table row.  Note that this will usually involved merging data from multiple columns.
+# We return a FanzineDate
 def ExtractDate(columnHeaders: list[str], row: list[tuple[str, str]]) -> FanzineDate:
 
     # Does this have a Date column?  If so, that's all we need. (I hope...)
@@ -179,10 +179,8 @@ def ExtractDate(columnHeaders: list[str], row: list[tuple[str, str]]) -> Fanzine
 
 #=============================================================================================
 # Extract a serial number (vol, num, whole_num) from a table row
-# We return a tuple: (vol, num)
-# Some fanzines have a whole number --> returned as VolNone, Num=nnn
-# Others have a Volume and a number --> returned as Vol=nn, Num=nn
-# Sometimes the number is composite V2#3 and stored who-knows-where and we gotta find it.
+# We return a FanzineSerial object
+# This may involve merging data from multiple columns
 def ExtractSerial(columnHeaders: list[str], row: list[tuple[str, str]]) -> FanzineSerial:
 
     wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole")[0]
@@ -214,7 +212,7 @@ def ExtractPageCount(columnHeaders: list[str], row: list[tuple[str, str]]) -> in
 
 
 #============================================================================================
-# Find the cell containing the page count and return its value
+# Find the cell containing the mailings data
 def ExtractMailings(columnHeaders: list[str], row: list[tuple[str, str]]) -> list[str]:
 
     mailingText=GetCellValueByColHeader(columnHeaders, row, "Mailing")[0]
@@ -571,7 +569,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
             continue
         Log(f"   row={tableRow}")
 
-        # The first element of the table sometimes comes in qith embedded non-breaking spaces which must be turned to real spaces.
+        # The first element of the table sometimes comes in with embedded non-breaking spaces which must be turned to real spaces.
         # (They were apparently put there deliberately some time in the past.)
         if tableRow[0][0] is not None:  # Some empty rows have no entry in col 1, not even an empty string
             tableRow[0]=RemoveFunnyWhitespace(tableRow[0][0]), tableRow[0][1]
