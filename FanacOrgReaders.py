@@ -218,8 +218,8 @@ def ExtractMailings(columnHeaders: list[str], row: list[tuple[str, str]]) -> lis
     mailingText=GetCellValueByColHeader(columnHeaders, row, "Mailing")[0]
     if mailingText is None or len(mailingText) == 0:
         return []
-    # The mailing text is a series of APA names followed by alphanumerics separated by semicolons
-    pattern="([a-zA-Z0-9\-]\w+[[a-zA-Z0-9\-])[,;]\w*"
+    # The mailing text is a series of APA names followed by alphanumerics separated by ampersands
+    pattern="([a-zA-Z0-9\-]\w+[[a-zA-Z0-9\-])[,&]\w*"
 
     mailingslist=[]
     mailingText=mailingText.strip()
