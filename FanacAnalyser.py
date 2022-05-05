@@ -11,7 +11,7 @@ import unidecode
 
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineSeriesInfo
-from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing
+from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents, RemoveAllHTMLTags2
 
 def main():
@@ -33,7 +33,7 @@ def main():
         try:
             os.mkdir(reportDir)
         except Exception as e:
-            Log(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}", isError=True)
+            LogError(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}")
             exit(1)
     Log("Report directory '"+reportDir+"' created")
 
@@ -484,7 +484,7 @@ def ReadModernOrClassicTable(fanacFanzineDirectoriesList: list[tuple[str, str]],
                         dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
                         AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
                 except:
-                    Log("Bogus row found by ReadModernOrClassicTable", isError=True)    # There's really nothing to be done except debug...
+                    LogError("Bogus row found by ReadModernOrClassicTable")    # There's really nothing to be done except debug...
                     assert()    #TODO: Remove this, as it is temporary
     return
 

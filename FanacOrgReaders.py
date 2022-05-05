@@ -15,7 +15,7 @@ from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial
 from FanzineIssueSpecPackage import ExtractSerialNumber
 from Locale import Locale
 
-from Log import Log, LogSetHeader
+from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText
 from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace
 from HelpersPackage import CanonicizeColumnHeaders
@@ -49,6 +49,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         unskippers=[
             #"MT_Void",
             #"Coventranian_Gazette",
+            #"File770",
             #"Solstice",
             #"Le_Zombie",
             #"Booklist",
@@ -60,14 +61,14 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         LogSetHeader("'"+dirname+"'      '"+title+"'")
 
         if dirname in skippers:
-            Log(f"...Skipping because it is in skippers: {dirname}", isError=True)
+            LogError(f"...Skipping because it is in skippers: {dirname}")
             continue
         if dirname in offsite:
             Log(f"...Skipping because it is in offsite: {dirname}")
             continue
         # Besides the offsite table, we try to detect references which are offsite from their URLs
         if dirname.startswith("http://"):
-            Log(f"...Skipped because the index page pointed to is not on fanac.org: {dirname}", isError=True)
+            LogError(f"...Skipped because the index page pointed to is not on fanac.org: {dirname}")
             continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
@@ -77,7 +78,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         if url is None:
             continue
         if not url.startswith("https://www.fanac.org"):
-            Log(f"...Skipped because not a fanac.org url: {url}", isError=True)
+            LogError(f"...Skipped because not a fanac.org url: {url}")
             continue
 
         # if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
@@ -457,17 +458,17 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
     try:
         h=requests.get(directoryUrl, timeout=1)
     except:
-        Log(f"\n***OpenSoup failed. Retrying after 0.5 sec: {directoryUrl}", isError=True)
+        LogError(f"\n***OpenSoup failed. Retrying after 0.5 sec: {directoryUrl}")
         time.sleep(0.5)
         try:    # Do first retry
             h=requests.get(directoryUrl, timeout=2)
         except:
             try:  # Do second retry
-                Log(f"\n***OpenSoup failed again. Retrying after 2.0 sec: {directoryUrl}", isError=True)
+                LogError(f"\n***OpenSoup failed again. Retrying after 2.0 sec: {directoryUrl}")
                 time.sleep(2.0)
                 h=requests.get(directoryUrl, timeout=2)
             except:
-                Log(f"\n***OpenSoup failed three times. Load attempt aborted: {directoryUrl}", isError=True)
+                LogError(f"\n***OpenSoup failed three times. Load attempt aborted: {directoryUrl}")
                 return None
     Log("...loaded", noNewLine=True)
 
@@ -502,7 +503,7 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
 
     # Usually, a singleton has the information in the first h2 block
     if soup.h2 is None:
-        Log("***Failed to find <h2> block in singleton '"+directoryUrl+"'", isError=True)
+        LogError("***Failed to find <h2> block in singleton '"+directoryUrl+"'")
         return []
 
     content=[str(e) for e in soup.h2.contents if type(e) is NavigableString]
@@ -514,7 +515,7 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
         if not date.IsEmpty():
             break
     if date.IsEmpty():
-        Log(f"***Failed to find date in <h2> block in singleton '{directoryUrl}'", isError=True)
+        LogError(f"***Failed to find date in <h2> block in singleton '{directoryUrl}'")
         return []
     fis=FanzineIssueSpec(FD=date)
     fii=FanzineIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, PageName="", FIS=fis, Pagecount=0)
@@ -545,7 +546,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
     table.contents=[t for t in table.contents if not isinstance(t, NavigableString)]
     if len(table.contents[0]) == 0:
-        Log("***FanacOrgReaders: No table column headers found. Skipped", isError=True)
+        LogError("***FanacOrgReaders: No table column headers found. Skipped")
     columnHeaders=table.contents[0].text.strip().split("\n")
     columnHeaders: list[str]=[CanonicizeColumnHeaders(c) for c in columnHeaders]
 
@@ -597,7 +598,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
                 # OK, this is a fanac URL.  Divide it into a file and a path
                 fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
                 if fname:
-                    Log(f"   FanacOrgReaders: href='{href}' seems to be pointing to a directory, not a file. Skipped", isError=True)
+                    LogError(f"   FanacOrgReaders: href='{href}' seems to be pointing to a directory, not a file. Skipped")
                     continue
                 path=href.replace("/"+fname, "")
                 href=fname
@@ -627,7 +628,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
             Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
             fiiList.append(fi)
         else:
-            Log(f"{fanzineName}      ***Can't handle {dirUrl}", isError=True)
+            LogError(f"{fanzineName}      ***Can't handle {dirUrl}")
 
     return fiiList
 
@@ -682,5 +683,5 @@ def LocateIndexTable(directoryUrl: str, soup: BeautifulSoup, silence: bool=False
         return table
 
     if not silence:
-        Log("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl, isError=True)
+        LogError("***failed because BeautifulSoup found no index table in index.html: "+directoryUrl)
     return None
