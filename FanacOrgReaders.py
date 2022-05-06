@@ -260,6 +260,8 @@ def ExtractHrefAndTitle(columnHeaders: list[str], row: list[TextAndHref]) -> Tex
     # Find the column containing the issue name
     issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
     if issue.IsEmpty():
+        issue=GetCellValueByColHeader(columnHeaders, row, "Title")
+    if issue.IsEmpty():
         issue=GetCellValueByColHeader(columnHeaders, row, "Text")
     if issue.IsEmpty():
        return TextAndHref("<not found>", "")
