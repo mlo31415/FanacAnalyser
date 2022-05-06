@@ -558,7 +558,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     tableRows: list[list[TextAndHref]]=[[]]
     for row in table.contents[1:]:  # Skip the first row
         if type(row) is not Tag:
-            Log(f"This should be a tag, but isn;t. Skipped: {row}")
+            Log(f"This should be a tag, but isn't. Skipped: {row}")
             continue
         tr=row.contents
 
@@ -575,7 +575,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # Skip the column headers row and null rows
         if len(tableRow) == 0 or (len(tableRow) == 1 and tableRow[0]=="\n"):
             continue
-        Log(f"   row={tableRow}")
+        Log(f"   {tableRow=}")
 
         # The first element of the table sometimes comes in with embedded non-breaking spaces which must be turned to real spaces.
         # (They were apparently put there deliberately some time in the past.)
@@ -624,7 +624,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
             Log(f"   ****Skipping null table row: {fi}")
             continue
 
-        Log(f"   {fi}")
+        Log(f"   {fi=}")
 
         # Append it and log it.
         if fi is not None:
