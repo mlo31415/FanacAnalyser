@@ -123,6 +123,14 @@ class TextAndHref:
     def IsEmpty(self) -> bool:
         return self.Text == "" and self.Url == ""
 
+    def __str__(self) -> str:
+        if self.Url == "":
+            return f"TextAndHref('{self.Text}')"
+        return f"TextAndHref(Text='{self.Text}', Url='{self.Url}')"
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
@@ -244,6 +252,7 @@ def ExtractMailings(columnHeaders: list[str], row: list[TextAndHref]) -> list[st
         mailingslist.append(mailingtext)
 
     return mailingslist
+
 
 # ============================================================================================
 # Scan the row and locate the issue cell, title and href and return them as a tuple
