@@ -111,11 +111,13 @@ class TextAndHref:
 
     def __str__(self) -> str:
         if self.Url == "":
-            return f"TextAndHref('{self.Text}')"
-        return f"TextAndHref(Text='{self.Text}', Url='{self.Url}')"
+            return f"{self.Text})"
+        return f"<a href={self.Url}>{self.Text}</a>>"
 
     def __repr__(self) -> str:
-        return str(self)
+        if self.Url == "":
+            return f"TextAndHref('{self.Text}')"
+        return f"TextAndHref(Text='{self.Text}', Url='{self.Url}')"
 
 
 #=============================================================================================
