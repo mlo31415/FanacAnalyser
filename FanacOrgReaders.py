@@ -598,7 +598,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # we need to check to see if it has directoryURL as a prefix (in which case we delete the prefix) or it has a *different* fanac.org URL, in which case we
         # change the value of directoryURL for this fanzine.
         dirUrl=directoryUrl
-        if title.Url is not None:
+        if title.Url != "":
             if title.Url.startswith(directoryUrl):
                 title.Url=title.Url.replace(directoryUrl, "")
                 title.Url=title.Url.removeprefix("/")   # Delete any remnant leading "/"
