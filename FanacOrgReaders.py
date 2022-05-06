@@ -118,10 +118,10 @@ def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueIn
 @dataclass
 class TextAndHref:
     Text: str=""
-    Href: str=""
+    Url: str=""
 
     def IsEmpty(self) -> bool:
-        return self.Text == "" and self.Href == ""
+        return self.Text == "" and self.Url == ""
 
 
 #=============================================================================================
@@ -137,7 +137,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
             if CanonicizeColumnHeaders(header) == CanonicizeColumnHeaders(cn):
                 # Deal with missing cells -- apparently due to an LST read problem with certain mal-formed LST files
                 try:
-                    return TextAndHref(ChangeNBSPToSpace(row[i].Text), row[i].Href)
+                    return TextAndHref(ChangeNBSPToSpace(row[i].Text), row[i].Url)
                 except:
                     return TextAndHref()
 
@@ -256,7 +256,7 @@ def ExtractHrefAndTitle(columnHeaders: list[str], row: list[TextAndHref]) -> Tex
        return TextAndHref("<not found>", "")
 
     # If necessary, separate the href and the name
-    if issue.Href != "":
+    if issue.Url != "":
         return issue
 
     if issue.Text == "":
@@ -266,8 +266,8 @@ def ExtractHrefAndTitle(columnHeaders: list[str], row: list[TextAndHref]) -> Tex
     # If we don't find a hyperlink in the title, scan the other cells of the row for the first col containing a hyperlink
     # We return the name from the issue cell and the hyperlink from the other cell
     for i in range(0, len(columnHeaders)):
-        if row[i].Href != "":
-            return TextAndHref(issue.Text, row[i].Href)
+        if row[i].Url != "":
+            return TextAndHref(issue.Text, row[i].Url)
 
     return issue     # No hyperlink found
 
@@ -571,7 +571,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # The first element of the table sometimes comes in with embedded non-breaking spaces which must be turned to real spaces.
         # (They were apparently put there deliberately some time in the past.)
         if tableRow[0].Text != "":  # Some empty rows have no entry in col 1, not even an empty string
-            tableRow[0]=TextAndHref(RemoveFunnyWhitespace(tableRow[0].Text), tableRow[0].Href)
+            tableRow[0]=TextAndHref(RemoveFunnyWhitespace(tableRow[0].Text), tableRow[0].Url)
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Text column specially, since it contains the critical href we need.
@@ -587,18 +587,18 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # we need to check to see if it has directoryURL as a prefix (in which case we delete the prefix) or it has a *different* fanac.org URL, in which case we
         # change the value of directoryURL for this fanzine.
         dirUrl=directoryUrl
-        if title.Href is not None:
-            if title.Href.startswith(directoryUrl):
-                title.Href=title.Href.replace(directoryUrl, "")
-                title.Href=title.Href.removeprefix("/")   # Delete any remnant leading "/"
-            elif title.Href.startswith("http://www.fanac.org/") or title.Href.startswith("http://fanac.org/") or title.Href.startswith("https://www.fanac.org/") or title.Href.startswith("https://fanac.org/"):
+        if title.Url is not None:
+            if title.Url.startswith(directoryUrl):
+                title.Url=title.Url.replace(directoryUrl, "")
+                title.Url=title.Url.removeprefix("/")   # Delete any remnant leading "/"
+            elif title.Url.startswith("http://www.fanac.org/") or title.Url.startswith("http://fanac.org/") or title.Url.startswith("https://www.fanac.org/") or title.Url.startswith("https://fanac.org/"):
                 # OK, this is a fanac URL.  Divide it into a file and a path
-                fname=urllib.parse.urlparse(title.Href).path.split("/")[-1:][0]
+                fname=urllib.parse.urlparse(title.Url).path.split("/")[-1:][0]
                 if fname:
-                    LogError(f"   FanacOrgReaders: href='{title.Href}' seems to be pointing to a directory, not a file. Skipped")
+                    LogError(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a directory, not a file. Skipped")
                     continue
-                path=title.Href.replace("/"+fname, "")
-                title.Href=fname
+                path=title.Url.replace("/"+fname, "")
+                title.Url=fname
                 dirUrl=path
 
         # In cases where there's a two-level index, the dirurl is actually the URL of an html file.
@@ -610,7 +610,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=title.Text, DirURL=dirUrl, PageName=title.Href, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
+        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
