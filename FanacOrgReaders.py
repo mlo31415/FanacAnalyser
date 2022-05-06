@@ -210,16 +210,16 @@ def ExtractSerial(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineSe
 # Find the cell containing the page count and return its value
 def ExtractPageCount(columnHeaders: list[str], row: list[TextAndHref]) -> int:
 
-    pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"]).Text
-    if pageText is None:
+    pageCountText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"]).Text
+    if pageCountText is None:
         # If there's no column labelled for page count, check to see if there's a "Type" column with value "CARD".
         # These are newscards and are by definition a single page.
-        pageText=GetCellValueByColHeader(columnHeaders, row, "Type").Text
-        if pageText is not None and pageText.lower() == "card":
+        pageCountText=GetCellValueByColHeader(columnHeaders, row, "Type").Text
+        if pageCountText is not None and pageCountText.lower() == "card":
             return 1    # All cards have a pagecount of 1
         return 0
 
-    return Int0(pageText)
+    return Int0(pageCountText)
 
 
 #============================================================================================
