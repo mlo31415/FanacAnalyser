@@ -566,7 +566,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
 
         newRow: list[TextAndHref]=[]
         for cell in tr:
-            if not isinstance(row, NavigableString):    # Half the rows are newlines which we might as well ignore now
+            if not isinstance(cell, NavigableString):    # Half the rows are newlines which we might as well ignore now
                 newRow.append(GetTextAndHrefFromTag(cell))
         tableRows.append(newRow)
 
