@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 import requests
 import urllib.parse
+from dataclasses import dataclass
 
 
 from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo, FanzineSeriesInfo
@@ -113,10 +114,20 @@ def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueIn
     return dedupedList
 
 
+
+@dataclass
+class TextAndHref:
+    Text: str=""
+    Href: str=""
+
+    def IsEmpty(self) -> bool:
+        return self.Text == "" and self.Href == ""
+
+
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
 # If cellname is a list of names, try them all and return the first that hits
-def GetCellValueByColHeader(columnHeaders: list, row: list[tuple[str, str]], cellnames: Union[str, list[str]]) -> tuple[str, str]:
+def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnames: Union[str, list[str]]) -> TextAndHref:
 
     # Make sure cell names is a list we can iterate over
     cellnameslist=cellnames if type(cellnames) is list else [cellnames]
@@ -126,29 +137,29 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[tuple[str, str]], cel
             if CanonicizeColumnHeaders(header) == CanonicizeColumnHeaders(cn):
                 # Deal with missing cells -- apparently due to an LST read problem with certain mal-formed LST files
                 try:
-                    return ChangeNBSPToSpace(row[i][0]), row[i][1]
+                    return TextAndHref(ChangeNBSPToSpace(row[i].Text), row[i].Href)
                 except:
-                    return "", ""
+                    return TextAndHref()
 
-    return "", ""
+    return TextAndHref()
 
 
 #=============================================================================================
 # Extract a date from a table row.  Note that this will usually involved merging data from multiple columns.
 # We return a FanzineDate
-def ExtractDate(columnHeaders: list[str], row: list[tuple[str, str]]) -> FanzineDate:
+def ExtractDate(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineDate:
 
     # Does this have a Date column?  If so, that's all we need. (I hope...)
-    dateText=GetCellValueByColHeader(columnHeaders, row, "Date")[0]
+    dateText=GetCellValueByColHeader(columnHeaders, row, "Date").Text
     if dateText is not None and len(dateText) > 0:
         # Get the date
         with suppress(Exception):
             return FanzineDate().Match(dateText)
 
     # Next, take the various parts and assemble them and try to interpret the result using the FanzineDate() parser
-    yearText=GetCellValueByColHeader(columnHeaders, row, "Year")[0]
-    monthText=GetCellValueByColHeader(columnHeaders, row, "Month")[0]
-    dayText=GetCellValueByColHeader(columnHeaders, row, "Day")[0]
+    yearText=GetCellValueByColHeader(columnHeaders, row, "Year").Text
+    monthText=GetCellValueByColHeader(columnHeaders, row, "Month").Text
+    dayText=GetCellValueByColHeader(columnHeaders, row, "Day").Text
 
     if yearText is not None:
         if monthText is not None:
@@ -181,29 +192,29 @@ def ExtractDate(columnHeaders: list[str], row: list[tuple[str, str]]) -> Fanzine
 # Extract a serial number (vol, num, whole_num) from a table row
 # We return a FanzineSerial object
 # This may involve merging data from multiple columns
-def ExtractSerial(columnHeaders: list[str], row: list[tuple[str, str]]) -> FanzineSerial:
+def ExtractSerial(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineSerial:
 
-    wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole")[0]
-    volText=GetCellValueByColHeader(columnHeaders, row, "Volume")[0]
-    numText=GetCellValueByColHeader(columnHeaders, row, "Number")[0]
-    volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")[0]
+    wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole").Text
+    volText=GetCellValueByColHeader(columnHeaders, row, "Volume").Text
+    numText=GetCellValueByColHeader(columnHeaders, row, "Number").Text
+    volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum").Text
     if type(volNumText) is tuple:
         volNumText=volNumText[0]
 
-    titleText=GetCellValueByColHeader(columnHeaders, row, ["Title", "Issue"])[0]
+    titleText=GetCellValueByColHeader(columnHeaders, row, ["Text", "Issue"]).Text
 
     return ExtractSerialNumber(volText, numText, wholeText, volNumText, titleText)
 
 
 #============================================================================================
 # Find the cell containing the page count and return its value
-def ExtractPageCount(columnHeaders: list[str], row: list[tuple[str, str]]) -> int:
+def ExtractPageCount(columnHeaders: list[str], row: list[TextAndHref]) -> int:
 
-    pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])[0]
+    pageText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"]).Text
     if pageText is None:
         # If there's no column labelled for page count, check to see if there's a "Type" column with value "CARD".
         # These are newscards and are by definition a single page.
-        pageText=GetCellValueByColHeader(columnHeaders, row, "Type")[0]
+        pageText=GetCellValueByColHeader(columnHeaders, row, "Type").Text
         if pageText is not None and pageText.lower() == "card":
             return 1    # All cards have a pagecount of 1
         return 0
@@ -213,9 +224,9 @@ def ExtractPageCount(columnHeaders: list[str], row: list[tuple[str, str]]) -> in
 
 #============================================================================================
 # Find the cell containing the mailings data
-def ExtractMailings(columnHeaders: list[str], row: list[tuple[str, str]]) -> list[str]:
+def ExtractMailings(columnHeaders: list[str], row: list[TextAndHref]) -> list[str]:
 
-    mailingText=GetCellValueByColHeader(columnHeaders, row, "Mailing")[0]
+    mailingText=GetCellValueByColHeader(columnHeaders, row, "Mailing").Text
     if mailingText is None or len(mailingText) == 0:
         return []
     # The mailing text is a series of APA names followed by alphanumerics separated by ampersands
@@ -235,40 +246,30 @@ def ExtractMailings(columnHeaders: list[str], row: list[tuple[str, str]]) -> lis
     return mailingslist
 
 # ============================================================================================
-# Find the cell containing the issue name
-def FindIssueCell(columnHeaders: list[str], row: list[tuple[str, str]]) -> tuple[str, str]:
-    # Now find the column containing the issue designation. It could be "Issue" or "Title"
-    issueCell=GetCellValueByColHeader(columnHeaders, row, "Issue")
-    if issueCell == ("", ""):
-        issueCell=GetCellValueByColHeader(columnHeaders, row, "Title")
-    if issueCell == ("", ""):
-        issueCell="<not found>", ''
-
-    return issueCell
-
-
-# ============================================================================================
 # Scan the row and locate the issue cell, title and href and return them as a tuple
-def ExtractHrefAndTitle(columnHeaders: list[str], row: list[tuple[str, str]]) -> tuple[str, str]:
-
-    issueCell=FindIssueCell(columnHeaders, row)
+def ExtractHrefAndTitle(columnHeaders: list[str], row: list[TextAndHref]) -> TextAndHref:
+    # Find the column containing the issue name
+    issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
+    if issue.IsEmpty():
+        issue=GetCellValueByColHeader(columnHeaders, row, "Text")
+    if issue.IsEmpty():
+       return TextAndHref("<not found>", "")
 
     # If necessary, separate the href and the name
-    if issueCell[1] != "":
-        return issueCell
-    name=issueCell[0]      # issueCell is just the name
+    if issue.Href != "":
+        return issue
 
-    if name is None:
-        return "", ""
+    if issue.Text == "":
+        return TextAndHref()
 
     # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
     # If we don't find a hyperlink in the title, scan the other cells of the row for the first col containing a hyperlink
     # We return the name from the issue cell and the hyperlink from the other cell
     for i in range(0, len(columnHeaders)):
-        if row[i][1] != "":
-            return name, row[i][1]
+        if row[i].Href != "":
+            return TextAndHref(issue.Text, row[i].Href)
 
-    return name, ""     # No hyperlink found
+    return issue     # No hyperlink found
 
 
 # ============================================================================================
@@ -481,7 +482,7 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
 # Function to pull an href and the accompanying text from a Tag
 # The structure is "<a href='URL'>LINKTEXT</a>
 # We want to extract the URL and LINKTEXT
-def GetHrefAndTextFromTag(tag: Tag) -> tuple[str, str]:
+def GetTextAndHrefFromTag(tag: Tag) -> TextAndHref:
     try:
         href=tag.contents[0].attrs.get("href", "")
     except:
@@ -490,9 +491,12 @@ def GetHrefAndTextFromTag(tag: Tag) -> tuple[str, str]:
             if href is None:
                 href=""
         except:
-            return "Failed href in GetHrefAndTextFromTag()", ""
+            return TextAndHref("Failed href in GetHrefAndTextFromTag()", "")
 
-    return tag.contents[0].string, href
+    tag=tag.contents[0].string
+    if tag is None:
+        tag=""
+    return TextAndHref(tag, href)
 
 
 #======================================================================================
@@ -521,16 +525,6 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
     return [fii]
 
 
-#=====================================================================================
-# Function to compress newline elements from a list of Tags.
-def RemoveNewlineRows(tags: list[Tag]) -> list[Tag]:
-    compressedTags = []
-    for row in tags:
-        if not isinstance(row, NavigableString):
-            compressedTags.append(row)
-    return compressedTags
-
-
 #=========================================================================================
 # Read a fanzine's page of any format
 def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, country: str) -> list[FanzineIssueInfo]:
@@ -543,7 +537,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     # Create a composition of all columns. The header column may have newline elements, so compress them out.
     # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
     table.contents=[t for t in table.contents if not isinstance(t, NavigableString)]
-    if len(table.contents[0]) == 0:
+    if len(table.contents[0].text) == 0:
         LogError("***FanacOrgReaders: No table column headers found. Skipped")
     columnHeaders=table.contents[0].text.strip().split("\n")
     columnHeaders: list[str]=[CanonicizeColumnHeaders(c) for c in columnHeaders]
@@ -552,34 +546,39 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     # The format will be a list of rows
     # Each row will be a list of cells
     # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
-    tableRows: list[list[tuple[str, str]]]=[]
-    for i in range(1, len(table)):
-        tr: list[Tag]=RemoveNewlineRows(table.contents[i])
-        newRow: list[tuple[str, str]]=[]
+    tableRows: list[list[TextAndHref]]=[[]]
+    for row in table.contents[1:]:  # Skip the first row
+        if type(row) is not Tag:
+            Log(f"This should be a tag, but isn;t. Skipped: {row}")
+            continue
+        tr=row.contents
+
+        newRow: list[TextAndHref]=[]
         for cell in tr:
-            newRow.append(GetHrefAndTextFromTag(cell))
+            if not isinstance(row, NavigableString):    # Half the rows are newlines which we might as well ignore now
+                newRow.append(GetTextAndHrefFromTag(cell))
         tableRows.append(newRow)
 
 #TODO: We need to skip entries which point to a directory: E.g., Axe in Irish_Fandom
     # Now we process the table rows, extracting the information for each fanzine issue.
     fiiList: list[FanzineIssueInfo]=[]
     for iRow, tableRow in enumerate(tableRows):
-        # Skip the column headers row
-        if len(tableRow)==1 and tableRow[0]=="\n":  # Skip empty rows
+        # Skip the column headers row and null rows
+        if len(tableRow) == 0 or (len(tableRow) == 1 and tableRow[0]=="\n"):
             continue
         Log(f"   row={tableRow}")
 
         # The first element of the table sometimes comes in with embedded non-breaking spaces which must be turned to real spaces.
         # (They were apparently put there deliberately some time in the past.)
-        if tableRow[0][0] is not None:  # Some empty rows have no entry in col 1, not even an empty string
-            tableRow[0]=RemoveFunnyWhitespace(tableRow[0][0]), tableRow[0][1]
+        if tableRow[0].Text != "":  # Some empty rows have no entry in col 1, not even an empty string
+            tableRow[0]=TextAndHref(RemoveFunnyWhitespace(tableRow[0].Text), tableRow[0].Href)
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
-        # We have to treat the Title column specially, since it contains the critical href we need.
+        # We have to treat the Text column specially, since it contains the critical href we need.
         date=ExtractDate(columnHeaders, tableRow)
         ser=ExtractSerial(columnHeaders, tableRow)
         fis=FanzineIssueSpec(FD=date, FS=ser)
-        name, href=ExtractHrefAndTitle(columnHeaders, tableRow)
+        title=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
         mailings=ExtractMailings(columnHeaders, tableRow)
 
@@ -588,18 +587,18 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # we need to check to see if it has directoryURL as a prefix (in which case we delete the prefix) or it has a *different* fanac.org URL, in which case we
         # change the value of directoryURL for this fanzine.
         dirUrl=directoryUrl
-        if href is not None:
-            if href.startswith(directoryUrl):
-                href=href.replace(directoryUrl, "")
-                href=href.removeprefix("/")   # Delete any remnant leading "/"
-            elif href.startswith("http://www.fanac.org/") or href.startswith("http://fanac.org/") or href.startswith("https://www.fanac.org/") or href.startswith("https://fanac.org/"):
+        if title.Href is not None:
+            if title.Href.startswith(directoryUrl):
+                title.Href=title.Href.replace(directoryUrl, "")
+                title.Href=title.Href.removeprefix("/")   # Delete any remnant leading "/"
+            elif title.Href.startswith("http://www.fanac.org/") or title.Href.startswith("http://fanac.org/") or title.Href.startswith("https://www.fanac.org/") or title.Href.startswith("https://fanac.org/"):
                 # OK, this is a fanac URL.  Divide it into a file and a path
-                fname=urllib.parse.urlparse(href).path.split("/")[-1:][0]
+                fname=urllib.parse.urlparse(title.Href).path.split("/")[-1:][0]
                 if fname:
-                    LogError(f"   FanacOrgReaders: href='{href}' seems to be pointing to a directory, not a file. Skipped")
+                    LogError(f"   FanacOrgReaders: href='{title.Href}' seems to be pointing to a directory, not a file. Skipped")
                     continue
-                path=href.replace("/"+fname, "")
-                href=fname
+                path=title.Href.replace("/"+fname, "")
+                title.Href=fname
                 dirUrl=path
 
         # In cases where there's a two-level index, the dirurl is actually the URL of an html file.
@@ -611,7 +610,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=name, DirURL=dirUrl, PageName=href, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
+        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=title.Text, DirURL=dirUrl, PageName=title.Href, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
