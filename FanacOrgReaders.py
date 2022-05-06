@@ -88,31 +88,17 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
 
         fanacIssueInfo.extend(ReadFanacFanzineIndexPage(title, url))
 
-    fanacIssueInfo=RemoveDuplicates(fanacIssueInfo)
+    # TODO Drop external links which duplicate Fanac.org  (What exactly does this mean??)
+
+    # Remove duplicate FIIs
+    deDupDict: dict[str, FanzineIssueInfo]={}
+    for fz in fanacIssueInfo:
+        deDupDict[fz.DirURL+fz.PageName]=fz
+    fanacIssueInfo=[x for x in deDupDict.values()]
 
     # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
     Log("----Done reading index.html files on fanac.org")
     return fanacIssueInfo
-
-
-#=============================================================================================
-# Remove the duplicates from a fanzine list
-def RemoveDuplicates(fanzineList: list[FanzineIssueInfo]) -> list[FanzineIssueInfo]:
-    # Sort in place on fanzine's Directory's URL followed by file name
-    fanzineList.sort(key=lambda fz: fz.PageName)
-    fanzineList.sort(key=lambda fz: fz.DirURL)
-
-#TODO Drop external links which duplicate Fanac.org
-    # Any duplicates will be adjacent, so search for adjacent directoryURL+URL
-    last=""
-    dedupedList: list[FanzineIssueInfo]=[]
-    for fz in fanzineList:
-        this=fz.DirURL+fz.PageName
-        if this != last:
-            dedupedList.append(fz)
-        last=this
-    return dedupedList
-
 
 
 @dataclass
