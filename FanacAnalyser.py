@@ -8,6 +8,7 @@ import math
 import datetime
 from bs4 import BeautifulSoup
 import unidecode
+import csv
 
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineSeriesInfo
@@ -287,6 +288,7 @@ def main():
                countText=timestamp,
                fSelector=lambda fz: fz.Pagecount > 250)
 
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Now generate a list of fanzine series sorted by country
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
@@ -403,6 +405,7 @@ def main():
                headerFilename="control-Header (Fanzine, by country).html",
                inAlphaOrder=True)
 
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Compute counts of issues and series by decade.
     # We get the issue numbers by simply going through the list and adding one to the appropriate decade.
     # For series, we create a set of series found for that decade
@@ -436,6 +439,22 @@ def main():
                 print(f"undated   {counts}", file=f)
             else:
                 print(f"  {decade:3}0s   {counts}", file=f)
+
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Generate lists of mailings
+    # Files are created in reports/APAs
+    with open('mailings.csv', 'w', newline="") as csvfile:
+        filewriter=csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+        columnheaders=["IssueName", "Series", "SeriesName", "DisplayName", "DirURL", "PageName", "FIS", "Locale", "PageCount", "Editor", "TagList", "Mailings"]
+        filewriter.writerow(columnheaders)
+
+        for issue in fanacIssueList:
+            # Select only issues which have an entry in the mailings column
+            if len(issue.Mailings) > 0:
+                filewriter.writerow([issue.IssueName, issue.Series, issue.SeriesName, issue.DisplayName, issue.DirURL, issue.PageName, issue.FIS,
+                                   issue.Locale, issue.Pagecount, issue.Editor, issue.Taglist, issue.Mailings])
+
 
     Log("FanacAnalyzer has Completed.")
 
