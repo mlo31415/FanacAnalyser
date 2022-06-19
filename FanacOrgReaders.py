@@ -630,7 +630,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
 
 
 #=====================================================================================
-# Function to search recursively for the table containing the fanzines listing
+# Function to search exhaustively for the table containing the fanzines listing
 # flags is a dictionary of attributes and values to be matched, e.g., {"class" : "indextable", ...}
 # We must match all of them
 def LookForTable(soup: BeautifulSoup, flags: dict[str, str]) -> Optional[Tag]:
