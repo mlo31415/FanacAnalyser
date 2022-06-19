@@ -22,6 +22,7 @@ from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace
 from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt, Int0
 from HelpersPackage import RemoveFunnyWhitespace
+from HelpersPackage import ParmDict
 
 
 # ============================================================================================
@@ -54,6 +55,11 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"Solstice",
             #"Le_Zombie",
             #"Booklist",
+            #"2000s_One_Shots",
+            #"Fanthologoes",
+            #"1930s_One_Shots",
+            #"Filk",
+            "Musicals",
             #"Axe",
             #"Fantasy_Fiction_Field"
         ]
@@ -345,6 +351,21 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         Log(f">>>>>> Newszine added: '{fanzineName}'")
         isnewszines=True
 
+
+    # Extract any fanac keywords.  They will be of the form:
+    #       <! fanac-keywords: Alphabetize individually -->
+    # There may be many of them
+    contents=str(soup)
+    contents=contents.replace("\n", " ")
+    kwds: ParmDict=ParmDict(CaseInsensitiveCompare=True)
+    pat="<!--\s?[Ff]anac-keywords:(.*?)-{1,4}>"
+    while True:
+        m=re.search(pat, contents)#, re.IGNORECASE)
+        if not m:
+            break
+        kwds[m.groups()[0].strip()]=""
+        contents=re.sub(pat, "", contents)#, re.IGNORECASE)
+
     # Try to pull the editor information out of the page
     # The most common format (ignoring a scattering of <br>s) is
     #   H1
@@ -392,13 +413,21 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
 
     if fiiList:
-        fsi=FanzineSeriesInfo(SeriesName=fiiList[0].SeriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country)
-
-        # Add the tags and the series info pointer
-        for fii in fiiList:
-            fii.Series=fsi
-            if isnewszines:
-                fii.Taglist.append("newszine")
+        # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
+        if kwds["Alphabetize individually"] == "":
+            # Add the tags and the series info pointer
+            for fii in fiiList:
+                fsi=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=fii.Pagecount, Editor=editor, Country=country, Keywords=kwds)
+                fii.Series=fsi
+                if isnewszines:
+                    fii.Taglist.append("newszine")
+        else:
+            # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
+            fsi=FanzineSeriesInfo(SeriesName=fiiList[0].SeriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+            for fii in fiiList:
+                fii.Series=fsi
+                if isnewszines:
+                    fii.Taglist.append("newszine")
 
     return fiiList
 
