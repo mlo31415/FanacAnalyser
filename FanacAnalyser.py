@@ -84,9 +84,12 @@ def main():
                 Log(f"{fz.IssueName} has no page count: {fz}")
 
     # Produce various lists of fanzines for upcoming WriteTables
+    # List sorted alphabetically, and by date within that
     fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    # List of undated issues
     undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
+    # List of dated issues
     datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
