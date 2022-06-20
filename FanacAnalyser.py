@@ -225,7 +225,7 @@ def main():
             return ""
         if fz.FIS.FD.IsEmpty():
             return ""
-        return f"<small>({fz.FIS.FD.LongDates}</small>"
+        return f"<small>({fz.FIS.FD.LongDates})</small>"
 
     WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
                fanacIssueList,
