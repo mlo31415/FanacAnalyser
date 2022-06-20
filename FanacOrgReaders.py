@@ -59,7 +59,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"Fanthologoes",
             #"1930s_One_Shots",
             #"Filk",
-            "Musicals",
+            #"Musicals",
             #"Axe",
             #"Fantasy_Fiction_Field"
         ]
@@ -417,8 +417,9 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         if kwds["Alphabetize individually"] == "":
             # Add the tags and the series info pointer
             for fii in fiiList:
-                fsi=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=fii.Pagecount, Editor=editor, Country=country, Keywords=kwds)
-                fii.Series=fsi
+                # Create a special series just for this issue.
+                fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+                fii.SeriesName=fii.IssueName
                 if isnewszines:
                     fii.Taglist.append("newszine")
         else:
