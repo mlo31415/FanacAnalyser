@@ -419,7 +419,6 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
             for fii in fiiList:
                 # Create a special series just for this issue.
                 fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
-                fii.SeriesName=fii.IssueName
                 if isnewszines:
                     fii.Taglist.append("newszine")
         else:
@@ -549,7 +548,7 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
         LogError(f"***Failed to find date in <h2> block in singleton '{directoryUrl}'")
         return []
     fis=FanzineIssueSpec(FD=date)
-    fii=FanzineIssueInfo(SeriesName=fanzineName, IssueName=content[0], DirURL=directoryUrl, PageName="", FIS=fis, Pagecount=0)
+    fii=FanzineIssueInfo(IssueName=content[0], DirURL=directoryUrl, PageName="", FIS=fis, Pagecount=0)
     Log(f"   (singleton): {fii}")
     return [fii]
 
@@ -639,7 +638,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(SeriesName=fanzineName, IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
+        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
