@@ -493,10 +493,15 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
             try:  # Do second retry
                 LogError(f"\n***OpenSoup failed again. Retrying after 2.0 sec: {directoryUrl}")
                 time.sleep(2.0)
-                h=requests.get(directoryUrl, timeout=2)
+                h=requests.get(directoryUrl, timeout=4)
             except:
-                LogError(f"\n***OpenSoup failed three times. Load attempt aborted: {directoryUrl}")
-                return None
+                try:  # Do third retry
+                    LogError(f"\n***OpenSoup failed again. Retrying after 5.0 sec: {directoryUrl}")
+                    time.sleep(5.0)
+                    h=requests.get(directoryUrl, timeout=8)
+                except:
+                    LogError(f"\n***OpenSoup failed four times. Load attempt aborted: {directoryUrl}")
+                    return None
     Log("...loaded", noNewLine=True)
 
     # Next, parse the page looking for the body
