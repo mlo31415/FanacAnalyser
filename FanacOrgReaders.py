@@ -485,7 +485,7 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
     try:
         h=requests.get(directoryUrl, timeout=1)
     except:
-        LogError(f"\n***OpenSoup failed. Retrying after 0.5 sec: {directoryUrl}")
+        LogError(f"\n***OpenSoup failed. Retrying after 1.0 sec: {directoryUrl}")
         time.sleep(0.5)
         try:    # Do first retry
             h=requests.get(directoryUrl, timeout=2)
