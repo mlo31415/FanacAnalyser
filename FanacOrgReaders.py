@@ -423,7 +423,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
                     fii.Taglist.append("newszine")
         else:
             # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
-            fsi=FanzineSeriesInfo(SeriesName=fiiList[0].SeriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+            fsi=FanzineSeriesInfo(SeriesName=fanzineName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
             for fii in fiiList:
                 fii.Series=fsi
                 if isnewszines:
