@@ -307,8 +307,8 @@ def main():
 
     with open(os.path.join(reportDir, "Statistics.txt"), "w+") as f:
         print(timestamp)
-        print(f"All fanzines: Titles: {fzSeriesCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}", file=f)
-        print(f"Newszines:  Titles: {nzSeriesCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
+        print(f"All fanzines: Titles: {fzCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}", file=f)
+        print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
         print(f"All PDF fanzines: Issues: {countsGlobal.Pdfcount:,}   Pages: {countsGlobal.Pdfpagecount:,}", file=f)
         for selectedYear in selectedYears:
             print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)

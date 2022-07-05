@@ -54,6 +54,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"File770",
             #"Solstice",
             #"Le_Zombie",
+            #"Fanthologies",
             #"Booklist",
             #"2000s_One_Shots",
             #"Fanthologoes",
@@ -620,13 +621,19 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # we need to check to see if it has directoryURL as a prefix (in which case we delete the prefix) or it has a *different* fanac.org URL, in which case we
         # change the value of directoryURL for this fanzine.
         dirUrl=directoryUrl
+        dir=urllib.parse.urlparse(dirUrl).path.split("/")[2]
         if title.Url != "":
             if title.Url.startswith(directoryUrl):
                 title.Url=title.Url.replace(directoryUrl, "")
                 title.Url=title.Url.removeprefix("/")   # Delete any remnant leading "/"
             elif title.Url.startswith("http://www.fanac.org/") or title.Url.startswith("http://fanac.org/") or title.Url.startswith("https://www.fanac.org/") or title.Url.startswith("https://fanac.org/"):
                 # OK, this is a fanac URL.  Divide it into a file and a path
-                fname=urllib.parse.urlparse(title.Url).path.split("/")[-1:][0]
+                parts=urllib.parse.urlparse(title.Url).path.split("/")
+                fname=parts[-1:][0]
+                # If it points to a different folder under fanzines, note the fact and ignore the link as it is almost certainly a duplicate
+                if parts[1].lower() == "fanzines" and parts[2].lower() != dir.lower():
+                    Log(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a different directory. Skipped")
+                    continue
                 if fname:
                     LogError(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a directory, not a file. Skipped")
                     continue
