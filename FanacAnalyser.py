@@ -83,6 +83,37 @@ def main():
             if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
                 Log(f"{fz.IssueName} has no page count: {fz}")
 
+    # Re-run the previous producing a counts diagnostic file
+    with open(os.path.join(reportDir, "Counts diagnostics.txt"), "w") as f:
+        countsSeries=FanzineCounts()
+        lines: [str]=[]  # We want to print everything about this series once we have completed going through the series
+        oldseries=fanacIssueList[0].SeriesName
+        for fz in fanacIssueList:
+
+            if fz.SeriesName != oldseries: # and len(lines) > 0:
+                # Dump what we know about the old series
+                print(f"{oldseries}      {countsSeries.Issuecount} issues   {countsSeries.Pagecount} pages  ", file=f)
+                for line in lines:
+                    print(line, file=f)
+                lines: [str]=[]
+                countsSeries=FanzineCounts()
+            oldseries=fz.SeriesName # Safe to do because any changes if fz.SeriesName was just handled
+
+            if fz.DirURL != "":
+                countsSeries+=fz.Pagecount
+                if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+                    countsSeries.Pdfcount+=1
+                    countsSeries.Pdfpagecount+=fz.Pagecount
+                lines.append(f"      {fz.Pagecount:<4} {fz.IssueName}")
+            else:
+                lines.append(f"Skipped for empty DirURL: {fz.SeriesName}/{fz.IssueName}")
+
+        if len(lines) > 0:
+            # Dump what we know about the old series
+            print(f"{oldseries}  {countsSeries.Issuecount} issues   {countsSeries.Pagecount} pages  ", file=f)
+            for line in lines:
+                print(line, file=f)
+
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
     fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
