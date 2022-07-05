@@ -72,14 +72,13 @@ def main():
 
     # Count the number of pages, issues and PDFs
     ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
-
-    counts=FanzineCounts()
+    countsGlobal=FanzineCounts()
     for fz in fanacIssueList:
         if fz.DirURL != "":
-            counts+=fz.Pagecount
+            countsGlobal+=fz.Pagecount
             if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
-                counts.Pdfcount+=1
-                counts.Pdfpagecount+=fz.Pagecount
+                countsGlobal.Pdfcount+=1
+                countsGlobal.Pdfpagecount+=fz.Pagecount
             if fz.Pagecount == 0 and ignorePageCountErrors is not None and fz.SeriesName not in ignorePageCountErrors:
                 Log(f"{fz.IssueName} has no page count: {fz}")
 
@@ -155,7 +154,7 @@ def main():
                 url=fz.PageName
         return url
 
-    countText=f"{counts.Issuecount:,} issues consisting of {counts.Pagecount:,} pages."
+    countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
                datedList,
                lambda fz: UnicodeToHtml(fz.IssueName),
@@ -238,7 +237,7 @@ def main():
                 out+=c
         return out
 
-    countText=f"{counts.Issuecount:,} issues consisting of {counts.Pagecount:,} pages."
+    countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
     fanacIssueList.sort(key=lambda elem: AlphaSortText(elem))  # Sorts in place on fanzine's name
 
@@ -300,17 +299,17 @@ def main():
 
     # Print to the console and also the statistics file
     Log("\n")
-    Log(f"All fanzines: Titles: {fzCount:,}  Issues: {counts.Issuecount:,}  Pages: {counts.Pagecount:,}  PDFs: {counts.Pdfcount:,}")
+    Log(f"All fanzines: Titles: {fzCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}")
     Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}")
-    Log(f"All PDF fanzines: Issues: {counts.Pdfcount:,}   Pages: {counts.Pdfpagecount:,}")
+    Log(f"All PDF fanzines: Issues: {countsGlobal.Pdfcount:,}   Pages: {countsGlobal.Pdfpagecount:,}")
     for selectedYear in selectedYears:
         Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
 
     with open(os.path.join(reportDir, "Statistics.txt"), "w+") as f:
         print(timestamp)
-        print(f"All fanzines: Titles: {fzCount:,}  Issues: {counts.Issuecount:,}  Pages: {counts.Pagecount:,}  PDFs: {counts.Pdfcount:,}", file=f)
-        print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
-        print(f"All PDF fanzines: Issues: {counts.Pdfcount:,}   Pages: {counts.Pdfpagecount:,}", file=f)
+        print(f"All fanzines: Titles: {fzSeriesCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}", file=f)
+        print(f"Newszines:  Titles: {nzSeriesCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
+        print(f"All PDF fanzines: Issues: {countsGlobal.Pdfcount:,}   Pages: {countsGlobal.Pdfpagecount:,}", file=f)
         for selectedYear in selectedYears:
             print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
 
