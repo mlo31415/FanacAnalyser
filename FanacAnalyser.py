@@ -330,7 +330,6 @@ def main():
             super().__init__(fc)
             self.SeriesList: list=sl
 
-    #Country=namedtuple('Country', 'SeriesList SeriesCount')
     fanacSeriesDictByCountry: dict[str, CountryCounts]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
     # Run through all the issues in this list of issues
