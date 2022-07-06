@@ -89,10 +89,6 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             LogError(f"...Skipped because not a fanac.org url: {url}")
             continue
 
-        # if url.startswith("http://www.fanac.org//fan_funds") or url.startswith("http://www.fanac.org/fanzines/Miscellaneous"):
-        #     Log("***skipped because in the fan_funds or fanzines/Miscellaneous directories: "+url, isError=True)
-        #     continue
-
         fanacIssueInfo.extend(ReadFanacFanzineIndexPage(title, url))
 
     # TODO Drop external links which duplicate Fanac.org  (What exactly does this mean??)
