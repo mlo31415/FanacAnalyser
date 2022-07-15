@@ -58,7 +58,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"Booklist",
             #"2000s_One_Shots",
             #"Fanthologoes",
-            #"1930s_One_Shots",
+            #"1950s_One_Shots",
             #"Filk",
             #"Musicals",
             #"Axe",
@@ -480,22 +480,22 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
     # * The root of a tree with multiple Issue Index Pages
     Log(f"    opening {directoryUrl}", noNewLine=True)
     try:
-        h=requests.get(directoryUrl, timeout=1)
+        h=requests.get(directoryUrl, timeout=1, headers={'Cache-Control': 'no-cache'})
     except:
         LogError(f"\n***OpenSoup failed. Retrying after 1.0 sec: {directoryUrl}")
         time.sleep(0.5)
         try:    # Do first retry
-            h=requests.get(directoryUrl, timeout=2)
+            h=requests.get(directoryUrl, timeout=2, headers={'Cache-Control': 'no-cache'})
         except:
             try:  # Do second retry
                 LogError(f"\n***OpenSoup failed again. Retrying after 2.0 sec: {directoryUrl}")
                 time.sleep(2.0)
-                h=requests.get(directoryUrl, timeout=4)
+                h=requests.get(directoryUrl, timeout=4, headers={'Cache-Control': 'no-cache'})
             except:
                 try:  # Do third retry
                     LogError(f"\n***OpenSoup failed again. Retrying after 5.0 sec: {directoryUrl}")
                     time.sleep(5.0)
-                    h=requests.get(directoryUrl, timeout=8)
+                    h=requests.get(directoryUrl, timeout=8, headers={'Cache-Control': 'no-cache'})
                 except:
                     LogError(f"\n***OpenSoup failed four times. Load attempt aborted: {directoryUrl}")
                     return None
