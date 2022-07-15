@@ -48,7 +48,7 @@ def main():
     fanacIssueList=[x for x in fanacIssueList if x.PageName != ""]
 
     # Sort the list of all fanzines issues by fanzine series name
-    fanacIssueList.sort(key=lambda elem: elem.SeriesName.lower())  # Sorts in place on fanzine name
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))  # Sorts in place on fanzine name
 
     def NoNone(s: str) -> str:
         if s is None:
@@ -115,7 +115,7 @@ def main():
 
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
-    fanacIssueList.sort(key=lambda elem: elem.IssueName.lower())  # Sorts in place on fanzine's name
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.IssueName.lower()))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
     # List of undated issues
     undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
@@ -155,9 +155,10 @@ def main():
         return url
 
     countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
+    # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
     WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
                datedList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: ChronButtonText(fz),
                fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                fURL=URL,
@@ -165,13 +166,13 @@ def main():
                headerFilename='control-Header (Fanzine, chronological).html')
     WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
                datedList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: ChronButtonText(fz),
                fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                countText=countText+"\n"+timestamp+"\n")
     WriteTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
                undatedList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fURL=URL,
                countText=timestamp,
                headerFilename="control-Header (Fanzine, alphabetical).html")
@@ -216,7 +217,7 @@ def main():
     countText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
                fanacIssueList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: ChronButtonText(fz),
                fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                fURL=URL,
@@ -230,7 +231,8 @@ def main():
             return " "
         # Replace lower case and accented alphas, ignore punctuation, retain digits; the Unidecode is so that things like 'á Bas' sort with A
         out=""
-        for c in fz.SeriesName:
+        name=RemoveArticles(fz.SeriesName)
+        for c in name:
             if c.isalpha():
                 out+=unidecode.unidecode(c.upper())
             elif c.isdigit():
@@ -246,7 +248,7 @@ def main():
         c=AlphaSortText(fz)[0]
         if c == " " or c.isdigit():
             return "*"
-        return c
+        return RemoveArticles(c)
 
     def Annotate(fz: FanzineIssueInfo) -> str:
         if type(fz) is not FanzineIssueInfo:
@@ -259,14 +261,14 @@ def main():
 
     WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
                fanacIssueList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: fz.SeriesName[0],
                fRowHeaderText=lambda fz: fz.SeriesName,
                countText=countText+"\n"+timestamp+"\n",
                inAlphaOrder=True)
     WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
                fanacIssueList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: AlphaButtonText(fz),
                fRowAnnot=lambda fz: Annotate(fz),
                fRowHeaderText=lambda fz: fz.SeriesName,
@@ -286,7 +288,7 @@ def main():
 
     WriteTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
                fanacIssueList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: fz.SeriesName[0],
                fRowHeaderText=lambda fz: fz.SeriesName,
                countText=timestamp+"\n",
@@ -315,7 +317,7 @@ def main():
 
     WriteTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
                fanacIssueList,
-               lambda fz: UnicodeToHtml(fz.IssueName),
+               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: fz.SeriesName[0],
                fRowHeaderText=lambda fz: fz.SeriesName,
                countText=timestamp,
@@ -367,7 +369,7 @@ def main():
     # Next we sort the individual country lists into order by series name
     for ckey, cval in fanacSeriesDictByCountry.items():
         serieslist=cval.SeriesList
-        serieslist.sort(key=lambda elem: elem.SeriesName.lower())
+        serieslist.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))
         fanacSeriesDictByCountry[ckey]=CountryCounts(serieslist, cval)  # Sorts in place on fanzine name
 
     # Take a string which is lower case and turn it to City, State, US sort of capitalization
