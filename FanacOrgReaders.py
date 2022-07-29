@@ -407,7 +407,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         Log(f"No country found for {fanzineName}")
 
     # Walk the table and extract the fanzines in it
-    fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country)
+    fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country)
 
     if fiiList:
         # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
@@ -447,10 +447,11 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> list[FanzineIssueI
     table=LocateIndexTable(directoryUrl, soup, silence=True)
     html=str(soup.body)
     country=ExtractCountry(html)
+    editor="ReadSpecialBiggie"
     if country == "":
         Log(f"No country found for {fanzineName}")
     if table is not None:
-        fiiList.extend(ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, country))
+        fiiList.extend(ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country))
 
     # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
     links=soup.find_all("a")
@@ -557,7 +558,7 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, country: str) -> list[FanzineIssueInfo]:
+def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, editor: str, country: str) -> list[FanzineIssueInfo]:
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -646,7 +647,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Country=country, Mailing=mailings)
+        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Editor=editor, Country=country, Mailing=mailings)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
