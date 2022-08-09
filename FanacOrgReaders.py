@@ -59,6 +59,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"2000s_One_Shots",
             #"Fanthologoes",
             #"1950s_One_Shots",
+            #"FAPA-Misc",
             #"Filk",
             #"Musicals",
             #"Axe",
@@ -204,6 +205,16 @@ def ExtractSerial(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineSe
 
     return ExtractSerialNumber(volText, numText, wholeText, volNumText, titleText)
 
+
+#============================================================================================
+# Find the cell containing the editor's name and return its value
+def ExtractEditor(columnHeaders: list[str], row: list[TextAndHref]) -> str:
+
+    editorText=GetCellValueByColHeader(columnHeaders, row, ["Editor", "Editors"]).Text
+    if editorText is None:
+        return ""
+
+    return editorText
 
 #============================================================================================
 # Find the cell containing the page count and return its value
@@ -406,16 +417,18 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     if country == "":
         Log(f"No country found for {fanzineName}")
 
+    alphabetizeIndividually=kwds["Alphabetize individually"] == ""     # Check if keyword is present -- it doesn't need a value
+
     # Walk the table and extract the fanzines in it
-    fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country)
+    fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
 
     if fiiList:
         # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
-        if kwds["Alphabetize individually"] == "":      # Check if keyword is present -- it doesn't need a value
+        if alphabetizeIndividually:
             # Add the tags and the series info pointer
             for fii in fiiList:
                 # Create a special series just for this issue.
-                fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+                fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, Keywords=kwds)
                 if isnewszines:
                     fii.Taglist.append("newszine")
         else:
@@ -558,7 +571,7 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, editor: str, country: str) -> list[FanzineIssueInfo]:
+def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, editor: str, country: str, alphabetizeIndividually: bool=False) -> list[FanzineIssueInfo]:
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -612,6 +625,11 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         title=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
         mailings=ExtractMailings(columnHeaders, tableRow)
+        ed=editor
+        if alphabetizeIndividually:
+            lineEditor=ExtractEditor(columnHeaders, tableRow)
+            if lineEditor != "":
+                ed=lineEditor
 
         # Sometimes we have a reference in one directory be to a fanzine in another. (Sometimes these are duplicate, but this will be taken care of elsewhere.)
         # If the href is a complete fanac.org URL and not relative (i.e, 'http://www.fanac.org/fanzines/FAPA-Misc/FAPA-Misc24-01.html' and not 'FAPA-Misc24-01.html'),
@@ -647,7 +665,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Editor=editor, Country=country, Mailing=mailings)
+        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Editor=ed, Country=country, Mailing=mailings)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
