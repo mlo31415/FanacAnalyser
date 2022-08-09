@@ -411,7 +411,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
 
     if fiiList:
         # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
-        if kwds["Alphabetize individually"] == "":
+        if kwds["Alphabetize individually"] == "":      # Check if keyword is present -- it doesn't need a value
             # Add the tags and the series info pointer
             for fii in fiiList:
                 # Create a special series just for this issue.
