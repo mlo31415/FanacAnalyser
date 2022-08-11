@@ -577,8 +577,8 @@ def WriteTable(filename: str,
 
     #....... Header .......
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
-    html=filename.lower().endswith(".html")
-    if html:
+    generatingHtml=filename.lower().endswith(".html")
+    if generatingHtml:
         # When we're generating HTML output, we need to include a header.
         # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
         basicHeadertext=ReadFile("control-Header (basic).html")
@@ -603,7 +603,7 @@ def WriteTable(filename: str,
         f.writelines(basicHeadertext)
 
     if countText:
-        if html:
+        if generatingHtml:
             countText=countText.replace("\n", "<p>")
             countText=f"<p>{countText}</p>\n"
         f.write(countText)
@@ -613,7 +613,7 @@ def WriteTable(filename: str,
     # If we have an HTML header, we need to create a set of jump buttons.
     # If it's alpha, the buttons are by 1st letter; if date it's by decade
     # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
-    if html:
+    if generatingHtml:
         headers=set()
         for fz in fanacIssueList:
             if fSelector is not None and not fSelector(fz):
@@ -644,7 +644,7 @@ def WriteTable(filename: str,
     #           <a>issue</a> <br>
     #       </div>
     #   </div>
-    if html:
+    if generatingHtml:
         f.write('<div>\n')  # Begin the main table
 
     lastRowHeader: str=""
@@ -653,12 +653,12 @@ def WriteTable(filename: str,
         # Do we skip this fanzine
         if fSelector is not None and not fSelector(fz):
             continue
-        if html and fURL is not None and fURL(fz) is None:
+        if generatingHtml and fURL is not None and fURL(fz) is None:
             continue
 
         # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
         buttonLinkString: str=""
-        if html:
+        if generatingHtml:
             if fButtonText is not None:
                 if fButtonText(fz) is not None:
                     buttonLinkString=fButtonText(fz)
@@ -667,11 +667,11 @@ def WriteTable(filename: str,
         # Deal with Column 1
         if fRowHeaderText is not None and lastRowHeader != fRowHeaderText(fz):
             if lastRowHeader:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
-                if html: f.write('    </div></div>\n')
+                if generatingHtml: f.write('    </div></div>\n')
             lastRowHeader=fRowHeaderText(fz)
 
             # Since this is a new sub-box, we write the header in col 1
-            if html:
+            if generatingHtml:
                 if buttonLinkString != lastButtonLinkString:
                     f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
                     lastButtonLinkString=buttonLinkString
@@ -698,7 +698,7 @@ def WriteTable(filename: str,
         # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
         # The former are easy, but the latter need to be processed
         bodytext=fRowBodyText(fz)
-        if html:
+        if generatingHtml:
             if fURL is not None:
                 # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                 splitext=bodytext.split("|", 2)
@@ -717,7 +717,7 @@ def WriteTable(filename: str,
 
     #....... Cleanup .......
     # And end everything
-    if html:
+    if generatingHtml:
         f.write('</div>\n</div>\n')
         f.writelines(ReadFile("control-Default.Footer"))
     f.close()
