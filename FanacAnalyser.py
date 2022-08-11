@@ -277,6 +277,7 @@ def main():
                headerFilename="control-Header (Fanzine, alphabetical).html",
                inAlphaOrder=True)
 
+    #.........................................................
     # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
     # This function is used only in the lambda expression following immediately afterwards.
     def OddNames(n1: str, n2: str) -> bool:
