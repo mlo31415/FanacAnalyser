@@ -210,7 +210,7 @@ def ExtractSerial(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineSe
 # Find the cell containing the editor's name and return its value
 def ExtractEditor(columnHeaders: list[str], row: list[TextAndHref]) -> str:
 
-    editorText=GetCellValueByColHeader(columnHeaders, row, ["Editor", "Editors"]).Text
+    editorText=GetCellValueByColHeader(columnHeaders, row, ["Editor", "Editors", "Author", "Authors", "Editor/Publisher"]).Text
     if editorText is None:
         return ""
 
