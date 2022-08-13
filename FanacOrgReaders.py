@@ -57,7 +57,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"Fanthologies",
             #"Booklist",
             #"2000s_One_Shots",
-            #"Fanthologoes",
+            #"Fanthologies",
             #"1950s_One_Shots",
             #"FAPA-Misc",
             #"Filk",
