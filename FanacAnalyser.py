@@ -297,7 +297,7 @@ def main():
                fanacIssueListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: SortPersonsName(fz.Editor)[0],
-               fRowAnnot=lambda fz: AnnotateDate(fz)+"" if fz.Temp is None else f"<small>({fz.Temp})</small>",
+               fRowAnnot=lambda fz: f"{AnnotateDate(fz)} {'' if fz.Temp is None else f'<small>({fz.Temp})</small>'}",
                fRowHeaderText=lambda fz: fz.Editor,
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
@@ -766,8 +766,12 @@ def WriteTable(filename: str,
                     f.write('        '+FormatLink(fURL(fz), bodytext))
             else:
                 f.write('        '+fz)
-            if inAlphaOrder and fRowAnnot is not None and fRowAnnot(fz) is not None:
-                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+ fRowAnnot(fz))
+            if inAlphaOrder and fRowAnnot is not None:
+                annot=fRowAnnot(fz)
+                if annot is not None:
+                    annot=annot.strip()
+                    if annot != "":
+                        f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+annot)
             f.write('<br>\n')
         else:
             bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
