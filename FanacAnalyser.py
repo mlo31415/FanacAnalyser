@@ -288,9 +288,12 @@ def main():
     def AlphaSortPersonsName(s: str) -> str:
         out=SortPersonsName(s)
 
-        # Remove leading non-alphanumeric characters.  E.g, we want to sort "test" under t not "
+        # Remove leading non-alphanumeric characters.  E.g, we want to sort "test" under t not the quote sign
         out=re.sub("^(\W*)", "", out)
-        return out
+        return out.upper()      # Sort lower and uppwer case characters together
+
+    def CompareIgnorePunctAndCase(s1: str, s2: str) -> bool:
+        return re.sub("[.,]", "", s1).upper() == re.sub("[.,]", "", s2).upper()
 
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
     fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(TruncOnDigit(elem.IssueName)))  # Sorts in place on fanzine's Issue name
@@ -299,23 +302,21 @@ def main():
     WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                fanacIssueListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-               fButtonText=lambda fz: SortPersonsName(fz.Editor)[0],
+               fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0],
                fRowHeaderText=lambda fz: fz.Editor,
                countText=countText+"\n"+timestamp+"\n",
                inAlphaOrder=True)
     WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
                fanacIssueListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-               fButtonText=lambda fz: SortPersonsName(fz.Editor)[0],
+               fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
                fRowAnnot=lambda fz: f"{'' if fz.Temp is None else f'<small>({fz.Temp})</small>'} {AnnotateDate(fz)}",
                fRowHeaderText=lambda fz: fz.Editor,
+               fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(s1, s2),
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
                headerFilename="control-Header (Fanzine, alphabetical).html",
                inAlphaOrder=True)
-
-    def CompareIgnorePunct(s1: str, s2: str) -> bool:
-        return s1.replace(".,", "") == s2.replace(".,", "")
 
 
     countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
@@ -335,7 +336,6 @@ def main():
                fButtonText=lambda fz: AlphaButtonText(fz),
                fRowAnnot=lambda fz: AnnotateDate(fz),
                fRowHeaderText=lambda fz: fz.SeriesName,
-               fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunct(s1, s2),
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
                headerFilename="control-Header (Fanzine, alphabetical).html",
