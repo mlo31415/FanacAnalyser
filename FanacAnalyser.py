@@ -227,6 +227,7 @@ def main():
 
     #.........................................................
     # Sort function for generating a list of fanzines sorted by editor
+    # This generates an output string which is used for sorting purposes, but not for display purposes
     def AlphaSortText(s: str) -> str:
         if s == "":
             return " "
@@ -238,6 +239,7 @@ def main():
                 out+=unidecode.unidecode(c.upper())
             elif c.isdigit():
                 out+=c
+
         return out
 
     countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
@@ -310,7 +312,7 @@ def main():
 
     countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.SeriesName))  # Sorts in place on fanzine's name
+    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.SeriesName))  # Sorts in place on fanzine's Series name
 
     WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
                fanacIssueList,
