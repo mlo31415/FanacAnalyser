@@ -243,7 +243,7 @@ def main():
         return out
 
     countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
-    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.IssueName))  # Sorts in place on fanzine's name
+    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.IssueName))  # Sorts in place on fanzine's Issue name
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
     fanacIssueList.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts in place on order in index page, which is usually a good proxy for date
 
@@ -284,9 +284,16 @@ def main():
             return m.groups()[0]
         return s
 
+    def AlphaSortPersonsName(s: str) -> str:
+        out=SortPersonsName(s)
+
+        # Remove leading non-alphanumeric characters.  E.g, we want to sort "test" under t not "
+        out=re.sub("^(\W*)", "", out)
+        return out
+
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(TruncOnDigit(elem.IssueName)))  # Sorts in place on fanzine's name
-    fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts in place on order in index page, which is usually a good proxy for date
+    fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(TruncOnDigit(elem.IssueName)))  # Sorts in place on fanzine's Issue name
+    fanacIssueListByEditor.sort(key=lambda elem: AlphaSortPersonsName(elem.Editor))  # Sorts in place on order in index page, which is usually a good proxy for date
 
     WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                fanacIssueListByEditor,
