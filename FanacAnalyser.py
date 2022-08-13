@@ -276,7 +276,8 @@ def main():
                 fz2.Editor=ed
                 fanacIssueListByEditor.append(fz2)
         else:
-            fanacIssueListByEditor.append(fz)
+            if len(fz.Editor) > 0:      # In a by-editor listing, missing editors are uninteresting
+                fanacIssueListByEditor.append(fz)
 
     def TruncOnDigit(s: str) -> str:
         m=re.match("([^0-9]*?)[0-9]", s)
