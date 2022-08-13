@@ -297,7 +297,7 @@ def main():
                fanacIssueListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: SortPersonsName(fz.Editor)[0],
-               fRowAnnot=lambda fz: f"{AnnotateDate(fz)} {'' if fz.Temp is None else f'<small>({fz.Temp})</small>'}",
+               fRowAnnot=lambda fz: f"{'' if fz.Temp is None else f'<small>({fz.Temp})</small>'} {AnnotateDate(fz)}",
                fRowHeaderText=lambda fz: fz.Editor,
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
