@@ -310,7 +310,7 @@ def main():
                fanacIssueListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
-               fRowAnnot=lambda fz: f"{'' if fz.Temp is None else f'<small>({fz.Temp})</small>'} {AnnotateDate(fz)}",
+               fRowAnnot=lambda fz: f"{'' if fz.Temp is None else f'<small>({UnicodeToHtml(fz.Temp)})</small>'} {AnnotateDate(fz)}",
                fRowHeaderText=lambda fz: fz.Editor,
                fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(s1, s2),
                fURL=URL,
