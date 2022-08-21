@@ -261,7 +261,7 @@ def main():
             return ""
         if fz.FIS.FD.IsEmpty():
             return ""
-        return f"<small>({fz.FIS.FD.LongDates})</small>"
+        return f"<small>({str(fz.FIS.FD.LongDates).strip()})</small>"
 
     # For the next pair of reports, we need to modify fanacIssueList, duplicating it for all issues with multiple editors
     fanacIssueListByEditor: list[FanzineIssueInfo]=[]
