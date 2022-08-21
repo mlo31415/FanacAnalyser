@@ -392,31 +392,38 @@ def main():
     # Now generate a list of fanzine series sorted by country
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-    class CountryCounts(FanzineCounts):
-        def __init__(self, sl: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
+    class FanzineCountsCountry(FanzineCounts):
+        def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
             super().__init__(fc)
-            self.SeriesList: list=sl
+            self.SeriesList: list[FanzineSeriesInfo]=fsil
 
-    fanacSeriesDictByCountry: dict[str, CountryCounts]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
+        @property
+        def Count(self) -> int:
+            return len(self.SeriesList)
+
+        def append(self, fsi: FanzineSeriesInfo) -> None:
+            if fsi not in self.SeriesList:
+                self.SeriesList.append(fsi.Deepcopy())
+
+
+
+    fanacSeriesDictByCountry: dict[str, FanzineCountsCountry]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
     # Run through all the issues in this list of issues
     for issue in fanacIssueList:
         countryName=issue.Locale.CountryName
 
         # If this is a new country for us, create a new, empty, entry for it
-        fanacSeriesDictByCountry.setdefault(countryName, CountryCounts([]))  # If needed, add an empty country entry
-
-        # serieslist is the list of fanzine series corresponding to the counts for this CountryCounts object
-        # Note that we accumulate the series page and issue totals
+        if countryName not in fanacSeriesDictByCountry:
+            fanacSeriesDictByCountry[countryName]=FanzineCountsCountry([])
         countrycount=fanacSeriesDictByCountry[countryName]
 
         # Is this new issue from a series that is already in the list for this country?
         # Note that we have defined hash and eq for class FanzineIssueInfo, so two different FanzineIssueInfos can be equal
         if issue.Series not in countrycount.SeriesList:
-            series=issue.Series.Deepcopy()
-            countrycount.SeriesList.append(series)
+            countrycount.append(issue.Series)
 
-        # We want to find the series in the list that matches issue.Series
+        # We want increment the series in the list that matches issue.Series
         series=countrycount.SeriesList[countrycount.SeriesList.index(issue.Series)]
         series+=issue
 
@@ -425,9 +432,7 @@ def main():
         if issue.Series.DirURL == series.DirURL:
             # serieslist[loc] is a specific series in [country]
             # Update the series by adding the pagecount of this issue to it
-            count=countrycount
-            count+=issue
-            count.Titlecount+=1
+            countrycount+=issue
         else:
             Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
 
@@ -435,7 +440,7 @@ def main():
     for ckey, cval in fanacSeriesDictByCountry.items():
         serieslist=cval.SeriesList
         serieslist.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))
-        fanacSeriesDictByCountry[ckey]=CountryCounts(serieslist, cval)  # Sorts in place on fanzine name
+        fanacSeriesDictByCountry[ckey]=FanzineCountsCountry(serieslist, cval)  # Sorts in place on fanzine name
 
     # Take a string which is lower case and turn it to City, State, US sort of capitalization
     def CapIt(s: str) -> str:
