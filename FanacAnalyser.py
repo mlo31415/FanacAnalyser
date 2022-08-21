@@ -290,7 +290,7 @@ def main():
 
         # Remove leading non-alphanumeric characters.  E.g, we want to sort "test" under t not the quote sign
         out=re.sub("^(\W*)", "", out)
-        return out.upper()      # Sort lower and uppwer case characters together
+        return out.upper()      # Sort lower and upper case characters together
 
     def CompareIgnorePunctAndCase(s1: str, s2: str) -> bool:
         return re.sub("[.,]", "", s1).upper() == re.sub("[.,]", "", s2).upper()
