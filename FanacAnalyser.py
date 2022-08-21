@@ -312,7 +312,7 @@ def main():
                fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
                fRowAnnot=lambda fz: f"{'' if fz.Temp is None else f'<small>({UnicodeToHtml(fz.Temp)})</small>'} {AnnotateDate(fz)}",
                fRowHeaderText=lambda fz: fz.Editor,
-               fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(s1, s2),
+               fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
                headerFilename="control-Header (Fanzine, alphabetical).html",
