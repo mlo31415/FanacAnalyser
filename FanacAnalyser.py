@@ -456,7 +456,7 @@ def main():
             ret+=split[0].upper()+split[1:]
         return ret
 
-    def Pluralize(s: str, val: int) -> str:
+    def Pluralize(val: int, s: str) -> str:
         return f"{val} {s}{'s' if val != 1 else ''}"
 
     # List out the series by country data
@@ -466,10 +466,10 @@ def main():
         for key in keys:
             val=fanacSeriesDictByCountry[key]
             k=key if len(key.strip()) > 0 else "<no country>"
-            print(f"\n{CapIt(k)}   {Pluralize('title', len(val.SeriesList))},  {Pluralize('issue', val.Issuecount)},  {Pluralize('page', val.Pagecount)})", file=f)
+            print(f"\n{CapIt(k)}   {Pluralize(len(val.SeriesList), 'title')},  ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')})", file=f)
             for series in val.SeriesList:
-                print(f"    {series.DisplayName}    ({Pluralize('issue', series.Issuecount)}, {Pluralize('page', series.Pagecount)}", file=f)
-                Log(f"    {series.DisplayName}    ({Pluralize('issue', series.Issuecount)}, {Pluralize('page', series.Pagecount)}")
+                print(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}", file=f)
+                Log(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}")
 
     # Now create a properly ordered flat list suitable for WriteTable
     fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCounts, str]]=[]
@@ -483,15 +483,16 @@ def main():
     def plural(i: int) -> str:
         return "s" if i > 1 else ""
 
-    def Annotate(elem: FanzineCounts) -> str:
+    def Annotate(elem: [FanzineCounts, FanzineCountsCountry]) -> str:
         s=""
-        if elem.Titlecount > 0:
-            s=str(elem.Titlecount)+" title"+plural(elem.Titlecount)+", "
+        if type(elem) is FanzineCountsCountry:
+            if len(elem.SeriesList) > 0:
+                s=Pluralize(len(elem.SeriesList), "title")+", "
         i=elem.Issuecount
         p=elem.Pagecount
         if i > 0:
-            s+=str(i)+" issue"+plural(i)+", "
-            s+=str(p)+" page"+plural(p)
+            s+=Pluralize(i, "issue")+", "
+            s+=Pluralize(p, "page")
         if s:
             s="("+s+")"
         return s
