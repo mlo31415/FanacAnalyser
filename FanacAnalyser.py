@@ -456,6 +456,9 @@ def main():
             ret+=split[0].upper()+split[1:]
         return ret
 
+    def Pluralize(s: str, val: int) -> str:
+        return f"{val} {s}{'s' if val != 1 else ''}"
+
     # List out the series by country data
     with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
         keys=list(fanacSeriesDictByCountry.keys())
@@ -463,14 +466,10 @@ def main():
         for key in keys:
             val=fanacSeriesDictByCountry[key]
             k=key if len(key.strip()) > 0 else "<no country>"
-            print(f"\n{CapIt(k)}   {len(val.SeriesList)} titles,  {val.Issuecount} issues,  and {val.Pagecount} pages", file=f)
+            print(f"\n{CapIt(k)}   {Pluralize('title', len(val.SeriesList))},  {Pluralize('issue', val.Issuecount)},  {Pluralize('page', val.Pagecount)})", file=f)
             for series in val.SeriesList:
-                if series.DisplayName != "":
-                    print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
-                    Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
-                else:
-                    print(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)", file=f)
-                    Log(f"    {series.DisplayName}    ({series.Issuecount} issues, {series.Pagecount} pages)")
+                print(f"    {series.DisplayName}    ({Pluralize('issue', series.Issuecount)}, {Pluralize('page', series.Pagecount)}", file=f)
+                Log(f"    {series.DisplayName}    ({Pluralize('issue', series.Issuecount)}, {Pluralize('page', series.Pagecount)}")
 
     # Now create a properly ordered flat list suitable for WriteTable
     fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCounts, str]]=[]
