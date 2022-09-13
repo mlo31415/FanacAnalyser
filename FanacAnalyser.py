@@ -315,7 +315,7 @@ def main():
                fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
-               headerFilename="control-Header (Fanzine, alphabetical).html",
+               headerFilename="control-Header (Fanzine, by editor).html",
                inAlphaOrder=True)
 
 
