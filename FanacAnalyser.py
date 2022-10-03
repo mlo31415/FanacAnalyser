@@ -38,6 +38,15 @@ def main():
             exit(1)
     Log("Report directory '"+reportDir+"' created")
 
+    # See if the file 'People Cannonical Names.txt' exists.  If it does, read it.
+    peopleCannonicalNames={}
+    if os.path.exists("People Cannonical Names.txt"):
+        with open("People Cannonical Names.txt", "r" ,encoding='utf8') as f:
+            for line in f:
+                loc=line.find("-->")
+                if loc > 0:
+                    peopleCannonicalNames[line[:loc-1].strip()]=line[loc+2:].strip()
+
     # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
     fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
 
