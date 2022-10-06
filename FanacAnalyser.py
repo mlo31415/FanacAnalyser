@@ -476,7 +476,7 @@ def main():
         return f"{val} {s}{'s' if val != 1 else ''}"
 
     # List out the series by country data
-    with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
+    with open("Series by Country.txt", "w+") as f:
         keys=list(fanacSeriesDictByCountry.keys())
         keys.sort()  # We want to list the countries in alphabetical order
         for key in keys:
@@ -513,7 +513,7 @@ def main():
             s="("+s+")"
         return s
 
-    WriteTable(os.path.join(reportDir, "Series_by_Country.html"),
+    WriteTable("Series_by_Country.html",
                fanacFanzineSeriesListByCountry,
                lambda elem: UnicodeToHtml(elem[2].DisplayName)+(("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor != "" else ""),
                fRowHeaderText=lambda elem: CapIt(elem[0]),
