@@ -260,7 +260,7 @@ def main():
 
     # Compute the button text and URL for an alphabetic fanzine issue -- used in calls to WriteTable
     def AlphaButtonText(fz: FanzineIssueInfo) -> str:
-        c=AlphaSortText(fz.IssueName)[0]
+        c=AlphaSortText(fz.SeriesName)[0]
         if c == " " or c.isdigit():
             return "*"
         return RemoveArticles(c)
