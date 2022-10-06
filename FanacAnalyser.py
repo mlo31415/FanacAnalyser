@@ -45,7 +45,9 @@ def main():
             for line in f:
                 loc=line.find("-->")
                 if loc > 0:
-                    peopleCannonicalNames[line[:loc-1].strip()]=line[loc+2:].strip()
+                    n1=line[:loc-1].strip()
+                    n2=line[loc+3:].strip()
+                    peopleCannonicalNames[n1]=n2
 
     # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
     fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
@@ -278,6 +280,10 @@ def main():
         # We expand this FanzineIssueInfo into one for each editor.
         # We store the original editor list in the _Temp member used for such kludgey purposes
         eds=UnscrambleNames(fz.Editor)
+        for i, ed in enumerate(eds):
+            if ed in peopleCannonicalNames:
+                eds[i]=peopleCannonicalNames[ed]
+
         if len(eds) > 1:
             for ed in eds:
                 fz2=fz.DeepCopy()
@@ -286,6 +292,7 @@ def main():
                 fanacIssueListByEditor.append(fz2)
         else:
             if len(fz.Editor) > 0:      # In a by-editor listing, missing editors are uninteresting
+                fz.Editor=eds[0]
                 fanacIssueListByEditor.append(fz)
 
     def TruncOnDigit(s: str) -> str:
