@@ -13,7 +13,8 @@ import csv
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineSeriesInfo
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
-from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents, RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames
+from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames
 
 def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
@@ -40,8 +41,9 @@ def main():
 
     # See if the file 'People Cannonical Names.txt' exists.  If it does, read it.
     peopleCannonicalNames={}
-    if os.path.exists("People Cannonical Names.txt"):
-        with open("People Cannonical Names.txt", "r" ,encoding='utf8') as f:
+    filepathname=os.path.join(reportDir, "People Cannonical Names.txt")
+    if os.path.exists(filepathname):
+        with open(filepathname, "r" ,encoding='utf8') as f:
             for line in f:
                 loc=line.find("-->")
                 if loc > 0:
@@ -167,7 +169,7 @@ def main():
 
     countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
-    WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Fanzines.html"),
+    WriteTable(os.path.join(reportDir, "Chronological_Listing_of_Fanzines.html"),
                datedList,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: ChronButtonText(fz),
@@ -175,7 +177,7 @@ def main():
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
                headerFilename='control-Header (Fanzine, chronological).html')
-    WriteTable(os.path.join(outputDir, "Chronological Listing of Fanzines.txt"),
+    WriteTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
                datedList,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: ChronButtonText(fz),
@@ -226,7 +228,7 @@ def main():
         f.writelines(newszines)
 
     countText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
-    WriteTable(os.path.join(outputDir, "Chronological_Listing_of_Newszines.html"),
+    WriteTable(os.path.join(reportDir, "Chronological_Listing_of_Newszines.html"),
                fanacIssueList,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: ChronButtonText(fz),
@@ -315,14 +317,14 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(TruncOnDigit(elem.IssueName)))  # Sorts in place on fanzine's Issue name
     fanacIssueListByEditor.sort(key=lambda elem: AlphaSortPersonsName(elem.Editor))  # Sorts in place on order in index page, which is usually a good proxy for date
 
-    WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines by Editor.txt"),
+    WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                fanacIssueListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0],
                fRowHeaderText=lambda fz: fz.Editor,
                countText=countText+"\n"+timestamp+"\n",
                inAlphaOrder=True)
-    WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
+    WriteTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
                fanacIssueListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
@@ -337,25 +339,29 @@ def main():
 
     countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.SeriesName))  # Sorts in place on fanzine's Series name
+    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.SeriesName+elem.SeriesEditor))  # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
 
-    WriteTable(os.path.join(outputDir, "Alphabetical Listing of Fanzines.txt"),
+    WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
                fanacIssueList,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: fz.SeriesName[0],
                fRowHeaderText=lambda fz: fz.SeriesName,
                countText=countText+"\n"+timestamp+"\n",
                inAlphaOrder=True)
-    WriteTable(os.path.join(outputDir, "Alphabetical_Listing_of_Fanzines.html"),
+    WriteTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines.html"),
                fanacIssueList,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: AlphaButtonText(fz),
                fRowAnnot=lambda fz: AnnotateDate(fz),
+               fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
                fRowHeaderText=lambda fz: fz.SeriesName,
+               fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
+               fDirURL=lambda fz: fz.DirURL,
                fURL=URL,
                countText=countText+"\n"+timestamp+"\n",
                headerFilename="control-Header (Fanzine, alphabetical).html",
                inAlphaOrder=True)
+
 
     #.........................................................
     # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
@@ -476,7 +482,7 @@ def main():
         return f"{val} {s}{'s' if val != 1 else ''}"
 
     # List out the series by country data
-    with open("Series by Country.txt", "w+") as f:
+    with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
         keys=list(fanacSeriesDictByCountry.keys())
         keys.sort()  # We want to list the countries in alphabetical order
         for key in keys:
@@ -513,7 +519,7 @@ def main():
             s="("+s+")"
         return s
 
-    WriteTable("Series_by_Country.html",
+    WriteTable(os.path.join(reportDir, "Series_by_Country.html"),
                fanacFanzineSeriesListByCountry,
                lambda elem: UnicodeToHtml(elem[2].DisplayName)+(("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor != "" else ""),
                fRowHeaderText=lambda elem: CapIt(elem[0]),
@@ -563,7 +569,7 @@ def main():
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate lists of mailings
     # Files are created in reports/APAs
-    with open('mailings.csv', 'w', newline="") as csvfile:
+    with open(os.path.join(reportDir, 'mailings.csv'), 'w', newline="") as csvfile:
         filewriter=csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
         columnheaders=["IssueName", "Series", "SeriesName", "DisplayName", "DirURL", "PageName", "FIS", "Locale", "PageCount", "Editor", "TagList", "Mailings"]
@@ -646,18 +652,20 @@ def ReadFile(filename: str) -> list[str]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
-               fanacIssueList: list,  # The sorted input list
-               fRowBodyText: Callable[[str], str],  # Function to supply the row's body text
-               fButtonText: Optional[Callable[[str], str]]=None,  # Function to supply the button text
-               fRowHeaderText: Optional[Callable[[str], str]]=None,  # Function to supply the header text
+               fanacIssueList: list[FanzineIssueInfo],  # The sorted input list
+               fRowBodyText: Callable[[FanzineIssueInfo], str],  # Function to supply the row's body text
+               fButtonText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the button text
+               fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text
+               fRowHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,    # Function to supply annotation to the header text/link
+               fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
                fURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the URL
-               fDirURL: Optional[Callable[[str], str]]=None,  # Function to supply the directory or root URL
-               fRowAnnot: Optional[Callable[[str], str]]=None,  # Function to supply annotation to the rows
-               fHeaderAnnot: Optional[Callable[[str], str]] = None,  # Function to supply annotation to the headers
+               fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
+               fRowAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
+               fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                countText: str="",
                headerFilename: str="",
-               fSelector: Optional[Callable[[str], bool]]=None,
+               fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,
                inAlphaOrder: bool=False)\
                 -> None:
     f: TextIO=open(filename, "w+")
@@ -734,7 +742,7 @@ def WriteTable(filename: str,
     if generatingHtml:
         f.write('<div>\n')  # Begin the main table
 
-    lastRowHeader: str=""
+    lastRowHeaderSelect: str=""
     lastButtonLinkString: str=""
     for fz in fanacIssueList:
         # Do we skip this fanzine
@@ -753,11 +761,14 @@ def WriteTable(filename: str,
         # Start a new row
         # Deal with Column 1
         if fRowHeaderText is not None:
-            if (fCompareRowHeaderText is None and lastRowHeader != fRowHeaderText(fz)) or \
-                    (fCompareRowHeaderText is not None and not fCompareRowHeaderText(lastRowHeader, fRowHeaderText(fz))):
-                if lastRowHeader:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
+            if fRowHeaderSelect is None:    # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
+                fRowHeaderSelect=fRowHeaderText
+            if fCompareRowHeaderText is None:
+                fCompareRowHeaderText=lambda f1, f2: f1 == f2
+            if (not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz))):
+                if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                     if generatingHtml: f.write('    </div></div>\n')
-                lastRowHeader=fRowHeaderText(fz)
+                lastRowHeaderSelect=fRowHeaderSelect(fz)
 
                 # Since this is a new sub-box, we write the header in col 1
                 if generatingHtml:
@@ -768,15 +779,17 @@ def WriteTable(filename: str,
                     # Write col 1
                     f.write('  <div class=col-md-3>')
                     if inAlphaOrder and fDirURL is not None:
-                        f.write(FormatLink(fDirURL(fz), UnicodeToHtml(lastRowHeader)))
+                        f.write(FormatLink(fDirURL(fz), UnicodeToHtml(fRowHeaderText(fz))))
+                        if fRowHeaderAnnot is not None:
+                            f.write(fRowHeaderAnnot(fz))
                     else:
-                        f.write(UnicodeToHtml(lastRowHeader))
+                        f.write(UnicodeToHtml(fRowHeaderText(fz)))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
                 else:
-                    f.write("\n"+lastRowHeader)
+                    f.write("\n"+fRowHeaderText(fz))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
                     f.write("\n")
