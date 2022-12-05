@@ -249,6 +249,8 @@ def ExtractMailings(columnHeaders: list[str], row: list[TextAndHref]) -> list[st
     mailingslist=[]
     mailingText=mailingText.strip()
 
+    # This next little bit calls subber() each time re.sub find a match
+    # This results in the matches getting appended to mailingslist
     def subber(m) -> str:
         mailingslist.append(m.groups(0))
         return ""
@@ -669,7 +671,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Editor=ed, Country=country, Mailing=mailings)
+        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue

@@ -578,8 +578,8 @@ def main():
         for issue in fanacIssueList:
             # Select only issues which have an entry in the mailings column
             if len(issue.Mailings) > 0:
-                filewriter.writerow([issue.IssueName, issue.Series, issue.SeriesName, issue.DisplayName, issue.DirURL, issue.PageName, issue.FIS,
-                                   issue.Locale, issue.Pagecount, issue.Editor, issue.Taglist, issue.Mailings])
+                for mailing in issue.Mailings:
+                    filewriter.writerow([issue.IssueName, issue.Series, issue.SeriesName, issue.DisplayName, issue.DirURL, issue.PageName, issue.FIS, issue.Locale, issue.Pagecount, issue.Editor, issue.Taglist, mailing])
 
 
     Log("FanacAnalyzer has Completed.")
