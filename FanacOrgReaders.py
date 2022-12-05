@@ -253,7 +253,7 @@ def ExtractMailings(columnHeaders: list[str], row: list[TextAndHref]) -> list[st
     # This next little bit calls subber() each time re.sub find a match
     # This results in the matches getting appended to mailingslist
     def subber(m) -> str:
-        mailingslist.append(m.groups(0))
+        mailingslist.append(m.groups()[0])
         return ""
 
     mailingtext=re.sub(pattern, subber, mailingText)
