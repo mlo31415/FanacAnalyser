@@ -37,7 +37,6 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
 
     # We read in a list of directories to be skipped.
     skippers=ReadList("control-skippers.txt")
-    # skippers.append("ScienceFictionFan")
 
     # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
     # We also skip these
@@ -60,11 +59,13 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"Fanthologies",
             #"1950s_One_Shots",
             #"FAPA-Misc",
-            #"Filk",
+            #"Erg",
             #"Science_Fiction_Times",
             #"Outworlds",
             #"Musicals",
             #"Anvil",
+            #"Spiritus_Mundi",
+            #"Brit_Fantasy_Soc_Bulletin",
             #"VOID",
             #"Munich_Round_Up",
             #"Fantasy_Fiction_Field"
@@ -325,6 +326,10 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
 
     Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
 
+    # MT Void has special handling.
+    if fanzineName == "MT Void, The":
+        return ReadMTVoid("https://fanac.org/fanzines/MT_Void/")
+
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
     global singletons   # Not actually used anywhere else, but for performance sake should be read once and retained
@@ -332,17 +337,6 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         singletons
     except NameError:
         singletons=ReadList("control-singletons.txt")
-
-    # We have some pages where we have a tree of pages with specially-flagged fanzine index tables at the leaf nodes.
-    # If this is the root of one of them...
-    global specialBiggies   # Not actually used anywhere else, but for performance sake should be read once and retained
-    try:
-        specialBiggies
-    except NameError:
-        specialBiggies=ReadList("control-specialBiggies.txt")
-
-    if fanzineName in specialBiggies:
-        return ReadSpecialBiggie(directoryUrl,fanzineName)
 
     # It looks like this is a single level directory.
     soup=OpenSoup(directoryUrl)
@@ -453,23 +447,23 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
 # The "special biggie" pages are few (only two at the time this ie being written) and need to be handled specially
 # The characteristic is that they are a tree of pages which may contain one or more *tagged* fanzine index tables on any level.
 # The strategy is to first look for pages at this level, then recursively do the same for any links to a lower level page (same directory)
-def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> list[FanzineIssueInfo]:
+def ReadMTVoid(directoryUrl: str) -> list[FanzineIssueInfo]:
 
     fiiList: list[FanzineIssueInfo]=[]
+
+    fanzineName="MT Void"
+    editor="Evelyn Leeper and Mark Leeper"
+    country="US"
 
     soup=OpenSoup(directoryUrl)
     if soup is None:
         return fiiList
 
     # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
-
     # Scan for flagged tables on this page
     table=LocateIndexTable(directoryUrl, soup, silence=True)
     html=str(soup.body)
-    country=ExtractCountry(html)
-    editor="ReadSpecialBiggie"
-    if country == "":
-        Log(f"No country found for {fanzineName}")
+
     if table is not None:
         fiiList.extend(ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country))
 
@@ -483,7 +477,7 @@ def ReadSpecialBiggie(directoryUrl: str, fanzineName: str) -> list[FanzineIssueI
             if m is not None:
                 if url.startswith("index") or url.startswith("archive") or url.startswith("Bullsheet1-00") or url.startswith("Bullsheet2-00"):
                     u=ChangeFileInURL(directoryUrl, url)
-                    fiiList.extend(ReadSpecialBiggie(u, fanzineName))
+                    fiiList.extend(ReadMTVoid(u))
 
     # Fill in the FanzineSeriesInfo for this issue
     fsi=FanzineSeriesInfo(SeriesName=fanzineName, DirURL=directoryUrl, Country=country)
