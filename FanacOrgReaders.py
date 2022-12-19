@@ -50,6 +50,8 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         unskippers=[
             #"MT_Void",
             #"Coventranian_Gazette",
+            #"References-Fan_Histories",
+            #"References",
             #"File770",
             #"Solstice",
             #"Le_Zombie",
@@ -354,11 +356,14 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         return []
 
     # Check to see if this is marked as a Newszine
-    temp=soup.h2
     isnewszines=False
-    if temp.text.find("Newszine") > -1:
-        Log(f">>>>>> Newszine added: '{fanzineName}'")
-        isnewszines=True
+    temp=soup.h2
+    if temp is not None:
+        if temp.text.find("Newszine") > -1:
+            Log(f">>>>>> Newszine added: '{fanzineName}'")
+            isnewszines=True
+    else:
+        Log(f"No H2 block found in {directoryUrl}")
 
 
     # Extract any fanac keywords.  They will be of the form:
