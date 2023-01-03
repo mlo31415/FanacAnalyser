@@ -501,9 +501,6 @@ def main():
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
-    # Provides the annotation for rows in the following output table
-    def plural(i: int) -> str:
-        return "s" if i > 1 else ""
 
     def Annotate(elem: [FanzineCounts, FanzineCountsCountry]) -> str:
         s=""
