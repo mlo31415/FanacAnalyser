@@ -548,6 +548,8 @@ def main():
     LogClose()
 
 
+#*******************************************************************************************
+# Code to allow WriteTable to do fanzine counts on the row header lines for all of the rows under it.
 class FanzineCountsByCategory(FanzineCounts):
     def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
         super().__init__(fc)
@@ -560,7 +562,6 @@ class FanzineCountsByCategory(FanzineCounts):
     def append(self, fsi: FanzineSeriesInfo) -> None:
         if fsi not in self.SeriesList:
             self.SeriesList.append(fsi.Deepcopy())
-
 
 def GetSelectionCounts(FanzineCountsByCategory, Selector, fanacIssueList, fanacSeriesDictByCountry):
     # Run through all the issues in this list of issues
