@@ -126,18 +126,6 @@ def main():
             for line in lines:
                 print(line, file=f)
 
-    class FanzineCountsByCategory(FanzineCounts):
-        def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
-            super().__init__(fc)
-            self.SeriesList: list[FanzineSeriesInfo]=fsil
-
-        @property
-        def Count(self) -> int:
-            return len(self.SeriesList)
-
-        def append(self, fsi: FanzineSeriesInfo) -> None:
-            if fsi not in self.SeriesList:
-                self.SeriesList.append(fsi.Deepcopy())
 
 
     # Produce various lists of fanzines for upcoming WriteTables
@@ -560,6 +548,20 @@ def main():
     LogClose()
 
 
+class FanzineCountsByCategory(FanzineCounts):
+    def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
+        super().__init__(fc)
+        self.SeriesList: list[FanzineSeriesInfo]=fsil
+
+    @property
+    def Count(self) -> int:
+        return len(self.SeriesList)
+
+    def append(self, fsi: FanzineSeriesInfo) -> None:
+        if fsi not in self.SeriesList:
+            self.SeriesList.append(fsi.Deepcopy())
+
+
 def GetSelectionCounts(FanzineCountsByCategory, Selector, fanacIssueList, fanacSeriesDictByCountry):
     # Run through all the issues in this list of issues
     for issue in fanacIssueList:
@@ -842,15 +844,15 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectoriesList if e2 == dirname]
     if dups:
-        Log(f"   duplicate: {name=}  {dirname=}")
+        Log(f"   AddFanacDirectory: duplicate: {name=}  {dirname=}")
         return
 
     if dirname.startswith("http"):
-        Log(f"    ignored, because is HTML: {dirname}")
+        Log(f"    AddFanacDirectory: ignored, because is HTML: {dirname}")
         return
 
     # Add name and directory reference
-    Log(f"   added to fanacFanzineDirectories:  {name=}  {dirname=}")
+    Log(f"   AddFanacDirectory: added to fanacFanzineDirectories:  {name=}  {dirname=}")
     fanacFanzineDirectoriesList.append((name, dirname))
     return
 
