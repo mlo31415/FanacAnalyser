@@ -488,7 +488,7 @@ def main():
         for key in keys:
             val=fanacSeriesDictByCountry[key]
             k=key if len(key.strip()) > 0 else "<no country>"
-            print(f"\n{CapIt(k)}   {Pluralize(len(val.SeriesList), 'title')},  ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')})", file=f)
+            print(f"\n{CapIt(k)}   {Pluralize(len(val.SeriesList), 'title')},  ({Pluralize(val.Issuecount, 'issue')}, {Pluralize(val.Pagecount, 'page')})", file=f)
             for series in val.SeriesList:
                 print(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}", file=f)
                 Log(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}")
