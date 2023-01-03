@@ -494,7 +494,7 @@ def main():
                 Log(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}")
 
     # Now create a properly ordered flat list suitable for WriteTable
-    fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCounts, str]]=[]
+    fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCountsCountry, FanzineSeriesInfo]]=[]
     for countryName, countryEntries in fanacSeriesDictByCountry.items():
         for v in countryEntries.SeriesList:
             fanacFanzineSeriesListByCountry.append((countryName, countryEntries, v))  # (country, countryCount, series)
