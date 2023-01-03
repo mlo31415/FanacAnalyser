@@ -501,7 +501,6 @@ def main():
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
-
     def Annotate(elem: [FanzineCounts, FanzineCountsCountry]) -> str:
         s=""
         if type(elem) is FanzineCountsCountry:
@@ -649,7 +648,7 @@ def ReadFile(filename: str) -> list[str]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTable(filename: str,
-               fanacIssueList: list[FanzineIssueInfo],  # The sorted input list
+               fanacIssueList: list[any],  # The sorted input list
                fRowBodyText: Callable[[FanzineIssueInfo], str],  # Function to supply the row's body text
                fButtonText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the button text
                fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text
