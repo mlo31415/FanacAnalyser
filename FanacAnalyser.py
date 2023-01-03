@@ -126,6 +126,20 @@ def main():
             for line in lines:
                 print(line, file=f)
 
+    class FanzineCountsByCategory(FanzineCounts):
+        def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
+            super().__init__(fc)
+            self.SeriesList: list[FanzineSeriesInfo]=fsil
+
+        @property
+        def Count(self) -> int:
+            return len(self.SeriesList)
+
+        def append(self, fsi: FanzineSeriesInfo) -> None:
+            if fsi not in self.SeriesList:
+                self.SeriesList.append(fsi.Deepcopy())
+
+
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
     fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.IssueName.lower()))  # Sorts in place on fanzine's name with leading articles suppressed
@@ -411,58 +425,21 @@ def main():
                fSelector=lambda fz: fz.Pagecount > 250)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # Now generate a list of fanzine series sorted by country
+    # Now generate a list of fanzine series sorted by a category
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-    class FanzineCountsCountry(FanzineCounts):
-        def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
-            super().__init__(fc)
-            self.SeriesList: list[FanzineSeriesInfo]=fsil
-
-        @property
-        def Count(self) -> int:
-            return len(self.SeriesList)
-
-        def append(self, fsi: FanzineSeriesInfo) -> None:
-            if fsi not in self.SeriesList:
-                self.SeriesList.append(fsi.Deepcopy())
 
 
+    fanacSeriesDictByCountry: dict[str, FanzineCountsByCategory]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
 
-    fanacSeriesDictByCountry: dict[str, FanzineCountsCountry]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
-
-    # Run through all the issues in this list of issues
-    for issue in fanacIssueList:
-        countryName=issue.Locale.CountryName
-
-        # If this is a new country for us, create a new, empty, entry for it
-        if countryName not in fanacSeriesDictByCountry:
-            fanacSeriesDictByCountry[countryName]=FanzineCountsCountry([])
-        countrycount=fanacSeriesDictByCountry[countryName]
-
-        # Is this new issue from a series that is already in the list for this country?
-        # Note that we have defined hash and eq for class FanzineIssueInfo, so two different FanzineIssueInfos can be equal
-        if issue.Series not in countrycount.SeriesList:
-            countrycount.append(issue.Series)
-
-        # We want increment the series in the list that matches issue.Series
-        series=countrycount.SeriesList[countrycount.SeriesList.index(issue.Series)]
-        series+=issue
-
-        # If the directories in the DirURLs match, just add this issue to the existing series totals.
-        # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
-        if issue.Series.DirURL == series.DirURL:
-            # serieslist[loc] is a specific series in [country]
-            # Update the series by adding the pagecount of this issue to it
-            countrycount+=issue
-        else:
-            Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
+    Selector=lambda elem: elem.Locale.CountryName
+    GetSelectionCounts(FanzineCountsByCategory, Selector, fanacIssueList, fanacSeriesDictByCountry)
 
     # Next we sort the individual country lists into order by series name
     for ckey, cval in fanacSeriesDictByCountry.items():
         serieslist=cval.SeriesList
         serieslist.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))
-        fanacSeriesDictByCountry[ckey]=FanzineCountsCountry(serieslist, cval)  # Sorts in place on fanzine name
+        fanacSeriesDictByCountry[ckey]=FanzineCountsByCategory(serieslist, cval)  # Sorts in place on fanzine name
 
     # Take a string which is lower case and turn it to City, State, US sort of capitalization
     def CapIt(s: str) -> str:
@@ -494,16 +471,16 @@ def main():
                 Log(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}")
 
     # Now create a properly ordered flat list suitable for WriteTable
-    fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCountsCountry, FanzineSeriesInfo]]=[]
-    for countryName, countryEntries in fanacSeriesDictByCountry.items():
+    fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCountsByCategory, FanzineSeriesInfo]]=[]
+    for selectionName, countryEntries in fanacSeriesDictByCountry.items():
         for v in countryEntries.SeriesList:
-            fanacFanzineSeriesListByCountry.append((countryName, countryEntries, v))  # (country, countryCount, series)
+            fanacFanzineSeriesListByCountry.append((selectionName, countryEntries, v))  # (country, countryCount, series)
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
 
-    def Annotate(elem: [FanzineCounts, FanzineCountsCountry]) -> str:
+    def Annotate(elem: [FanzineCounts, FanzineCountsByCategory]) -> str:
         s=""
-        if type(elem) is FanzineCountsCountry:
+        if type(elem) is FanzineCountsByCategory:
             if len(elem.SeriesList) > 0:
                 s=Pluralize(len(elem.SeriesList), "title")+", "
         i=elem.Issuecount
@@ -581,6 +558,38 @@ def main():
     Log("FanacAnalyzer has Completed.")
 
     LogClose()
+
+
+def GetSelectionCounts(FanzineCountsByCategory, Selector, fanacIssueList, fanacSeriesDictByCountry):
+    # Run through all the issues in this list of issues
+    for issue in fanacIssueList:
+        selectionName=Selector(issue)
+
+        # If this is a new selection for us, create a new, empty, entry for it
+        if selectionName not in fanacSeriesDictByCountry:
+            fanacSeriesDictByCountry[selectionName]=FanzineCountsByCategory([])
+        selectioncount=fanacSeriesDictByCountry[selectionName]
+
+        # Is this new issue from a series that is already in the list for this country?
+        # Note that we have defined hash and eq for class FanzineIssueInfo, so two different FanzineIssueInfos can be equal
+        if issue.Series not in selectioncount.SeriesList:
+            selectioncount.append(issue.Series)
+
+        # We want increment the series in the list that matches issue.Series
+        series=selectioncount.SeriesList[selectioncount.SeriesList.index(issue.Series)]
+        series+=issue
+
+        # If the directories in the DirURLs match, just add this issue to the existing series totals.
+        # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
+        if issue.Series.DirURL == series.DirURL:
+            # serieslist[loc] is a specific series in [selection]
+            # Update the series by adding the pagecount of this issue to it
+            selectioncount+=issue
+        else:
+            Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
+    return
+
+
 # End of main()
 ##################################################################
 ##################################################################
