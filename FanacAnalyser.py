@@ -162,7 +162,7 @@ def main():
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fURL=URL,
                countText=timestamp,
-               headerFilename="control-Header (Fanzine, alphabetical).html")
+               headerFilename="control-Header (basic).html")
 
 
     # Generate a list of all the newszines (in lower case)
