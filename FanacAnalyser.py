@@ -297,9 +297,8 @@ def main():
     fanacSeriesListByEditor=GetSelectionCounts(fanacIssueListByEditor, Selector)    # This gives us counts by whatever category Selector selects for
 
     # Sort the Alphabetic lists by Editor
-    # fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(elem.IssueName))  # Sorts in place on fanzine's Issue name
-    # fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    # fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem[0]))  # Sorts by editor
+    fanacSeriesListByEditor.sort(key=lambda elem: AlphaSortText(elem[2].DisplayName))  # Sorts in place on fanzine's name page, which is usually a good proxy for date
+    fanacSeriesListByEditor.sort(key=lambda elem: SortPersonsName(elem[0]))  # Sorts by editor
 
     WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                fanacSeriesListByEditor,
