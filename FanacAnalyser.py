@@ -473,6 +473,8 @@ def main():
 class FanzineCountsByCategory(FanzineCounts):
     def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
         super().__init__(fc)
+        if fsil == None:
+            fsil=[]
         self.SeriesList: list[FanzineSeriesInfo]=fsil
 
     @property
