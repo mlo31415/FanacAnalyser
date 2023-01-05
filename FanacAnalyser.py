@@ -14,7 +14,7 @@ import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineSeriesInfo
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames, Pluralize
 
 def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
@@ -213,67 +213,6 @@ def main():
                headerFilename="control-Header (Newszine).html",
                fSelector=lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
-
-    countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
-
-
-    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # Generate Alphabetic lists by Editor
-    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.IssueName))  # Sorts in place on fanzine's Issue name
-    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueList.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts in place on order in index page, which is usually a good proxy for date
-
-    Selector=lambda elem: elem.Editor
-    fanacSeriesDictByEditor=GetSelectionCounts(fanacIssueList, Selector)
-
-    # For the next pair of reports, we need to modify fanacIssueList, duplicating it for all issues with multiple editors
-    fanacIssueListByEditor: list[FanzineIssueInfo]=[]
-    for fz in fanacIssueList:
-        # We expand this FanzineIssueInfo into one for each editor.
-        # We store the original editor list in the _Temp member used for such kludgey purposes
-        eds=UnscrambleNames(fz.Editor)
-        for i, ed in enumerate(eds):
-            if ed in peopleCannonicalNames:
-                eds[i]=peopleCannonicalNames[ed]
-
-        if len(eds) > 1:
-            for ed in eds:
-                fz2=fz.DeepCopy()
-                fz2.Temp=fz.Editor
-                fz2.Editor=ed
-                fanacIssueListByEditor.append(fz2)
-        else:
-            if len(fz.Editor) > 0:      # In a by-editor listing, missing editors are uninteresting
-                fz.Editor=eds[0]
-                fanacIssueListByEditor.append(fz)
-
-
-    fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(TruncOnDigit(elem.IssueName)))  # Sorts in place on fanzine's Issue name
-    fanacIssueListByEditor.sort(key=lambda elem: AlphaSortPersonsName(elem.Editor))  # Sorts in place on order in index page, which is usually a good proxy for date
-
-    WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
-               fanacIssueListByEditor,
-               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-               fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0],
-               fRowHeaderText=lambda fz: fz.Editor,
-               countText=countText+"\n"+timestamp+"\n",
-               inAlphaOrder=True)
-    WriteTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
-               fanacIssueListByEditor,
-               fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-               fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
-               fRowAnnot=lambda fz: f"{'' if fz.Temp is None else f'<small>({UnicodeToHtml(fz.Temp)})</small>'} {AnnotateDate(fz)}",
-               fRowHeaderText=lambda fz: fz.Editor,
-               fRowHeaderAnnot=lambda elem: "row header annot",#lambda elem: AnnotateFanzineCounts2(elem[1]),
-               fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
-               fURL=URL,
-               countText=countText+"\n"+timestamp+"\n",
-               headerFilename="control-Header (Fanzine, by editor).html",
-               inAlphaOrder=True)
-
-
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate Alphabetic lists by Fanzine
@@ -301,6 +240,105 @@ def main():
                countText=countText+"\n"+timestamp+"\n",
                headerFilename="control-Header (Fanzine, alphabetical).html",
                inAlphaOrder=True)
+
+
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Generate a list of fanzine series sorted by country
+    # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
+    # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
+
+    Selector=lambda elem: elem.Locale.CountryName
+    fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, Selector)
+
+    # # List out the series by country data
+    # with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
+    #     keys=list(fanacSeriesDictByCountry.keys())
+    #     keys.sort()  # We want to list the countries in alphabetical order
+    #     for key in keys:
+    #         val=fanacSeriesDictByCountry[key]
+    #         k=key if len(key.strip()) > 0 else "<no country>"
+    #         print(f"\n{CapIt(k)}   {Pluralize(len(val.SeriesList), 'title')},  ({Pluralize(val.Issuecount, 'issue')}, {Pluralize(val.Pagecount, 'page')})", file=f)
+    #         for series in val.SeriesList:
+    #             print(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}", file=f)
+    #             Log(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}")
+
+    # Create a properly ordered flat list suitable for WriteTable
+    fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())   # Sort by series name
+    fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())      # Sort by country
+
+    # def GetCounts(lst: [], sel: Callable) -> str:
+    #     for fz in lst:
+    #         if sel(fz, ):
+    #
+    #         print(f" GetCounts: {len(lst)}: {sel}  ")
+
+
+    WriteTable(os.path.join(reportDir, "Series_by_Country.html"),
+               fanacFanzineSeriesListByCountry,
+               lambda elem: UnicodeToHtml(elem[2].DisplayName)+(("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor != "" else ""),
+               fRowHeaderText=lambda elem: CapIt(elem[0]),
+               fURL=lambda elem: elem[2].DirURL,
+               fButtonText=lambda elem: CapIt(elem[0]),
+               fHeaderAnnot=lambda elem: f"<small>{elem[1].Annotate()}</small>",
+               countText=timestamp,
+               headerFilename="control-Header (Fanzine, by country).html",
+               inAlphaOrder=True)
+
+
+
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Generate lists by editor
+    # For this pair of reports, we need to create a modified fanacIssueList, duplicating entries for all issues with multiple editors
+    fanacIssueListByEditor: list[FanzineIssueInfo]=[]
+    for fz in fanacIssueList:
+        # We expand this FanzineIssueInfo into one for each editor.
+        # We store the original editor list in the _Temp member used for such kludgey purposes
+        eds=UnscrambleNames(fz.Editor)
+        for i, ed in enumerate(eds):
+            if ed in peopleCannonicalNames:
+                eds[i]=peopleCannonicalNames[ed]
+
+        if len(eds) > 1:
+            for ed in eds:
+                fz2=fz.DeepCopy()
+                fz2.Temp=fz.Editor
+                fz2.Editor=ed
+                fanacIssueListByEditor.append(fz2)
+        else:
+            if len(fz.Editor) > 0:      # In a by-editor listing, missing editors are uninteresting
+                fz.Editor=eds[0]
+                fanacIssueListByEditor.append(fz)
+
+    # Generate the counts by editor
+    Selector=lambda elem: elem.Editor
+    fanacSeriesListByEditor=GetSelectionCounts(fanacIssueListByEditor, Selector)    # This gives us counts by whatever category Selector selects for
+
+    # Sort the Alphabetic lists by Editor
+    # fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(elem.IssueName))  # Sorts in place on fanzine's Issue name
+    # fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
+    # fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem[0]))  # Sorts by editor
+
+    WriteTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
+               fanacSeriesListByEditor,
+               fRowBodyText=lambda fz: UnicodeToHtml(fz[2].DisplayName),
+               fButtonText=lambda fz: AlphaSortPersonsName(fz[0])[0],
+               fRowHeaderText=lambda fz: fz[0],
+               countText=countText+"\n"+timestamp+"\n",
+               inAlphaOrder=True)
+    WriteTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
+               fanacSeriesListByEditor,
+               fRowBodyText=lambda fz: UnicodeToHtml(fz[2].DisplayName),
+               fButtonText=lambda fz: AlphaSortPersonsName(fz[0])[0].upper(),
+               fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small>({UnicodeToHtml(fz[1].Annotate())})</small>'}",
+               fRowHeaderText=lambda fz: fz[0],
+               fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
+               fURL=lambda elem: elem[2].DirURL,
+               countText=countText+"\n"+timestamp+"\n",
+               headerFilename="control-Header (Fanzine, by editor).html",
+               inAlphaOrder=True)
+
 
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -358,56 +396,6 @@ def main():
                countText=timestamp,
                fSelector=lambda fz: fz.Pagecount > 250)
 
-
-    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # Generate a list of fanzine series sorted by a category
-    # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
-    # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-
-    fanacSeriesDictByCountry: dict[str, FanzineCountsByCategory]={}  # Key is country code; value is a tuple of ([FSI], FanzineCounts for country])
-
-    Selector=lambda elem: elem.Locale.CountryName
-    fanacSeriesDictByCountry=GetSelectionCounts(fanacIssueList, Selector)
-
-    # Next we sort the individual country lists into order by series name
-    for ckey, cval in fanacSeriesDictByCountry.items():
-        serieslist=cval.SeriesList
-        serieslist.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))
-        fanacSeriesDictByCountry[ckey]=FanzineCountsByCategory(serieslist, cval)  # Sorts in place on fanzine name
-
-
-    # List out the series by country data
-    with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
-        keys=list(fanacSeriesDictByCountry.keys())
-        keys.sort()  # We want to list the countries in alphabetical order
-        for key in keys:
-            val=fanacSeriesDictByCountry[key]
-            k=key if len(key.strip()) > 0 else "<no country>"
-            print(f"\n{CapIt(k)}   {Pluralize(len(val.SeriesList), 'title')},  ({Pluralize(val.Issuecount, 'issue')}, {Pluralize(val.Pagecount, 'page')})", file=f)
-            for series in val.SeriesList:
-                print(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}", file=f)
-                Log(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}")
-
-    # Create a properly ordered flat list suitable for WriteTable
-    fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCountsByCategory, FanzineSeriesInfo]]=[]
-    for selectionName, countryEntries in fanacSeriesDictByCountry.items():
-        for v in countryEntries.SeriesList:
-            fanacFanzineSeriesListByCountry.append((selectionName, countryEntries, v))  # (country, countryCount, series)
-    fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())
-    fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())
-
-    WriteTable(os.path.join(reportDir, "Series_by_Country.html"),
-               fanacFanzineSeriesListByCountry,
-               lambda elem: UnicodeToHtml(elem[2].DisplayName)+(("| <small>("+elem[2].Editor+")</small>") if elem[2].Editor != "" else ""),
-               fRowHeaderText=lambda elem: CapIt(elem[0]),
-               fURL=lambda elem: elem[2].DirURL,
-               fButtonText=lambda elem: CapIt(elem[0]),
-               fRowAnnot=lambda elem: f"<small>{AnnotateFanzineCounts2(elem[2])}</small>",
-               fHeaderAnnot=lambda elem: f"<small>{AnnotateFanzineCounts2(elem[1])}</small>",
-               countText=timestamp,
-               headerFilename="control-Header (Fanzine, by country).html",
-               inAlphaOrder=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -471,7 +459,7 @@ def main():
 #*******************************************************************************************
 # Code to allow WriteTable to do fanzine counts on the row header lines for all the rows under it.
 class FanzineCountsByCategory(FanzineCounts):
-    def __init__(self, fsil: list[FanzineSeriesInfo], fc: Optional[FanzineCounts]=None):
+    def __init__(self, fsil: list[FanzineSeriesInfo]=None, fc: Optional[FanzineCounts]=None):
         super().__init__(fc)
         if fsil == None:
             fsil=[]
@@ -485,20 +473,28 @@ class FanzineCountsByCategory(FanzineCounts):
         if fsi not in self.SeriesList:
             self.SeriesList.append(fsi.Deepcopy())
 
+    def Annotate(self) -> str:
+        s=""
+        if len(self.SeriesList) > 0:
+            s=Pluralize(len(self.SeriesList), "title")+", "
+        s+=FanzineCounts.Annotate(self)
+        return s
 
-def GetSelectionCounts(fanacIssueList: list[FanzineIssueInfo], Selector: Callable) -> dict[str, FanzineCountsByCategory]:
-    fanacSeriesDictByCategory: dict[str, FanzineCountsByCategory]={}
+
+def GetSelectionCounts(fanacIssueList: list[FanzineIssueInfo], Selector: Callable) -> list[tuple[str, FanzineCountsByCategory, FanzineSeriesInfo]]:
+    fanacCategoryDict: dict[str, FanzineCountsByCategory]={}
 
     # Run through all the issues in this list of issues
+    # For each distinct selection, we'll build up a list of Series with each series containing a list of issues
     for issue in fanacIssueList:
         selectionName=Selector(issue)
 
         # If this is a new selection for us, create a new, empty, entry for it
-        if selectionName not in fanacSeriesDictByCategory:
-            fanacSeriesDictByCategory[selectionName]=FanzineCountsByCategory([])
-        selectioncount=fanacSeriesDictByCategory[selectionName]
+        if selectionName not in fanacCategoryDict:
+            fanacCategoryDict[selectionName]=FanzineCountsByCategory()
+        selectioncount=fanacCategoryDict[selectionName]
 
-        # Is this new issue from a series that is already in the list for this country?
+        # Is this new issue from a series that is already in the list for this category?
         # Note that we have defined hash and eq for class FanzineIssueInfo, so two different FanzineIssueInfos can be equal
         if issue.Series not in selectioncount.SeriesList:
             selectioncount.append(issue.Series)
@@ -516,7 +512,18 @@ def GetSelectionCounts(fanacIssueList: list[FanzineIssueInfo], Selector: Callabl
         else:
             Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
 
-    return fanacSeriesDictByCategory
+    # Next we sort the individual country lists into order by series name
+    for ckey, cval in fanacCategoryDict.items():
+        serieslist=cval.SeriesList
+        serieslist.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))
+        fanacCategoryDict[ckey]=FanzineCountsByCategory(serieslist, cval)  # Sorts in place on fanzine name
+
+    fanacFanzineSeriesListByCountry: list[tuple[str, FanzineCountsByCategory, FanzineSeriesInfo]]=[]
+    for selectionName, countryEntries in fanacCategoryDict.items():
+        for v in countryEntries.SeriesList:
+            fanacFanzineSeriesListByCountry.append((selectionName, countryEntries, v))  # (country, countryCount, series)
+
+    return fanacFanzineSeriesListByCountry
 
 
 # End of main()
@@ -596,6 +603,7 @@ def WriteTable(filename: str,
                fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
                fRowAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
+               fHeaderAnnot2: Optional[Callable[[FanzineIssueInfo], Callable]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                countText: str="",
                headerFilename: str="",
@@ -716,6 +724,10 @@ def WriteTable(filename: str,
                         f.write(FormatLink(fDirURL(fz), UnicodeToHtml(fRowHeaderText(fz))))
                         if fRowHeaderAnnot is not None:
                             f.write(fRowHeaderAnnot(fz))
+                    elif inAlphaOrder and fDirURL is None:
+                        f.write(UnicodeToHtml(fRowHeaderText(fz)))
+                        if fRowHeaderAnnot is not None:
+                            f.write(fRowHeaderAnnot(fz))
                     else:
                         f.write(UnicodeToHtml(fRowHeaderText(fz)))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
@@ -743,7 +755,7 @@ def WriteTable(filename: str,
                 else:
                     f.write('        '+FormatLink(fURL(fz), bodytext))
             else:
-                f.write('        '+fz)
+                f.write('        '+str(fz))     # Needs fixing!
             if inAlphaOrder and fRowAnnot is not None:
                 annot=fRowAnnot(fz)
                 if annot is not None:
@@ -833,10 +845,6 @@ def CapIt(s: str) -> str:
         ret+=split[0].upper()+split[1:]
     return ret
 
-# -------------------------------------------------------------------------
-# Take a string and a value and add appropriate pluralization to string -- used in calls to WriteTable
-def Pluralize(val: int, s: str) -> str:
-    return f"{val} {s}{'s' if val != 1 else ''}"
 
 #.........................................................
 # Sort function for generating a list of fanzines sorted by editor
