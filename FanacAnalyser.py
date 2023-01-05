@@ -202,14 +202,14 @@ def main():
     with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as f:
         f.writelines(newszines)
 
-    countText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
+    newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteTable(os.path.join(reportDir, "Chronological_Listing_of_Newszines.html"),
                fanacIssueList,
                fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                fButtonText=lambda fz: ChronButtonText(fz),
                fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                fURL=URL,
-               countText=countText+"\n"+timestamp+"\n",
+               countText=newscountText+"\n"+timestamp+"\n",
                headerFilename="control-Header (Newszine).html",
                fSelector=lambda fz: fz.SeriesName.lower() in listOfNewszines)
 
