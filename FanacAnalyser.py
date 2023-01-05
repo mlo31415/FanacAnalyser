@@ -251,28 +251,9 @@ def main():
     Selector=lambda elem: elem.Locale.CountryName
     fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, Selector)
 
-    # # List out the series by country data
-    # with open(os.path.join(reportDir, "Series by Country.txt"), "w+") as f:
-    #     keys=list(fanacSeriesDictByCountry.keys())
-    #     keys.sort()  # We want to list the countries in alphabetical order
-    #     for key in keys:
-    #         val=fanacSeriesDictByCountry[key]
-    #         k=key if len(key.strip()) > 0 else "<no country>"
-    #         print(f"\n{CapIt(k)}   {Pluralize(len(val.SeriesList), 'title')},  ({Pluralize(val.Issuecount, 'issue')}, {Pluralize(val.Pagecount, 'page')})", file=f)
-    #         for series in val.SeriesList:
-    #             print(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}", file=f)
-    #             Log(f"    {series.DisplayName}    ({Pluralize(series.Issuecount, 'issue')}, {Pluralize(series.Pagecount, 'page')}")
-
     # Create a properly ordered flat list suitable for WriteTable
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())   # Sort by series name
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem[0].lower())      # Sort by country
-
-    # def GetCounts(lst: [], sel: Callable) -> str:
-    #     for fz in lst:
-    #         if sel(fz, ):
-    #
-    #         print(f" GetCounts: {len(lst)}: {sel}  ")
-
 
     WriteTable(os.path.join(reportDir, "Series_by_Country.html"),
                fanacFanzineSeriesListByCountry,
