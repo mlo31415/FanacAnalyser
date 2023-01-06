@@ -40,8 +40,8 @@ def main():
     Log("Report directory '"+reportDir+"' created")
 
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
-    peopleCannonicalNames={}
-    filepathname=os.path.join(reportDir, "People Cannonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's directories
+    peopleCanonicalNames={}
+    filepathname=os.path.join(reportDir, "People Canonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's directories
     if os.path.exists(filepathname):
         with open(filepathname, "r" ,encoding='utf8') as f:
             for line in f:
@@ -49,7 +49,7 @@ def main():
                 if loc > 0:
                     n1=line[:loc-1].strip()
                     n2=line[loc+3:].strip()
-                    peopleCannonicalNames[n1]=n2
+                    peopleCanonicalNames[n1]=n2
 
     # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
     fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
@@ -278,8 +278,8 @@ def main():
         # We store the original editor list in the _Temp member used for such kludgey purposes
         eds=UnscrambleNames(fz.Editor)
         for i, ed in enumerate(eds):
-            if ed in peopleCannonicalNames:
-                eds[i]=peopleCannonicalNames[ed]
+            if ed in peopleCanonicalNames:
+                eds[i]=peopleCanonicalNames[ed]
 
         if len(eds) > 1:
             for ed in eds:
