@@ -261,7 +261,7 @@ def main():
                fRowHeaderText=lambda elem: CapIt(elem[0]),
                fURL=lambda elem: elem[2].DirURL,
                fButtonText=lambda elem: CapIt(elem[0]),
-               fHeaderAnnot=lambda elem: f"<small>{elem[1].Annotate()}</small>",
+               fHeaderAnnot=lambda elem: f"<br><small>{elem[1].Annotate(1)}</small>",
                countText=timestamp,
                headerFilename="control-Header (Fanzine, by country).html",
                inAlphaOrder=True)
@@ -311,7 +311,7 @@ def main():
                fanacSeriesListByEditor,
                fRowBodyText=lambda fz: UnicodeToHtml(fz[2].DisplayName),
                fButtonText=lambda fz: AlphaSortPersonsName(fz[0])[0].upper(),
-               fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small>({UnicodeToHtml(fz[1].Annotate())})</small>'}",
+               fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>({UnicodeToHtml(fz[1].Annotate(1))})</small></small>'}",
                fRowHeaderText=lambda fz: fz[0],
                fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                fURL=lambda elem: elem[2].DirURL,
@@ -453,11 +453,11 @@ class FanzineCountsByCategory(FanzineCounts):
         if fsi not in self.SeriesList:
             self.SeriesList.append(fsi.Deepcopy())
 
-    def Annotate(self) -> str:
+    def Annotate(self, special: int=0) -> str:
         s=""
         if len(self.SeriesList) > 0:
             s=Pluralize(len(self.SeriesList), "title")+", "
-        s+=FanzineCounts.Annotate(self)
+        s+=FanzineCounts.Annotate(self, special)
         return s
 
 
