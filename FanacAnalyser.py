@@ -39,9 +39,9 @@ def main():
             exit(1)
     Log("Report directory '"+reportDir+"' created")
 
-    # See if the file 'People Cannonical Names.txt' exists.  If it does, read it.
+    # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
     peopleCannonicalNames={}
-    filepathname=os.path.join(reportDir, "People Cannonical Names.txt")
+    filepathname=os.path.join(reportDir, "People Cannonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's directories
     if os.path.exists(filepathname):
         with open(filepathname, "r" ,encoding='utf8') as f:
             for line in f:
