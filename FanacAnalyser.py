@@ -251,8 +251,7 @@ def main():
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
 
-    Selector=lambda elem: elem.Locale.CountryName
-    fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, Selector)
+    fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, lambda elem: elem.Locale.CountryName)
 
     # Create a properly ordered flat list suitable for WriteTable
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())   # Sort by series name
