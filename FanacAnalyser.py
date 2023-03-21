@@ -454,6 +454,13 @@ def main():
     LogClose()
 
 
+# End of main()
+##################################################################
+##################################################################
+##################################################################
+
+
+
 #*******************************************************************************************
 # Code to allow WriteTable to do fanzine counts on the row header lines for all the rows under it.
 class FanzineCountsByCategory(FanzineCounts):
@@ -526,12 +533,6 @@ def GetSelectionCounts(fanacIssueList: list[FanzineIssueInfo], Selector: Callabl
             fanacFanzineSeriesListByCategory.append(CategoryCount(selectionName, categoryCounts, v))  # (category, categoryCount, series)
 
     return fanacFanzineSeriesListByCategory
-
-
-# End of main()
-##################################################################
-##################################################################
-##################################################################
 
 
 # ====================================================================================
