@@ -615,6 +615,12 @@ def WriteTable(filename: str,
                 -> None:
     f: TextIO=open(filename, "w+")
 
+    if fCompareRowHeaderText is None:
+        fCompareRowHeaderText=lambda f1, f2: f1 == f2
+
+    if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
+        fRowHeaderSelect=fRowHeaderText     # Note that this may also be None
+
     #....... Header .......
     # Filename can end in ".html" or ".txt" and we output html or plain text accordingly
     generatingHtml=filename.lower().endswith(".html")
@@ -706,10 +712,6 @@ def WriteTable(filename: str,
         # Start a new row
         # Deal with Column 1
         if fRowHeaderText is not None:
-            if fRowHeaderSelect is None:    # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
-                fRowHeaderSelect=fRowHeaderText
-            if fCompareRowHeaderText is None:
-                fCompareRowHeaderText=lambda f1, f2: f1 == f2
             if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
                 if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                     if generatingHtml: f.write('    </div></div>\n')
