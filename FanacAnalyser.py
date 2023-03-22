@@ -251,7 +251,7 @@ def main():
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
 
-    fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, lambda elem: elem.Locale.CountryName)
+    fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, lambda elem: elem.Series, lambda elem: elem.Locale.CountryName)
 
     # Create a properly ordered flat list suitable for WriteTable
     fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())   # Sort by series name
@@ -295,7 +295,7 @@ def main():
                 fanacIssueListByEditor.append(fz)
 
     # Generate the counts by editor
-    fanacSeriesListByEditor=GetSelectionCounts(fanacIssueListByEditor, lambda elem: elem.Editor)    # This gives us counts by whatever category Selector selects for
+    fanacSeriesListByEditor=GetSelectionCounts(fanacIssueListByEditor, lambda elem: elem.Series, lambda elem: elem.Editor)    # This gives us counts by whatever category Selector selects for
 
     # Sort the Alphabetic lists by Editor
     fanacSeriesListByEditor.sort(key=lambda elem: AlphaSortText(elem[2].DisplayName))  # Sorts in place on fanzine's name page, which is usually a good proxy for date
@@ -488,12 +488,12 @@ class FanzineCountsByCategory(FanzineCounts):
 
 # Get counts from a list aggregated by calling Selector(element)
 # Output is a tuple of (Selector(issue),
-def GetSelectionCounts(fanacIssueList: list[FanzineIssueInfo], Selector: Callable) -> list[CategoryCount]:
+def GetSelectionCounts(fanacList: list[FanzineIssueInfo], Accessor: Callable, Selector: Callable) -> list[CategoryCount]:
     fanacCategoryDict: dict[str, FanzineCountsByCategory]={}
 
     # Run through all the issues in this list of issues
     # For each distinct selection, we'll build up a list of Series with each series containing a list of issues
-    for issue in fanacIssueList:
+    for issue in fanacList:
         selectionName=Selector(issue)
 
         # If this is a new selection for us, create a new, empty, entry for it
@@ -504,7 +504,7 @@ def GetSelectionCounts(fanacIssueList: list[FanzineIssueInfo], Selector: Callabl
         # Is this new issue from a series that is already in the list for this category?
         # Note that we have defined hash and eq for class FanzineIssueInfo, so two different FanzineIssueInfos can be equal
         if issue.Series not in selectioncount.SeriesList:
-            selectioncount.append(issue.Series)
+            selectioncount.append(Accessor(issue))
 
         # We want increment the series in the list that matches issue.Series
         series=selectioncount.SeriesList[selectioncount.SeriesList.index(issue.Series)]
