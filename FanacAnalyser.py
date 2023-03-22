@@ -487,7 +487,7 @@ class FanzineCountsByCategory(FanzineCounts):
 
 
 # Get counts from a list aggregated by calling Selector(element)
-# Output is a tuple of (Selector(issue), a FanzineCountsByCategory, and a series name
+# Output is a list of tuples of (Selector(issue), a FanzineCountsByCategory, and a series name)
 # The fanaclist argument is a list of structures which contain Series data
 # The Accessor is a function to extract the counts from the fanaclist elements
 # The Selector is a function which extracts the item we are selecting on from the fanaclist elements
