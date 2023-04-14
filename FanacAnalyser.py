@@ -698,7 +698,9 @@ def WriteTable(filename: str,
 
     lastRowHeaderSelect: str=""
     lastButtonLinkString: str=""
-    for fz in fanacIssueList:
+    # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
+    for i in range(len(fanacIssueList)):
+        fz=fanacIssueList[i]
         # Do we skip this fanzine
         if fSelector is not None and not fSelector(fz):
             continue
