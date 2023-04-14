@@ -702,7 +702,7 @@ def WriteTable(filename: str,
         # Do we skip this fanzine
         if fSelector is not None and not fSelector(fz):
             continue
-        if generatingHtml and fURL is not None and fURL(fz) is None:
+        if generatingHtml and fURL is not None and fURL(fz) is None:        #TODO: Why do we skip when fURL(fz) is None ??
             continue
 
         # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
