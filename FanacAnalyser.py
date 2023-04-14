@@ -287,11 +287,11 @@ def main():
             for ed in eds:
                 fz2=fz.DeepCopy()
                 fz2.Temp=fz.Editor
-                fz2.Editor=ed
+                fz2.Editor=ed.strip()
                 fanacIssueListByEditor.append(fz2)
         else:
             if len(fz.Editor) > 0:      # In a by-editor listing, missing editors are uninteresting
-                fz.Editor=eds[0]
+                fz.Editor=eds[0].strip()
                 fanacIssueListByEditor.append(fz)
 
     # Generate the counts by editor
