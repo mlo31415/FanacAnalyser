@@ -712,15 +712,17 @@ def WriteTable(filename: str,
                 if fButtonText(fz) is not None:
                     buttonLinkString=fButtonText(fz)
 
-        # Start a new row
+        # Start a new main row
         # Deal with Column 1
         if fRowHeaderText is not None:
+            # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
+            # Note that they have defaults, so they do not need to be checked for None
             if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
                 if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                     if generatingHtml: f.write('    </div></div>\n')
                 lastRowHeaderSelect=fRowHeaderSelect(fz)
 
-                # Since this is a new sub-box, we write the header in col 1
+                # Since this is a new main row, we write the header in col 1
                 if generatingHtml:
                     if buttonLinkString != lastButtonLinkString:
                         f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
@@ -743,6 +745,7 @@ def WriteTable(filename: str,
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
                 else:
+                    # Generating text only
                     f.write("\n"+fRowHeaderText(fz))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
