@@ -705,13 +705,6 @@ def WriteTable(filename: str,
         if generatingHtml and fURL is not None and fURL(fz) is None:        #TODO: Why do we skip when fURL(fz) is None ??
             continue
 
-        # Get the button link string, to see if we have a new decade (or 1st letter) and need to create a new jump anchor
-        buttonLinkString: str=""
-        if generatingHtml:
-            if fButtonText is not None:
-                if fButtonText(fz) is not None:
-                    buttonLinkString=fButtonText(fz)
-
         # Start a new main row
         # Deal with Column 1
         if fRowHeaderText is not None:
@@ -723,7 +716,13 @@ def WriteTable(filename: str,
                 lastRowHeaderSelect=fRowHeaderSelect(fz)
 
                 # Since this is a new main row, we write the header in col 1
+                # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
                 if generatingHtml:
+
+                    # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
+                    buttonLinkString: str=""
+                    if fButtonText is not None and fButtonText(fz) is not None:
+                        buttonLinkString=fButtonText(fz)
                     if buttonLinkString != lastButtonLinkString:
                         f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
                         lastButtonLinkString=buttonLinkString
