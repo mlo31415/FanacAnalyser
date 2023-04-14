@@ -728,6 +728,7 @@ def WriteTable(filename: str,
                     if buttonLinkString != lastButtonLinkString:
                         f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
                         lastButtonLinkString=buttonLinkString
+
                     f.write('<div class="row border">\n')  # Start a new sub-box
                     # Write col 1
                     f.write('  <div class=col-md-3>')
@@ -768,12 +769,14 @@ def WriteTable(filename: str,
                     f.write('        '+FormatLink(fURL(fz), bodytext))
             else:
                 f.write('        '+str(fz))     # Needs fixing!
+
             if inAlphaOrder and fRowAnnot is not None:
                 annot=fRowAnnot(fz)
                 if annot is not None:
                     annot=annot.strip()
                     if annot != "":
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+annot)
+
             f.write('<br>\n')
         else:
             bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
