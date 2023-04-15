@@ -261,6 +261,7 @@ def main():
                    fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda elem: CapIt(elem.Name),
                    fHeaderAnnot=lambda elem: f"<br><small>{elem.Counts.Annotate(1)}</small>",
+                   includeCounts=False,
                    countText=timestamp,
                    headerFilename="control-Header (Fanzine, by country).html",
                    inAlphaOrder=True)
@@ -312,6 +313,7 @@ def main():
                    fRowHeaderText=lambda fz: fz.Name,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    fURL=lambda elem: elem.Series.DirURL,
+                   includeCounts=False,
                    countText=countText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
@@ -605,6 +607,7 @@ def WriteHTMLTable(filename: str,
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
                fHeaderAnnot2: Optional[Callable[[FanzineIssueInfo], Callable]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
+               includeCounts: bool=True,        # Include counts in header block
                countText: str="",
                headerFilename: str="",
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,
@@ -690,6 +693,7 @@ def WriteHTMLTable(filename: str,
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
         for i in range(len(fanacIssueList)):
             fz=fanacIssueList[i]
+
             # Do we skip this fanzine
             if fSelector is not None and not fSelector(fz):
                 continue
@@ -705,6 +709,14 @@ def WriteHTMLTable(filename: str,
                     if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                         f.write('    </div></div>\n')
                     lastRowHeaderSelect=fRowHeaderSelect(fz)
+
+                    if includeCounts:
+                        # Now it's time to quickly count the issues in this block.
+                        fc=FanzineCounts()
+                        for fztemp in fanacIssueList[i:]:   # Loop through fanacIssueList starting at the current position which is the start of a block.
+                            if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fztemp)):
+                                break   # Bail when the block selection changes
+                            fc=fc+fztemp
 
                     # Since this is a new main row, we write the header in col 1
                     # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
@@ -732,6 +744,8 @@ def WriteHTMLTable(filename: str,
                         f.write(UnicodeToHtml(fRowHeaderText(fz)))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
+                    if includeCounts:
+                        f.write(f"<br><small>{fc}</small>")
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
 
@@ -785,7 +799,6 @@ def WriteTxtTable(filename: str,
 
     if fCompareRowHeaderText is None:
         fCompareRowHeaderText=lambda f1, f2: f1 == f2
-
     if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
         fRowHeaderSelect=fRowHeaderText     # Note that this may also be None
 
@@ -798,7 +811,7 @@ def WriteTxtTable(filename: str,
         lastRowHeaderSelect: str=""
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
         for fz in fanacIssueList:
-            # Do we skip this fanzine
+            # Do we skip this fanzine?
             if fSelector is not None and not fSelector(fz):
                 continue
 
