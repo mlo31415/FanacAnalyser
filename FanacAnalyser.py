@@ -785,13 +785,13 @@ def WriteTxtTable(filename: str,
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None)\
                 -> None:
 
+    if fCompareRowHeaderText is None:
+        fCompareRowHeaderText=lambda f1, f2: f1 == f2
+
+    if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
+        fRowHeaderSelect=fRowHeaderText     # Note that this may also be None
+
     with open(filename, "w+") as f:
-
-        if fCompareRowHeaderText is None:
-            fCompareRowHeaderText=lambda f1, f2: f1 == f2
-
-        if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
-            fRowHeaderSelect=fRowHeaderText     # Note that this may also be None
 
         #....... Header .......
         if countText:
