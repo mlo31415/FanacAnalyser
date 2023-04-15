@@ -813,16 +813,12 @@ def WriteTxtTable(filename: str,
                 if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
                     lastRowHeaderSelect=fRowHeaderSelect(fz)
 
-                    # Generating text only
                     f.write("\n"+fRowHeaderText(fz))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
                     f.write("\n")
 
-            # Deal with Column 2
-            # The hyperlink goes in column 2
-            # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
-            # The former are easy, but the latter need to be processed
+            # Deal with "Column 2" (the indented stuff)
             bodytext=fRowBodyText(fz)
             bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
             f.write("   "+bodytext+"\n")
