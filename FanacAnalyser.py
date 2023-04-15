@@ -797,8 +797,7 @@ def WriteTxtTable(filename: str,
 
         lastRowHeaderSelect: str=""
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
-        for i in range(len(fanacIssueList)):
-            fz=fanacIssueList[i]
+        for fz in fanacIssueList:
             # Do we skip this fanzine
             if fSelector is not None and not fSelector(fz):
                 continue
