@@ -1,4 +1,4 @@
-from typing import TextIO, Optional, Callable, Set, NamedTuple
+from typing import TextIO, Optional, Callable, Set
 from time import localtime, strftime
 import requests
 import os
