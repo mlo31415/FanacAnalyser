@@ -651,18 +651,16 @@ def WriteTable(filename: str,
 
         f.writelines(basicHeadertext)
 
-    if countText:
-        if generatingHtml:
-            countText=countText.replace("\n", "<p>")
-            countText=f"<p>{countText}</p>\n"
-        f.write(countText)
-
-
     #....... Jump buttons .......
     # If we have an HTML header, we need to create a set of jump buttons.
     # If it's alpha, the buttons are by 1st letter; if date it's by decade
     # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
-    if generatingHtml:
+
+        if countText:
+            countText=countText.replace("\n", "<p>")
+            countText=f"<p>{countText}</p>\n"
+            f.write(countText)
+
         headers=set()
         for fz in fanacIssueList:
             if fSelector is not None and not fSelector(fz):
@@ -682,44 +680,43 @@ def WriteTable(filename: str,
         # Write out the button bar
         f.write(buttonlist+"<p><p>\n")
 
-    #....... Main table .......
-    # Start the table if this is HTML
-    # The structure is
-    #   <div class="row border">        # This starts a new bordered box (a fanzine, a month)
-    #       <div class=col_md_2> (1st col: box title) </div>
-    #       <div class=col_md_10> (2nd col, a list of fanzine issues)
-    #           <a>issue</a> <br>
-    #           <a>issue</a> <br>
-    #           <a>issue</a> <br>
-    #       </div>
-    #   </div>
-    if generatingHtml:
+        #....... Main table .......
+        # Start the table if this is HTML
+        # The structure is
+        #   <div class="row border">        # This starts a new bordered box (a fanzine, a month)
+        #       <div class=col_md_2> (1st col: box title) </div>
+        #       <div class=col_md_10> (2nd col, a list of fanzine issues)
+        #           <a>issue</a> <br>
+        #           <a>issue</a> <br>
+        #           <a>issue</a> <br>
+        #       </div>
+        #   </div>
+
         f.write('<div>\n')  # Begin the main table
 
-    lastRowHeaderSelect: str=""
-    lastButtonLinkString: str=""
-    # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
-    for i in range(len(fanacIssueList)):
-        fz=fanacIssueList[i]
-        # Do we skip this fanzine
-        if fSelector is not None and not fSelector(fz):
-            continue
-        if generatingHtml and fURL is not None and fURL(fz) is None:        #TODO: Why do we skip when fURL(fz) is None ??
-            continue
+        lastRowHeaderSelect: str=""
+        lastButtonLinkString: str=""
+        # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
+        for i in range(len(fanacIssueList)):
+            fz=fanacIssueList[i]
+            # Do we skip this fanzine
+            if fSelector is not None and not fSelector(fz):
+                continue
+            if fURL is not None and fURL(fz) is None:        #TODO: Why do we skip when fURL(fz) is None ??
+                continue
 
-        # Start a new main row
-        # Deal with Column 1
-        if fRowHeaderText is not None:
-            # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
-            # Note that they have defaults, so they do not need to be checked for None
-            if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
-                if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
-                    if generatingHtml: f.write('    </div></div>\n')
-                lastRowHeaderSelect=fRowHeaderSelect(fz)
+            # Start a new main row
+            # Deal with Column 1
+            if fRowHeaderText is not None:
+                # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
+                # Note that they have defaults, so they do not need to be checked for None
+                if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
+                    if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
+                        f.write('    </div></div>\n')
+                    lastRowHeaderSelect=fRowHeaderSelect(fz)
 
-                # Since this is a new main row, we write the header in col 1
-                # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
-                if generatingHtml:
+                    # Since this is a new main row, we write the header in col 1
+                    # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
 
                     # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
                     buttonLinkString: str=""
@@ -746,20 +743,13 @@ def WriteTable(filename: str,
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
-                else:
-                    # Generating text only
-                    f.write("\n"+fRowHeaderText(fz))
-                    if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
-                        f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
-                    f.write("\n")
 
 
-        # Deal with Column 2
-        # The hyperlink goes in column 2
-        # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
-        # The former are easy, but the latter need to be processed
-        bodytext=fRowBodyText(fz)
-        if generatingHtml:
+            # Deal with Column 2
+            # The hyperlink goes in column 2
+            # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+            # The former are easy, but the latter need to be processed
+            bodytext=fRowBodyText(fz)
             if fURL is not None:
                 # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                 splitext=bodytext.split("|", 2)
@@ -778,15 +768,50 @@ def WriteTable(filename: str,
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+annot)
 
             f.write('<br>\n')
-        else:
+
+
+        #....... Cleanup .......
+        # And end everything
+
+        f.write('</div>\n</div>\n')
+        f.writelines(ReadFile("control-Default.Footer"))
+
+    else:   ###################################
+
+        if countText:
+            f.write(countText)
+
+        lastRowHeaderSelect: str=""
+        # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
+        for i in range(len(fanacIssueList)):
+            fz=fanacIssueList[i]
+            # Do we skip this fanzine
+            if fSelector is not None and not fSelector(fz):
+                continue
+
+            # Start a new main row
+            # Deal with Column 1
+            if fRowHeaderText is not None:
+                # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
+                # Note that they have defaults, so they do not need to be checked for None
+                if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
+                    lastRowHeaderSelect=fRowHeaderSelect(fz)
+
+                    # Generating text only
+                    f.write("\n"+fRowHeaderText(fz))
+                    if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
+                        f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
+                    f.write("\n")
+
+            # Deal with Column 2
+            # The hyperlink goes in column 2
+            # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+            # The former are easy, but the latter need to be processed
+            bodytext=fRowBodyText(fz)
             bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
             f.write("   "+bodytext+"\n")
 
-    #....... Cleanup .......
-    # And end everything
-    if generatingHtml:
-        f.write('</div>\n</div>\n')
-        f.writelines(ReadFile("control-Default.Footer"))
+
     f.close()
 
 # -------------------------------------------------------------------------
