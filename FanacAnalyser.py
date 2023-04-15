@@ -103,6 +103,8 @@ def main():
             if fzi.Pagecount == 0 and ignorePageCountErrors is not None and fzi.SeriesName not in ignorePageCountErrors:
                 Log(f"{fzi.IssueName} has no page count: {fzi}")
 
+    #countsGlobal=GetSelectionCounts(fanacIssueList, lambda elem: FanzineCounts(Issuecount=1, Pagecount=elem.Pagecount))
+
     # Re-run the previous producing a counts diagnostic file
     with open(os.path.join(reportDir, "Counts diagnostics.txt"), "w") as f:
         countsSeries=FanzineCounts()
@@ -253,7 +255,8 @@ def main():
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
 
-    fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, lambda elem: elem.Series, lambda elem: elem.Locale.CountryName)
+
+    #fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, lambda elem: elem.Series, lambda elem: elem.Locale.CountryName)
 
     # Create a properly ordered flat list suitable for WriteTable
     fanacIssueList.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem.DisplayName.lower())).lower())   # Sort by series name
