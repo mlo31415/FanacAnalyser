@@ -1,5 +1,6 @@
 from typing import Optional, Callable, Set
 from time import localtime, strftime
+from collections import defaultdict
 import requests
 import os
 import sys
@@ -9,7 +10,6 @@ import datetime
 from bs4 import BeautifulSoup
 import unidecode
 import csv
-from collections import namedtuple
 
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineSeriesInfo
@@ -17,7 +17,12 @@ from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents
 from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames, Pluralize
 
-CategoryCount=namedtuple("CategoryCount", ["Name", "Counts", "Series"])
+
+def CategoryCount(FanzineCounts):
+    def __init__(self, Name: str="", Series: str=""):
+        self.Name=Name
+        self.Series=Series
+
 
 def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
@@ -251,17 +256,18 @@ def main():
     fanacFanzineSeriesListByCountry=GetSelectionCounts(fanacIssueList, lambda elem: elem.Series, lambda elem: elem.Locale.CountryName)
 
     # Create a properly ordered flat list suitable for WriteTable
-    fanacFanzineSeriesListByCountry.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem[2].DisplayName.lower())).lower())   # Sort by series name
-    fanacFanzineSeriesListByCountry.sort(key=lambda elem: elem.Name.lower())      # Sort by country
+    fanacIssueList.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem.DisplayName.lower())).lower())   # Sort by series name
+    fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName)      # Sort by country
 
     WriteHTMLTable(os.path.join(reportDir, "Series_by_Country.html"),
-                   fanacFanzineSeriesListByCountry,
+                   fanacIssueList,
                    lambda elem: UnicodeToHtml(elem.Series.DisplayName)+(("| <small>("+elem.Series.Editor+")</small>") if elem.Series.Editor != "" else ""),
-                   fRowHeaderText=lambda elem: CapIt(elem.Name),
+                   fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
                    fURL=lambda elem: elem.Series.DirURL,
-                   fButtonText=lambda elem: CapIt(elem.Name),
-                   fHeaderAnnot=lambda elem: f"<br><small>{elem.Counts.Annotate(1)}</small>",
-                   includeCounts=False,
+                   fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
+                   #fHeaderAnnot=lambda elem: f"<br><small>{elem.Counts.Annotate(1)}</small>",
+                   includeCounts=True,
+                   hideSubsequentRows=True,
                    countText=timestamp,
                    headerFilename="control-Header (Fanzine, by country).html",
                    inAlphaOrder=True)
@@ -293,27 +299,27 @@ def main():
                 fanacIssueListByEditor.append(fz)
 
     # Generate the counts by editor
-    fanacSeriesListByEditor=GetSelectionCounts(fanacIssueListByEditor, lambda elem: elem.Series, lambda elem: elem.Editor)    # This gives us counts by whatever category Selector selects for
+    #fanacSeriesListByEditor=GetSelectionCounts(fanacIssueListByEditor, lambda elem: elem.Series, lambda elem: elem.Editor)    # This gives us counts by whatever category Selector selects for
 
     # Sort the Alphabetic lists by Editor
-    fanacSeriesListByEditor.sort(key=lambda elem: AlphaSortText(elem[2].DisplayName))  # Sorts in place on fanzine's name page, which is usually a good proxy for date
-    fanacSeriesListByEditor.sort(key=lambda elem: SortPersonsName(elem[0]))  # Sorts by editor
+    fanacIssueListByEditor.sort(key=lambda elem: RemoveArticles(elem.IssueName.lower()))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts by editor
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
-                   fanacSeriesListByEditor,
+                   fanacIssueListByEditor,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.Series.DisplayName),
-                   fRowHeaderText=lambda fz: fz.Name,
+                   fRowHeaderText=lambda fz: fz.Editor,
                    countText=countText+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),
-                   fanacSeriesListByEditor,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.Series.DisplayName),
-                   fRowAnnot= lambda fz: f"<small>({fz.Series.Counts.Annotate(1)})</small>",
-                   fButtonText=lambda fz: AlphaSortPersonsName(fz.Name)[0].upper(),
-                   fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
-                   fRowHeaderText=lambda fz: fz.Name,
+                   fanacIssueListByEditor,
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowAnnot=lambda fz: f"<small>({fz.Series.Counts.Annotate(1)})</small>",
+                   fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
+                   #fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
+                   fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    fURL=lambda elem: elem.Series.DirURL,
-                   includeCounts=False,
                    countText=countText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
@@ -470,15 +476,15 @@ class FanzineCountsByCategory(FanzineCounts):
     def Count(self) -> int:
         return len(self.SeriesList)
 
-    def append(self, fsi: FanzineSeriesInfo) -> None:
+    def Append(self, fsi: FanzineSeriesInfo) -> None:
         if fsi not in self.SeriesList:
             self.SeriesList.append(fsi.Deepcopy())
+            self.__add__(fsi)   # Add the fsi's counts in
 
     def Annotate(self, special: int=0) -> str:
-        s=""
-        if len(self.SeriesList) > 0:
-            s=Pluralize(len(self.SeriesList), "title")+", "
-        s+=FanzineCounts.Annotate(self, special)
+        s=str(FanzineCounts(Issuecount=self.Issuecount, Pagecount=self.Pagecount, Pdfcount=self.Pdfcount, Titlecount=len(self.SeriesList)))
+        if s and special != 1:
+            s="("+s+")"
         return s
 
 
@@ -487,27 +493,17 @@ class FanzineCountsByCategory(FanzineCounts):
 # The fanaclist argument is a list of structures which contain Series data
 # The Accessor is a function to extract the counts from the fanaclist elements
 # The Selector is a function which extracts the item we are selecting on from the fanaclist elements
-def GetSelectionCounts(fanacList: list[FanzineIssueInfo], Accessor: Callable, Selector: Callable) -> list[CategoryCount]:
-    fanacCategoryDict: dict[str, FanzineCountsByCategory]={}
+#       The Selector defaults to a function returning an empty string so that all elements in fanaclist are counted together in a one-element list
+def GetSelectionCounts(fanacList: list[FanzineIssueInfo], Accessor: Callable, Selector: Callable=lambda elem: "") -> dict[FanzineCountsByCategory]:
+
+    fanacCategoryDict: defaultdict[str, FanzineCountsByCategory]=defaultdict(lambda: FanzineCountsByCategory())
 
     # Run through all the issues in this list of issues
     # For each distinct selection, we'll build up a list of Series with each series containing a list of issues
     for issue in fanacList:
-        selectionName=Selector(issue)
+        selectioncount=fanacCategoryDict[Selector(issue)]
 
-        # If this is a new selection for us, create a new, empty, entry for it
-        if selectionName not in fanacCategoryDict:
-            fanacCategoryDict[selectionName]=FanzineCountsByCategory()
-        selectioncount=fanacCategoryDict[selectionName]
-
-        # Is this new issue from a series that is already in the list for this category?
-        # Note that we have defined hash and eq for class FanzineIssueInfo, so two different FanzineIssueInfos can be equal
-        if issue.Series not in selectioncount.SeriesList:
-            selectioncount.append(Accessor(issue))
-
-        # We want increment the series in the list that matches issue.Series
-        series=selectioncount.SeriesList[selectioncount.SeriesList.index(issue.Series)]
-        series+=issue
+        category=selectioncount[Accessor(issue)]
 
         # If the directories in the DirURLs match, just add this issue to the existing series totals.
         # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
@@ -607,6 +603,7 @@ def WriteHTMLTable(filename: str,
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
                fHeaderAnnot2: Optional[Callable[[FanzineIssueInfo], Callable]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
+               hideSubsequentRows: bool=False,
                includeCounts: bool=True,        # Include counts in header block
                countText: str="",
                headerFilename: str="",
@@ -621,6 +618,8 @@ def WriteHTMLTable(filename: str,
 
     # The file being created.
     with open(filename, "w+") as f:
+
+        #--------------------------
         #....... Header .......
         # HTML needs to include a header.
         # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
@@ -645,15 +644,17 @@ def WriteHTMLTable(filename: str,
 
         f.writelines(basicHeadertext)
 
-        #....... Jump buttons .......
-        # If we have an HTML header, we need to create a set of jump buttons.
-        # If it's alpha, the buttons are by 1st letter; if date it's by decade
-        # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
-
+        # Externally supplied summary count text
         if countText:
             countText=countText.replace("\n", "<p>")
             countText=f"<p>{countText}</p>\n"
             f.write(countText)
+
+        #--------------------------
+        # -- Jump buttons --
+        # If we have an HTML header, we need to create a set of jump buttons.
+        # If it's alpha, the buttons are by 1st letter; if date it's by decade
+        # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
 
         headers=set()
         for fz in fanacIssueList:
@@ -674,6 +675,7 @@ def WriteHTMLTable(filename: str,
         # Write out the button bar
         f.write(buttonlist+"<p><p>\n")
 
+        #--------------------------
         #....... Main table .......
         # Start the table if this is HTML
         # The structure is
@@ -690,11 +692,12 @@ def WriteHTMLTable(filename: str,
 
         lastRowHeaderSelect: str=""
         lastButtonLinkString: str=""
+
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
         for i in range(len(fanacIssueList)):
             fz=fanacIssueList[i]
 
-            # Do we skip this fanzine
+            # Do we skip this fanzine completely?
             if fSelector is not None and not fSelector(fz):
                 continue
             if fURL is not None and fURL(fz) is None:        #TODO: Why do we skip when fURL(fz) is None ??
@@ -708,15 +711,16 @@ def WriteHTMLTable(filename: str,
                 if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
                     if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                         f.write('    </div></div>\n')
-                    lastRowHeaderSelect=fRowHeaderSelect(fz)
 
                     if includeCounts:
                         # Now it's time to quickly count the issues in this block.
                         fc=FanzineCounts()
+                        tempLastRowHeaderSelect=fRowHeaderSelect(fanacIssueList[i])
                         for fztemp in fanacIssueList[i:]:   # Loop through fanacIssueList starting at the current position which is the start of a block.
-                            if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fztemp)):
+                            if not fCompareRowHeaderText(tempLastRowHeaderSelect, fRowHeaderSelect(fztemp)):
                                 break   # Bail when the block selection changes
                             fc=fc+fztemp
+                        i=0
 
                     # Since this is a new main row, we write the header in col 1
                     # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
@@ -749,30 +753,32 @@ def WriteHTMLTable(filename: str,
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
 
-
-            # Deal with Column 2
-            # The hyperlink goes in column 2
-            # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
-            # The former are easy, but the latter need to be processed
-            bodytext=fRowBodyText(fz)
-            if fURL is not None:
-                # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
-                splitext=bodytext.split("|", 2)
-                if len(splitext) == 2:
-                    f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
+            # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
+            if not (hideSubsequentRows and fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz))):
+                # Deal with Column 2
+                # The hyperlink goes in column 2
+                # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+                # The former are easy, but the latter need to be processed
+                bodytext=fRowBodyText(fz)
+                if fURL is not None:
+                    # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
+                    splitext=bodytext.split("|", 2)
+                    if len(splitext) == 2:
+                        f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
+                    else:
+                        f.write('        '+FormatLink(fURL(fz), bodytext))
                 else:
-                    f.write('        '+FormatLink(fURL(fz), bodytext))
-            else:
-                f.write('        '+str(fz))     # Needs fixing!
+                    f.write('        '+str(fz))     # Needs fixing!
 
-            if inAlphaOrder and fRowAnnot is not None:
-                annot=fRowAnnot(fz)
-                if annot is not None:
-                    annot=annot.strip()
-                    if annot != "":
-                        f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+annot)
+                if inAlphaOrder and fRowAnnot is not None:
+                    annot=fRowAnnot(fz)
+                    if annot is not None:
+                        annot=annot.strip()
+                        if annot != "":
+                            f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+annot)
 
-            f.write('<br>\n')
+                f.write('<br>\n')
+            lastRowHeaderSelect=fRowHeaderSelect(fz)
 
         #....... Cleanup .......
         f.write('</div>\n</div>\n')
