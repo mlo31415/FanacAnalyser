@@ -534,6 +534,9 @@ def WriteHTMLTable(filename: str,
         fCompareRowHeaderText=lambda f1, f2: f1 == f2
     if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
         fRowHeaderSelect=fRowHeaderText  # Note that this may also be None
+    if fRowBodyText is None or fURL is None or fDirURL is None:
+        LogError(f"WriteTable: critical parameter is None in call to generate {filename}")
+        return
 
     # The file being created.
     with open(filename, "w+") as f:
