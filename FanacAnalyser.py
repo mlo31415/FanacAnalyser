@@ -304,12 +304,12 @@ def main():
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                    fanacIssueListByEditor,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.Series.DisplayName),
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowHeaderText=lambda fz: fz.Editor,
                    countText=countText+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),
                    fanacIssueListByEditor,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.DisplayName),
                    fRowAnnot=lambda fz: f"<small>({fz.Series.Counts.Annotate(1)})</small>",
                    fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
                    #fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
