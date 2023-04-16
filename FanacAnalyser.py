@@ -294,7 +294,7 @@ def main():
 
     # Sort the Alphabetic lists by Editor
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
-    fanacIssueListByEditor.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueListByEditor.sort(key=lambda elem: RemoveArticles(elem.SeriesName).casefold())  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts by editor
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
