@@ -69,7 +69,7 @@ def main():
     fanacIssueList=[x for x in fanacIssueList if x.PageName != ""]
 
     # Sort the list of all fanzines issues by fanzine series name
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))  # Sorts in place on fanzine name
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine name
 
     def NoNone(s: str) -> str:
         if s is None:
@@ -140,7 +140,7 @@ def main():
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.IssueName.lower()))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.IssueName.casefold()))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
@@ -176,10 +176,10 @@ def main():
     # This takes names from the file control-newszines.txt and adds fanzines tagged as newszines on their series index page
 
     # Read the control-newszines.txt file
-    newszinesSet=set([x.lower() for x in ReadList("control-newszines.txt", isFatal=True)])
+    newszinesSet=set([x.casefold() for x in ReadList("control-newszines.txt", isFatal=True)])
 
     # Add in the newszines discovered in the <h2> blocks
-    newszinesFromH2Set=set([fii.SeriesName.lower() for fii in fanacIssueList if "newszine" in fii.Taglist])
+    newszinesFromH2Set=set([fii.SeriesName.casefold() for fii in fanacIssueList if "newszine" in fii.Taglist])
     with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
         newszinesFromH2List=sorted(list(newszinesFromH2Set))
         for nz in newszinesFromH2List:
@@ -188,7 +188,7 @@ def main():
     newszinesSet=newszinesSet.union(newszinesFromH2Set)
 
     # Make up a lists of newszines and non-newszines
-    allzinesSet=set([fx.SeriesName.lower() for fx in fanacIssueList])
+    allzinesSet=set([fx.SeriesName.casefold() for fx in fanacIssueList])
 
     with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
         nonNewszines=sorted(list(allzinesSet.difference(newszinesSet)))
@@ -200,7 +200,7 @@ def main():
     # Count the number of issue and pages of all fanzines and just newszines
     newsCount=FanzineCounts()
     for fz in fanacIssueList:
-        if fz.SeriesName.lower() in listOfNewszines and fz.PageName != "":
+        if fz.SeriesName.casefold() in listOfNewszines and fz.PageName != "":
             newsCount+=fz
             if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
                 newsCount.Pdfcount+=1
@@ -218,7 +218,7 @@ def main():
                    fURL=URL,
                    countText=newscountText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Newszine).html",
-                   fSelector=lambda fz: fz.SeriesName.lower() in listOfNewszines)
+                   fSelector=lambda fz: fz.SeriesName.casefold() in listOfNewszines)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -255,7 +255,7 @@ def main():
 
 
     # Create a properly ordered flat list suitable for WriteTable
-    fanacIssueList.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem.DisplayName.lower())).lower())   # Sort by series name
+    fanacIssueList.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem.DisplayName.casefold())).casefold())   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName)      # Sort by country
 
     WriteHTMLTable(os.path.join(reportDir, "Series_by_Country.html"),
@@ -299,7 +299,7 @@ def main():
 
     # Sort the Alphabetic lists by Editor
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
-    fanacIssueListByEditor.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueListByEditor.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts by editor
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
@@ -329,8 +329,8 @@ def main():
     # Read through the alphabetic list and generate a flag file of cases where the issue name doesn't match the serial name
     # This function is used only in the lambda expression following immediately afterwards.
     def OddNames(n1: str, n2: str) -> bool:
-        n1=RemoveArticles(n1).lower().strip()
-        n2=RemoveArticles(n2).lower().strip()
+        n1=RemoveArticles(n1).casefold().strip()
+        n2=RemoveArticles(n2).casefold().strip()
         # We'd like them to match to the length of the shorter name
         length=min(len(n1), len(n2))
         return n1[:length] != n2[:length]
@@ -348,8 +348,8 @@ def main():
     # More general stuff: statistics and the like
     # Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
     # Create a set of all fanzines run names (the set to eliminate suploicates) and then get its size.
-    fzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList]))
-    nzCount=len(set([fz.SeriesName.lower() for fz in fanacIssueList if fz.SeriesName.lower() in listOfNewszines]))
+    fzCount=len(set([fz.SeriesName.casefold() for fz in fanacIssueList]))
+    nzCount=len(set([fz.SeriesName.casefold() for fz in fanacIssueList if fz.SeriesName.casefold() in listOfNewszines]))
 
     # Print to the console and also the statistics file
     Log("\n")
