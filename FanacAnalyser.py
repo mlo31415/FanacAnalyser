@@ -317,13 +317,14 @@ def main():
                    inAlphaOrder=True)
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"), #  needs work
                    fanacIssueListByEditor,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.DisplayName),
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
                    fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
                    fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
                    #fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    fURL=lambda elem: elem.Series.DirURL,
+                   hideSubsequentRows=True,
                    includeRowHeaderCounts=True,
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
