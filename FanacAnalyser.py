@@ -255,7 +255,7 @@ def main():
 
     WriteHTMLTable(os.path.join(reportDir, "Series_by_Country.html"),
                    fanacIssueList,
-                   lambda elem: UnicodeToHtml(elem.Series.DisplayName)+(("| <small>("+elem.Series.Editor+")</small>") if elem.Series.Editor != "" else ""),
+                   fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName)+(("| <small>("+elem.Series.Editor+")</small>") if elem.Series.Editor != "" else ""),
                    fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
                    fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
