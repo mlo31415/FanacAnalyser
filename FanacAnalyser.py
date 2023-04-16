@@ -1,6 +1,6 @@
 from typing import Optional, Callable, Set
 from time import localtime, strftime
-from collections import defaultdict
+
 import requests
 import os
 import sys
@@ -12,10 +12,10 @@ import unidecode
 import csv
 
 import FanacOrgReaders
-from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineSeriesInfo
+from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
-from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles, RemoveAccents
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames, Pluralize
+from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames
 
 
 def CategoryCount(FanzineCounts):
