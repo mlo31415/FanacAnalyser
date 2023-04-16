@@ -15,8 +15,7 @@ import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames
-
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames, Pluralize
 
 
 def main():
@@ -306,7 +305,7 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),
                    fanacIssueListByEditor,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.DisplayName),
-                   fRowAnnot=lambda fz: f"<small>({fz.Series.Counts.Annotate(1)})</small>",
+                   fRowAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
                    fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
                    #fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
                    fRowHeaderText=lambda fz: fz.Editor,
