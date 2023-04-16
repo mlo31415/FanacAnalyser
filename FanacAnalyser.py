@@ -321,23 +321,6 @@ def main():
                    inAlphaOrder=True)
 
 
-    # Sort the Alphabetic lists by Editor
-    fanacIssueListByEditor.sort(key=lambda elem: AlphaSortText(elem.DisplayName))  # Sorts in place on fanzine's name page, which is usually a good proxy for date
-    fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts by editor
-    WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
-                   fanacIssueListByEditor,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.DisplayName),
-                   #fRowAnnot= lambda fz: f"<small>({fz[2].Counts.Annotate(1)})</small>",
-                   fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
-                   #fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz[1].Annotate(1))}</small></small>'}",
-                   fRowHeaderText=lambda fz: fz.Editor,
-                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
-                   fURL=lambda elem: elem.DirURL,
-                   countText=countText+"\n"+timestamp+"\n",
-                   headerFilename="control-Header (Fanzine, by editor).html",
-                   inAlphaOrder=True)
-
-
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Debug: Generate lists of fanzines with odd names.  These should be checked for errors.
@@ -456,74 +439,6 @@ def main():
 ##################################################################
 ##################################################################
 ##################################################################
-
-
-
-#*******************************************************************************************
-# Code to allow WriteTable to do fanzine counts on the row header lines for all the rows under it.
-class FanzineCountsByCategory(FanzineCounts):
-    def __init__(self, fsil: list[FanzineSeriesInfo]=None, fc: Optional[FanzineCounts]=None):
-        super().__init__(fc)
-        if fsil == None:
-            fsil=[]
-        self.SeriesList: list[FanzineSeriesInfo]=fsil
-
-    @property
-    def Count(self) -> int:
-        return len(self.SeriesList)
-
-    def Append(self, fsi: FanzineSeriesInfo) -> None:
-        if fsi not in self.SeriesList:
-            self.SeriesList.append(fsi.Deepcopy())
-            self.__add__(fsi)   # Add the fsi's counts in
-
-    def Annotate(self, special: int=0) -> str:
-        s=str(FanzineCounts(Issuecount=self.Issuecount, Pagecount=self.Pagecount, Pdfcount=self.Pdfcount, Titlecount=len(self.SeriesList)))
-        if s and special != 1:
-            s="("+s+")"
-        return s
-
-
-# Get counts from a list aggregated by calling Selector(element)
-# Output is a list of tuples of (Selector(issue), a FanzineCountsByCategory, and a series name)
-# The fanaclist argument is a list of structures which contain Series data
-# The Accessor is a function to extract the counts from the fanaclist elements
-# The Selector is a function which extracts the item we are selecting on from the fanaclist elements
-#       The Selector defaults to a function returning an empty string so that all elements in fanaclist are counted together in a one-element list
-def GetSelectionCounts(fanacList: list[FanzineIssueInfo], Accessor: Callable, Selector: Callable=lambda elem: "") -> dict[FanzineCountsByCategory]:
-
-    fanacCategoryDict: defaultdict[str, FanzineCountsByCategory]=defaultdict(lambda: FanzineCountsByCategory())
-
-    # Run through all the issues in this list of issues
-    # For each distinct selection, we'll build up a list of Series with each series containing a list of issues
-    for issue in fanacList:
-        selectioncount=fanacCategoryDict[Selector(issue)]
-
-        category=selectioncount[Accessor(issue)]
-
-        # If the directories in the DirURLs match, just add this issue to the existing series totals.
-        # If they don't match, just skip it because it's probably one of the doubly-referred-to entries and will be picked up in some other series.
-        if issue.Series.DirURL == series.DirURL:
-            # serieslist[loc] is a specific series in [selection]
-            # Update the series by adding the pagecount of this issue to it
-            selectioncount+=issue
-        else:
-            Log(f"{issue.Series.DirURL=} != {series.DirURL=}")
-
-    # Next we sort the individual country lists into order by series name
-    for ckey, cval in fanacCategoryDict.items():
-        serieslist=cval.SeriesList
-        serieslist.sort(key=lambda elem: RemoveArticles(elem.SeriesName.lower()))
-        fanacCategoryDict[ckey]=FanzineCountsByCategory(serieslist, cval)  # Sorts in place on fanzine name
-
-
-    fanacFanzineSeriesListByCategory: list[tuple[str, FanzineCountsByCategory, FanzineSeriesInfo]]=[]
-    for selectionName, categoryCounts in fanacCategoryDict.items():
-        for v in categoryCounts.SeriesList:
-            # Create and append a tuple
-            fanacFanzineSeriesListByCategory.append(CategoryCount(selectionName, categoryCounts, v))  # (category, categoryCount, series)
-
-    return fanacFanzineSeriesListByCategory
 
 
 # ====================================================================================
@@ -857,22 +772,6 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: 
     fanacFanzineDirectoriesList.append((name, dirname))
     return
 
-
-# -------------------------------------------------------------------------
-# Compute a counts annotation from a 2-tuple element -- used in calls to WriteTable
-def AnnotateFanzineCounts2(elem: [FanzineCounts, FanzineCountsByCategory]) -> str:
-    s=""
-    if type(elem) is FanzineCountsByCategory:
-        if len(elem.SeriesList) > 0:
-            s=Pluralize(len(elem.SeriesList), "title")+", "
-    i=elem.Issuecount
-    p=elem.Pagecount
-    if i > 0:
-        s+=Pluralize(i, "issue")+", "
-        s+=Pluralize(p, "page")
-    if s:
-        s="("+s+")"
-    return s
 
 # -------------------------------------------------------------------------
 # Compute the button text and URL for an alphabetic fanzine issue -- used in calls to WriteTable
