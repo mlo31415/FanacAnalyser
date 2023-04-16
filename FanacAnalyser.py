@@ -151,7 +151,7 @@ def main():
                    fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fURL=URL,
                    topCountText=topcounttext+"\n"+timestamp+"\n",
-                   includeCounts=True,
+                   includeRowHeaderCounts=True,
                    headerFilename='control-Header (Fanzine, chronological).html')
     WriteTxtTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
                   datedList,
@@ -261,7 +261,7 @@ def main():
                    fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
                    #fHeaderAnnot=lambda elem: f"<br><small>{elem.Counts.Annotate(1)}</small>",
-                   includeCounts=True,
+                   includeRowHeaderCounts=True,
                    hideSubsequentRows=True,
                    topCountText=timestamp,
                    headerFilename="control-Header (Fanzine, by country).html",
@@ -312,7 +312,7 @@ def main():
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    fURL=lambda elem: elem.Series.DirURL,
-                   includeCounts=True,
+                   includeRowHeaderCounts=True,
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
@@ -512,7 +512,7 @@ def WriteHTMLTable(filename: str,
                fHeaderAnnot2: Optional[Callable[[FanzineIssueInfo], Callable]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                hideSubsequentRows: bool=False,
-               includeCounts: bool=True,        # Include counts in header block
+               includeRowHeaderCounts: bool=True,        # Include counts in header block
                topCountText: str= "",
                headerFilename: str="",
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,
@@ -620,7 +620,7 @@ def WriteHTMLTable(filename: str,
                     if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                         f.write('    </div></div>\n')
 
-                    if includeCounts:
+                    if includeRowHeaderCounts:
                         # Now it's time to quickly count the issues in this block.
                         fc=FanzineCounts()
                         tempLastRowHeaderSelect=fRowHeaderSelect(fanacIssueList[i])
@@ -656,7 +656,7 @@ def WriteHTMLTable(filename: str,
                         f.write(UnicodeToHtml(fRowHeaderText(fz)))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                         f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
-                    if includeCounts:
+                    if includeRowHeaderCounts:
                         f.write(f"<br><small>{fc}</small>")
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
