@@ -250,7 +250,7 @@ def main():
 
 
     # Create a properly ordered flat list suitable for WriteTable
-    fanacIssueList.sort(key=lambda elem: RemoveAccents(RemoveArticles(elem.DisplayName.casefold())).casefold())   # Sort by series name
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.DisplayName).casefold())   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName)      # Sort by country
 
     WriteHTMLTable(os.path.join(reportDir, "Series_by_Country.html"),
