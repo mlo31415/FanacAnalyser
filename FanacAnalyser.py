@@ -18,11 +18,6 @@ from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml,
 from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames
 
 
-def CategoryCount(FanzineCounts):
-    def __init__(self, Name: str="", Series: str=""):
-        self.Name=Name
-        self.Series=Series
-
 
 def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
