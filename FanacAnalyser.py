@@ -154,7 +154,7 @@ def main():
                    headerFilename='control-Header (Fanzine, chronological).html')
     WriteTxtTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
                   datedList,
-                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     # List of undated issues
@@ -224,7 +224,7 @@ def main():
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
                   fanacIssueList,
-                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines.html"),
@@ -299,7 +299,7 @@ def main():
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                   fanacIssueListByEditor,
-                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.Editor,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),
@@ -333,7 +333,7 @@ def main():
 
     WriteTxtTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
                   fanacIssueList,
-                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=timestamp+"\n",
                   fSelector=lambda fx: OddNames(fx.IssueName, fx.SeriesName))
@@ -366,7 +366,7 @@ def main():
 
     WriteTxtTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
                   fanacIssueList,
-                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=timestamp,
                   fSelector=lambda fz: fz.Pagecount > 250)
