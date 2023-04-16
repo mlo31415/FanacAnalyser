@@ -139,7 +139,7 @@ def main():
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
-    countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
+    topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
 
     # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
     # List of dated issues
@@ -150,21 +150,21 @@ def main():
                    fButtonText=lambda fz: ChronButtonText(fz),
                    fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fURL=URL,
-                   countText=countText+"\n"+timestamp+"\n",
+                   topCountText=topcounttext+"\n"+timestamp+"\n",
                    includeCounts=True,
                    headerFilename='control-Header (Fanzine, chronological).html')
     WriteTxtTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
-                   datedList,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
-                   countText=countText+"\n"+timestamp+"\n")
+                  datedList,
+                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                  topCountText=topcounttext+"\n"+timestamp+"\n")
     # List of undated issues
     undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
     WriteHTMLTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
                    undatedList,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fURL=URL,
-                   countText=timestamp,
+                   topCountText=timestamp,
                    headerFilename="control-Header (basic).html")
 
 
@@ -212,22 +212,22 @@ def main():
                    fButtonText=lambda fz: ChronButtonText(fz),
                    fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fURL=URL,
-                   countText=newscountText+"\n"+timestamp+"\n",
+                   topCountText=newscountText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Newszine).html",
                    fSelector=lambda fz: fz.SeriesName.casefold() in listOfNewszines)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate Alphabetic lists by Fanzine
-    countText=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
+    topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
     fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.SeriesName+elem.SeriesEditor))  # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
-                   fanacIssueList,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowHeaderText=lambda fz: fz.SeriesName,
-                   countText=countText+"\n"+timestamp+"\n")
+                  fanacIssueList,
+                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowHeaderText=lambda fz: fz.SeriesName,
+                  topCountText=topcounttext+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines.html"),
                    fanacIssueList,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
@@ -238,7 +238,7 @@ def main():
                    fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
                    fDirURL=lambda fz: fz.DirURL,
                    fURL=URL,
-                   countText=countText+"\n"+timestamp+"\n",
+                   topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, alphabetical).html",
                    inAlphaOrder=True)
 
@@ -263,7 +263,7 @@ def main():
                    #fHeaderAnnot=lambda elem: f"<br><small>{elem.Counts.Annotate(1)}</small>",
                    includeCounts=True,
                    hideSubsequentRows=True,
-                   countText=timestamp,
+                   topCountText=timestamp,
                    headerFilename="control-Header (Fanzine, by country).html",
                    inAlphaOrder=True)
 
@@ -299,10 +299,10 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts by editor
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
-                   fanacIssueListByEditor,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowHeaderText=lambda fz: fz.Editor,
-                   countText=countText+"\n"+timestamp+"\n")
+                  fanacIssueListByEditor,
+                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowHeaderText=lambda fz: fz.Editor,
+                  topCountText=topcounttext+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),
                    fanacIssueListByEditor,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.DisplayName),
@@ -313,7 +313,7 @@ def main():
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    fURL=lambda elem: elem.Series.DirURL,
                    includeCounts=True,
-                   countText=countText+"\n"+timestamp+"\n",
+                   topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
 
@@ -333,11 +333,11 @@ def main():
         return n1[:length] != n2[:length]
 
     WriteTxtTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
-                   fanacIssueList,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowHeaderText=lambda fz: fz.SeriesName,
-                   countText=timestamp+"\n",
-                   fSelector=lambda fx: OddNames(fx.IssueName, fx.SeriesName))
+                  fanacIssueList,
+                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowHeaderText=lambda fz: fz.SeriesName,
+                  topCountText=timestamp+"\n",
+                  fSelector=lambda fx: OddNames(fx.IssueName, fx.SeriesName))
 
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -366,11 +366,11 @@ def main():
 
 
     WriteTxtTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
-                   fanacIssueList,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowHeaderText=lambda fz: fz.SeriesName,
-                   countText=timestamp,
-                   fSelector=lambda fz: fz.Pagecount > 250)
+                  fanacIssueList,
+                  fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                  fRowHeaderText=lambda fz: fz.SeriesName,
+                  topCountText=timestamp,
+                  fSelector=lambda fz: fz.Pagecount > 250)
 
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -513,7 +513,7 @@ def WriteHTMLTable(filename: str,
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                hideSubsequentRows: bool=False,
                includeCounts: bool=True,        # Include counts in header block
-               countText: str="",
+               topCountText: str= "",
                headerFilename: str="",
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,
                inAlphaOrder: bool=False)\
@@ -553,10 +553,10 @@ def WriteHTMLTable(filename: str,
         f.writelines(basicHeadertext)
 
         # Externally supplied summary count text
-        if countText:
-            countText=countText.replace("\n", "<p>")
-            countText=f"<p>{countText}</p>\n"
-            f.write(countText)
+        if topCountText:
+            topCountText=topCountText.replace("\n", "<p>")
+            topCountText=f"<p>{topCountText}</p>\n"
+            f.write(topCountText)
 
         #--------------------------
         # -- Jump buttons --
@@ -707,7 +707,7 @@ def WriteTxtTable(filename: str,
                fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
-               countText: str="",
+               topCountText: str= "",
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None)\
                 -> None:
 
@@ -719,8 +719,8 @@ def WriteTxtTable(filename: str,
     with open(filename, "w+") as f:
 
         #....... Header .......
-        if countText:
-            f.write(countText)
+        if topCountText:
+            f.write(topCountText)
 
         lastRowHeaderSelect: str=""
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
