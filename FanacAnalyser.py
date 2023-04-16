@@ -231,7 +231,7 @@ def main():
                    fanacIssueList,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fButtonText=lambda fz: AlphaButtonText(fz),
-                   fRowAnnot=lambda fz: AnnotateDate(fz),
+                   fRowBodyAnnot=lambda fz: AnnotateDate(fz),
                    fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
                    fRowHeaderText=lambda fz: fz.SeriesName,
                    fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
@@ -305,7 +305,7 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),
                    fanacIssueListByEditor,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.DisplayName),
-                   fRowAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
+                   fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
                    fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
                    #fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
                    fRowHeaderText=lambda fz: fz.Editor,
@@ -506,7 +506,7 @@ def WriteHTMLTable(filename: str,
                fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
                fURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the URL
                fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
-               fRowAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
+               fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                hideSubsequentRows: bool=False,
@@ -676,8 +676,8 @@ def WriteHTMLTable(filename: str,
                 else:
                     f.write('        '+str(fz))     # Needs fixing!
 
-                if inAlphaOrder and fRowAnnot is not None:
-                    annot=fRowAnnot(fz)
+                if inAlphaOrder and fRowBodyAnnot is not None:
+                    annot=fRowBodyAnnot(fz)
                     if annot is not None:
                         annot=annot.strip()
                         if annot != "":
