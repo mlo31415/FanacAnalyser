@@ -261,7 +261,7 @@ def main():
                    fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
                    #fHeaderAnnot=lambda elem: f"<br><small>{elem.Counts.Annotate(1)}</small>",
                    includeRowHeaderCounts=True,
-                   hideSubsequentRows=True,
+                   hideSubsequentDuplicateBodyRows=True,
                    topCountText=timestamp,
                    headerFilename="control-Header (Fanzine, by country).html",
                    inAlphaOrder=True)
@@ -315,7 +315,7 @@ def main():
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
-    WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"), #  needs work
+    WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),  #  needs work
                    fanacIssueListByEditor,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
                    fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
@@ -324,7 +324,7 @@ def main():
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    fURL=lambda elem: elem.Series.DirURL,
-                   hideSubsequentRows=True,
+                   hideSubsequentDuplicateBodyRows=True,
                    includeRowHeaderCounts=True,
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
@@ -524,7 +524,7 @@ def WriteHTMLTable(filename: str,
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                includeRowHeaderCounts: bool=True,        # Include counts in header block
-               hideSubsequentRows: bool=False,
+               hideSubsequentDuplicateBodyRows: bool=False,
                topCountText: str= "",
                headerFilename: str="",
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,
@@ -677,7 +677,7 @@ def WriteHTMLTable(filename: str,
                     f.write('    <div class=col-md-9>\n') # Start col 2
 
             # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
-            if not (hideSubsequentRows and fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz))):
+            if not (hideSubsequentDuplicateBodyRows and fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz))):
                 # Deal with Column 2
                 # The hyperlink goes in column 2
                 # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
