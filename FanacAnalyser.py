@@ -509,7 +509,6 @@ def WriteHTMLTable(filename: str,
                fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
                fRowAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
-               fHeaderAnnot2: Optional[Callable[[FanzineIssueInfo], Callable]] = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                hideSubsequentRows: bool=False,
                includeRowHeaderCounts: bool=True,        # Include counts in header block
