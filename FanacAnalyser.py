@@ -151,6 +151,7 @@ def main():
                    fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fURL=URL,
                    countText=countText+"\n"+timestamp+"\n",
+                   includeCounts=True,
                    headerFilename='control-Header (Fanzine, chronological).html')
     WriteTxtTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
                    datedList,
@@ -311,6 +312,7 @@ def main():
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    fURL=lambda elem: elem.Series.DirURL,
+                   includeCounts=True,
                    countText=countText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
