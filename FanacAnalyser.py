@@ -512,18 +512,18 @@ def ReadFile(filename: str) -> list[str]:
 #   fRowBodyText is what is listed in the subsection
 def WriteHTMLTable(filename: str,
                fanacIssueList: list[any],  # The sorted input list
-               fRowBodyText: Callable[[FanzineIssueInfo], str],  # Function to supply the row's body text
+               fURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the URL
+               fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
                fButtonText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the button text
+               fRowBodyText: Callable[[FanzineIssueInfo], str]=None,  # Function to supply the row's body text
+               fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
                fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text
                fRowHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,    # Function to supply annotation to the header text/link
                fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
-               fURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the URL
-               fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
-               fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
-               fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
+               fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
-               hideSubsequentRows: bool=False,
                includeRowHeaderCounts: bool=True,        # Include counts in header block
+               hideSubsequentRows: bool=False,
                topCountText: str= "",
                headerFilename: str="",
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,
