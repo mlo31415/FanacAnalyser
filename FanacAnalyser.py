@@ -807,6 +807,17 @@ def CapIt(s: str) -> str:
     return ret
 
 
+#----------------------------------------
+# Surround the contents by <small>...</small> if it is non-empty
+def Smallify(s1: str, s2: str="") -> str:
+    if s1 == "":
+        return ""
+    if s2 == "":
+        return f"<small>{s1}</small>"
+
+    return f"<small>{s1}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{s2}</small>"
+
+
 #.........................................................
 # Sort function for generating a list of fanzines sorted by editor
 # This generates an output string which is used for sorting purposes, but not for display purposes
