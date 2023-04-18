@@ -872,7 +872,7 @@ def URL(fz: FanzineIssueInfo) -> str:
 # .........................................................
 # Compare two strings ignoring punctuation and case -- used in calls to WriteTable
 def CompareIgnorePunctAndCase(s1: str, s2: str) -> bool:
-    return re.sub("[.,]", "", s1).upper() == re.sub("[.,]", "", s2).upper()
+    return re.sub("[.,]", "", s1).casefold() == re.sub("[.,]", "", s2).casefold()
 
 
 # .........................................................
