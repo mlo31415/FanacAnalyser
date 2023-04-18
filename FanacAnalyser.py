@@ -552,6 +552,7 @@ def WriteHTMLTable(filename: str,
         # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
         basicHeadertext=ReadFile("control-Header (basic).html")
         if not basicHeadertext:
+            LogError(f"WriteTable: critical parameter basicHeadertext is None in call to generate {filename}")
             return
 
         # Read the specialized control.html file for this type of report
