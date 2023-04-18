@@ -519,12 +519,13 @@ def WriteHTMLTable(filename: str,
                fButtonText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the button text
                fRowBodyText: Callable[[FanzineIssueInfo], str]=None,  # Function to supply the row's body text
                fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
+               fCompareRowBodyText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
                fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text
                fRowHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,    # Function to supply annotation to the header text/link
                fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
-               includeRowHeaderCounts: bool=True,        # Include counts in header block
+               includeRowHeaderCounts: bool=True,        # Include counts in header block!)
                hideSubsequentDuplicateBodyRows: bool=False,
                topCountText: str= "",
                headerFilename: str="",
