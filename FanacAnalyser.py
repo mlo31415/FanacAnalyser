@@ -539,7 +539,7 @@ def WriteHTMLTable(filename: str,
         fCompareRowBodyText=lambda f1, f2: f1.casefold() == f2.casefold()
     if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
         fRowHeaderSelect=fRowHeaderText  # Note that this may also be None
-    if fRowBodyText is None or fURL is None or fDirURL is None:
+    if fRowBodyText is None or fURL is None:
         LogError(f"WriteTable: critical parameter is None in call to generate {filename}")
         return
 
