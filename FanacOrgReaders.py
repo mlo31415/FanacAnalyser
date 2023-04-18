@@ -13,7 +13,7 @@ from dataclasses import dataclass
 
 
 from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo, FanzineSeriesInfo
-from FanzineIssueSpecPackage import ExtractSerialNumber
+from FanzineIssueSpecPackage import ExtractSerialNumber, FanzineCounts
 from Locale import Locale
 
 from Log import Log, LogSetHeader, LogError
@@ -113,6 +113,20 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
     for fz in fanacIssueInfo:
         deDupDict[fz.DirURL+fz.PageName]=fz
     fanacIssueInfo=[x for x in deDupDict.values()]
+
+    # Now process the list, doing page and issue counts for each series and adding them to the FanzineSeriesInfo object.
+    fanacIssueInfo.sort(key=lambda el: el.Series.SeriesName)
+    # With the list in series order, run through and sum up each series
+    lastSeries=fanacIssueInfo[0].Series
+    count=FanzineCounts()+fanacIssueInfo[0].Pagecount
+    for fii in fanacIssueInfo[1:]:
+        if lastSeries.SeriesName == fii.Series.SeriesName:
+            count+=fii.Pagecount
+        else:
+            lastSeries.Counts=count
+            count=FanzineCounts()+fii.Pagecount
+            lastSeries=fii.Series
+    lastSeries.Counts=count  # Gotta save that last series count
 
     # Now fanacIssueList is a list of all the issues of fanzines on fanac.org
     Log("----Done reading index.html files on fanac.org")
