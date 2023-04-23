@@ -250,19 +250,22 @@ def main():
 
 
     # Create a properly ordered flat list suitable for WriteTable
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.DisplayName).casefold())   # Sort by series name
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.Series.DisplayName).casefold())   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName)      # Sort by country
 
     WriteHTMLTable(os.path.join(reportDir, "Series_by_Country.html"),
                    fanacIssueList,
                    fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
+                   #
+                   fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
+                   includeRowHeaderCounts=True,
+                   #
                    fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName),
                    fRowBodyAnnot=lambda elem: Smallify(UnicodeToHtml("("+elem.Editor+")")),
-                   fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
-                   #fHeaderAnnot=lambda elem: f"<br><small>{elem.Counts.Annotate(1)}</small>",
-                   includeRowHeaderCounts=True,
-                   hideSubsequentDuplicateBodyRows=True,
+                   fRowBodySelect=lambda elem: elem.Series.DisplayName,
+                   showDuplicateBodyRows=False,
+                   #
                    topCountText=timestamp,
                    headerFilename="control-Header (Fanzine, by country).html",
                    inAlphaOrder=True)
@@ -307,29 +310,37 @@ def main():
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
-                   # fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
+                    #
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
                    includeRowHeaderCounts=True,
+                   #
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
+                   # fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
+                    #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
-    # WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_Series_by_Editor.html"),  #  needs work
-    #                fanacIssueListByEditor,
-    #                fURL=lambda elem: elem.Series.DirURL,
-    #                fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
-    #                fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
-    #                fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Series.Pagecount, ' page')})</small>",
-    #                fRowHeaderText=lambda fz: fz.Editor,
-    #                # fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
-    #                fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
-    #                includeRowHeaderCounts=True,
-    #                hideSubsequentDuplicateBodyRows=True,
-    #                topCountText=topcounttext+"\n"+timestamp+"\n",
-    #                headerFilename="control-Header (Fanzine, by editor).html",
-    #                inAlphaOrder=True)
+
+    WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
+                   fanacIssueListByEditor,
+                   fURL=lambda fz: fz.Series.DirURL,
+                   fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
+                    #
+                   fRowHeaderText=lambda fz: fz.Editor,
+                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
+                   includeRowHeaderCounts=True,
+                   #
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
+                   #fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
+                   fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName+fz.Editor),
+                   showDuplicateBodyRows=False,
+                   # fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
+                    #
+                   topCountText=topcounttext+"\n"+timestamp+"\n",
+                   headerFilename="control-Header (Fanzine, by editor).html",
+                   inAlphaOrder=True)
 
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -517,22 +528,27 @@ def WriteHTMLTable(filename: str,
                fURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the URL
                fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
                fButtonText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the button text
-               fRowBodyText: Callable[[FanzineIssueInfo], str]=None,  # Function to supply the row's body text
-               fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
-               fCompareRowBodyText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
+                #
                fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text
                fRowHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,    # Function to supply annotation to the header text/link
                fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
+               fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,  # If present, is used to determine if the row header text has changed
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
-               fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
-               includeRowHeaderCounts: bool=True,        # Include counts in header block!)
-               hideSubsequentDuplicateBodyRows: bool=False,
+               includeRowHeaderCounts: bool = True,  # Include counts in header block!)
+               #
+               fRowBodyText: Callable[[FanzineIssueInfo], str]=None,  # Function to supply the row's body text
+               fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
+               fCompareRowBodyText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
+               fRowBodySelect: Optional[Callable[[FanzineIssueInfo], str]]=None,           # If present, selects the text that is being used to sort body rows
+               showDuplicateBodyRows: bool=True,
+               #
                topCountText: str= "",
                headerFilename: str="",
-               fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,
+               fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,            # If present, selects fanzines to be included in report.  Default is to include all.
                inAlphaOrder: bool=False)\
                 -> None:
 
+    Log(f"WriteHTMLTable({filename} called")
     if fCompareRowHeaderText is None:
         fCompareRowHeaderText=lambda f1, f2: f1.casefold() == f2.casefold()
     if fCompareRowBodyText is None:
@@ -542,9 +558,14 @@ def WriteHTMLTable(filename: str,
     if fRowBodyText is None or fURL is None:
         LogError(f"WriteTable: critical parameter is None in call to generate {filename}")
         return
+    if (not showDuplicateBodyRows) and fRowBodySelect is None:
+        LogError(f"WriteTable: showDuplicateBodyRows is False, yet fRowBodySelect is None in call to generate {filename}")
+        return
+
 
     # The file being created.
     with open(filename, "w+") as f:
+        Log(f"WriteHTMLTable({filename} output file opened")
 
         #--------------------------
         #....... Header .......
@@ -603,6 +624,8 @@ def WriteHTMLTable(filename: str,
         # Write out the button bar
         f.write(buttonlist+"<p><p>\n")
 
+        Log(f"WriteHTMLTable({filename} header complete")
+
         #--------------------------
         #....... Main table .......
         # Start the table if this is HTML
@@ -619,11 +642,13 @@ def WriteHTMLTable(filename: str,
         f.write('<div>\n')  # Begin the main table
 
         lastRowHeaderSelect: str=""
+        lastRowBodySelect: str=""
         lastButtonLinkString: str=""
 
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
         for i in range(len(fanacIssueList)):
             fz=fanacIssueList[i]
+            Log(f"WriteHTMLTable({filename} {fz=}")
 
             # Do we skip this fanzine completely?
             if fSelector is not None and not fSelector(fz):
@@ -633,7 +658,9 @@ def WriteHTMLTable(filename: str,
 
             # Start a new main row
             # Deal with Column 1
+
             if fRowHeaderText is not None:
+                Log(f"WriteHTMLTable({filename} new main row started")
                 # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
                 # Note that they have defaults, so they do not need to be checked for None
                 if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
@@ -641,14 +668,8 @@ def WriteHTMLTable(filename: str,
                         f.write('    </div></div>\n')
 
                     if includeRowHeaderCounts:
-                        # Now it's time to quickly count the issues in this block.
-                        fc=FanzineCounts()
-                        tempLastRowHeaderSelect=fRowHeaderSelect(fanacIssueList[i])
-                        for fztemp in fanacIssueList[i:]:   # Loop through fanacIssueList starting at the current position which is the start of a block.
-                            if not fCompareRowHeaderText(tempLastRowHeaderSelect, fRowHeaderSelect(fztemp)):
-                                break   # Bail when the block selection changes
-                            fc=fc+fztemp
-                        i=0
+                        # Count the issues in this block.
+                        fc=CountSublist(fCompareRowHeaderText, fRowHeaderSelect, fanacIssueList[i:])
 
                     # Since this is a new main row, we write the header in col 1
                     # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
@@ -681,8 +702,11 @@ def WriteHTMLTable(filename: str,
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
 
+            Log(f"WriteHTMLTable({filename} about to check hideSubsequentDuplicateBodyRows ")
             # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
-            if not (hideSubsequentDuplicateBodyRows and fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz))):
+            # if not showDuplicateBodyRows:
+            #     Log(f"{lastRowBodySelect=}  {fRowBodySelect(fz)=}")
+            if showDuplicateBodyRows or not fCompareRowBodyText(lastRowBodySelect, fRowBodySelect(fz)):
                 # Deal with Column 2
                 # The hyperlink goes in column 2
                 # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
@@ -695,22 +719,42 @@ def WriteHTMLTable(filename: str,
                         f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
                     else:
                         f.write('        '+FormatLink(fURL(fz), bodytext))
-                else:
-                    f.write('        '+str(fz))     # Needs fixing!
+
+                fc=None
+                if not showDuplicateBodyRows:
+                    fc=CountSublist(fCompareRowBodyText, fRowBodySelect, fanacIssueList[i:])
 
                 if inAlphaOrder and fRowBodyAnnot is not None:
+                    Log(f"WriteHTMLTable({filename} nAlphaOrder and fRowBodyAnnot is not None")
                     annot=fRowBodyAnnot(fz)
                     if annot is not None:
                         annot=annot.strip()
                         if annot != "":
                             f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+annot)
+                if fc is not None:
+                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+Smallify(f"({fc})"))
 
                 f.write('<br>\n')
-            lastRowHeaderSelect=fRowHeaderSelect(fz)
+                if not showDuplicateBodyRows:
+                    lastRowBodySelect=fRowBodySelect(fz)
+            if fRowHeaderSelect is not None:
+                lastRowHeaderSelect=fRowHeaderSelect(fz)
+        Log(f"WriteHTMLTable({filename} main loop complete")
 
         #....... Cleanup .......
         f.write('</div>\n</div>\n')
         f.writelines(ReadFile("control-Default.Footer"))
+        Log(f"WriteHTMLTable({filename} completed")
+
+
+def CountSublist(fCompare: Callable[[str, str], bool], fSelect: Callable[[FanzineIssueInfo], str], fanacIssueList: list[FanzineIssueInfo]):
+    fc=FanzineCounts()
+    tempLastRowHeaderSelect=fSelect(fanacIssueList[0])
+    for fztemp in fanacIssueList:  # Loop through fanacIssueList starting at the current position which is the start of a block.
+        if not fCompare(tempLastRowHeaderSelect, fSelect(fztemp)):
+            break  # Bail when the block selection changes
+        fc=fc+fztemp
+    return fc
 
 
 #================================================================================
@@ -730,7 +774,7 @@ def WriteTxtTable(filename: str,
                topCountText: str= "",
                fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None)\
                 -> None:
-
+    Log(f"WriteTxtTable({filename} called")
     if fCompareRowHeaderText is None:
         fCompareRowHeaderText=lambda f1, f2: f1 == f2
     if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
@@ -766,6 +810,7 @@ def WriteTxtTable(filename: str,
             bodytext=fRowBodyText(fz)
             bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
             f.write("   "+bodytext+"\n")
+    Log(f"WriteTxtTable({filename} completed")
 
 
 
