@@ -15,7 +15,7 @@ import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, SortAndFlattenPersonsName, UnscrambleNames, Pluralize
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, SortAndFlattenPersonsName, RemoveNonAlphanumericChars, UnscrambleNames, Pluralize
 
 
 def main():
@@ -134,7 +134,7 @@ def main():
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.IssueName.casefold()))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(RemoveNonAlphanumericChars(elem.IssueName.casefold())))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
@@ -146,13 +146,18 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Chronological_Listing_of_Fanzines.html"),
                    datedList,
                    fURL=URL,
-                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fButtonText=lambda fz: ChronButtonText(fz),
+                    #
+                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                   includeRowHeaderCounts=True,
+                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowBodyAnnot=lambda fz: fz.Pagecount,
+                    #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
-                   includeRowHeaderCounts=True,
+                   #
                    headerFilename='control-Header (Fanzine, chronological).html')
+
     WriteTxtTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
                   datedList,
                   fRowBodyText=lambda fz: fz.IssueName,
@@ -222,7 +227,7 @@ def main():
     # Generate Alphabetic lists by Fanzine
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueList.sort(key=lambda elem: AlphaSortText(elem.SeriesName+elem.SeriesEditor))  # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
+    fanacIssueList.sort(key=lambda elem:FormatTextForSorting(elem.SeriesName+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
                   fanacIssueList,
@@ -550,7 +555,7 @@ def WriteHTMLTable(filename: str,
                inAlphaOrder: bool=False)\
                 -> None:
 
-    Log(f"WriteHTMLTable({filename} called")
+    #Log(f"WriteHTMLTable({filename} called")
     if fCompareRowHeaderText is None:
         fCompareRowHeaderText=lambda f1, f2: f1.casefold() == f2.casefold()
     if fCompareRowBodyText is None:
@@ -567,7 +572,7 @@ def WriteHTMLTable(filename: str,
 
     # The file being created.
     with open(filename, "w+") as f:
-        Log(f"WriteHTMLTable({filename} output file opened")
+        #Log(f"WriteHTMLTable({filename} output file opened")
 
         #--------------------------
         #....... Header .......
@@ -626,7 +631,7 @@ def WriteHTMLTable(filename: str,
         # Write out the button bar
         f.write(buttonlist+"<p><p>\n")
 
-        Log(f"WriteHTMLTable({filename} header complete")
+        #Log(f"WriteHTMLTable({filename} header complete")
 
         #--------------------------
         #....... Main table .......
@@ -650,7 +655,7 @@ def WriteHTMLTable(filename: str,
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
         for i in range(len(fanacIssueList)):
             fz=fanacIssueList[i]
-            Log(f"WriteHTMLTable({filename} {fz=}")
+            #Log(f"WriteHTMLTable({filename} {fz=}")
 
             # Do we skip this fanzine completely?
             if fSelector is not None and not fSelector(fz):
@@ -662,7 +667,7 @@ def WriteHTMLTable(filename: str,
             # Deal with Column 1
 
             if fRowHeaderText is not None:
-                Log(f"WriteHTMLTable({filename} new main row started")
+                #Log(f"WriteHTMLTable({filename} new main row started")
                 # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
                 # Note that they have defaults, so they do not need to be checked for None
                 if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
@@ -704,7 +709,7 @@ def WriteHTMLTable(filename: str,
                     f.write('</div>\n')
                     f.write('    <div class=col-md-9>\n') # Start col 2
 
-            Log(f"WriteHTMLTable({filename} about to check hideSubsequentDuplicateBodyRows ")
+            #Log(f"WriteHTMLTable({filename} about to check hideSubsequentDuplicateBodyRows ")
             # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
             # if not showDuplicateBodyRows:
             #     Log(f"{lastRowBodySelect=}  {fRowBodySelect(fz)=}")
@@ -727,7 +732,7 @@ def WriteHTMLTable(filename: str,
                     fc=CountSublist(fCompareRowBodyText, fRowBodySelect, fanacIssueList[i:])
 
                 if inAlphaOrder and fRowBodyAnnot is not None:
-                    Log(f"WriteHTMLTable({filename} nAlphaOrder and fRowBodyAnnot is not None")
+                    #Log(f"WriteHTMLTable({filename} nAlphaOrder and fRowBodyAnnot is not None")
                     annot=fRowBodyAnnot(fz)
                     if annot is not None:
                         annot=annot.strip()
@@ -741,12 +746,13 @@ def WriteHTMLTable(filename: str,
                     lastRowBodySelect=fRowBodySelect(fz)
             if fRowHeaderSelect is not None:
                 lastRowHeaderSelect=fRowHeaderSelect(fz)
-        Log(f"WriteHTMLTable({filename} main loop complete")
+        #Log(f"WriteHTMLTable({filename} main loop complete")
 
         #....... Cleanup .......
         f.write('</div>\n</div>\n')
         f.writelines(ReadFile("control-Default.Footer"))
-        Log(f"WriteHTMLTable({filename} completed")
+        #Log(f"WriteHTMLTable({filename} completed")
+
 
 
 def CountSublist(fCompare: Callable[[str, str], bool], fSelect: Callable[[FanzineIssueInfo], str], fanacIssueList: list[FanzineIssueInfo]):
@@ -840,7 +846,7 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: 
 # -------------------------------------------------------------------------
 # Compute the button text and URL for an alphabetic fanzine issue -- used in calls to WriteTable
 def AlphaButtonText(fz: FanzineIssueInfo) -> str:
-    c=AlphaSortText(fz.SeriesName)[0]
+    c=FormatTextForSorting(fz.SeriesName)[0]
     if c == " " or c.isdigit():
         return "*"
     return RemoveArticles(c)
@@ -886,19 +892,11 @@ def Smallify(s1: str, s2: str="") -> str:
 #.........................................................
 # Sort function for generating a list of fanzines sorted by editor
 # This generates an output string which is used for sorting purposes, but not for display purposes
-def AlphaSortText(s: str) -> str:
+def FormatTextForSorting(s: str) -> str:
     if s == "":
         return " "
-    # Replace lower case and accented alphas, ignore punctuation, retain digits; the Unidecode is so that things like 'á Bas' sort with A
-    out=""
-    name=RemoveArticles(s)
-    for c in name:
-        if c.isalpha():
-            out+=unidecode.unidecode(c.casefold())
-        elif c.isdigit():
-            out+=c
+    return RemoveArticles(RemoveNonAlphanumericChars(s)).casefold()
 
-    return out
 
 
 #.........................................................
