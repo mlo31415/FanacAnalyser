@@ -15,7 +15,7 @@ import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, UnscrambleNames, Pluralize
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, SortAndFlattenPersonsName, UnscrambleNames, Pluralize
 
 
 def main():
@@ -301,7 +301,7 @@ def main():
     # Sort the Alphabetic lists by Editor
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: RemoveArticles(elem.SeriesName).casefold())  # Sorts in place on fanzine's name with leading articles suppressed
-    fanacIssueListByEditor.sort(key=lambda elem: SortPersonsName(elem.Editor))  # Sorts by editor
+    fanacIssueListByEditor.sort(key=lambda elem: SortAndFlattenPersonsName(elem.Editor))  # Sorts by editor
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                   fanacIssueListByEditor,
@@ -311,10 +311,10 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.Series.DirURL,
-                   fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
+                   fButtonText=lambda fz: SortAndFlattenPersonsName(fz.Editor)[0].upper(),
                     #
                    fRowHeaderText=lambda fz: fz.Editor,
-                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
+                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(SortAndFlattenPersonsName(s1), SortAndFlattenPersonsName(s2)),
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
@@ -328,10 +328,10 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda fz: fz.Series.DirURL,
-                   fButtonText=lambda fz: AlphaSortPersonsName(fz.Editor)[0].upper(),
+                   fButtonText=lambda fz: SortAndFlattenPersonsName(fz.Editor)[0].upper(),
                     #
                    fRowHeaderText=lambda fz: fz.Editor,
-                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(AlphaSortPersonsName(s1), AlphaSortPersonsName(s2)),
+                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(SortAndFlattenPersonsName(s1), SortAndFlattenPersonsName(s2)),
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
@@ -894,7 +894,7 @@ def AlphaSortText(s: str) -> str:
     name=RemoveArticles(s)
     for c in name:
         if c.isalpha():
-            out+=unidecode.unidecode(c.upper())
+            out+=unidecode.unidecode(c.casefold())
         elif c.isdigit():
             out+=c
 
@@ -955,8 +955,11 @@ def AlphaSortPersonsName(s: str) -> str:
     out=SortPersonsName(s)
     # Remove leading non-alphanumeric characters.  E.g, we want to sort "test" under t not the quote sign
     out=re.sub("^(\W*)", "", out)
-    return out.upper()      # Sort lower and upper case characters together
+    return out.casefold()      # Sort lower and upper case characters together
 
+
+######################################
+######################################
 # Run main()
 if __name__ == "__main__":
     main()
