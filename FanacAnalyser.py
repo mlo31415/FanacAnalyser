@@ -145,10 +145,11 @@ def main():
     datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
     WriteHTMLTable(os.path.join(reportDir, "Chronological_Listing_of_Fanzines.html"),
                    datedList,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fButtonText=lambda fz: ChronButtonText(fz),
-                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fURL=URL,
+                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                   fButtonText=lambda fz: ChronButtonText(fz),
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowBodyAnnot=lambda fz: fz.Pagecount,
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    includeRowHeaderCounts=True,
                    headerFilename='control-Header (Fanzine, chronological).html')
@@ -207,13 +208,14 @@ def main():
     newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteHTMLTable(os.path.join(reportDir, "Chronological_Listing_of_Newszines.html"),
                    fanacIssueList,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fButtonText=lambda fz: ChronButtonText(fz),
-                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fURL=URL,
+                   fSelector=lambda fz: fz.SeriesName.casefold() in listOfNewszines,
+                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                   fButtonText=lambda fz: ChronButtonText(fz),
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowBodyAnnot=lambda fz: fz.Pagecount,
                    topCountText=newscountText+"\n"+timestamp+"\n",
-                   headerFilename="control-Header (Newszine).html",
-                   fSelector=lambda fz: fz.SeriesName.casefold() in listOfNewszines)
+                   headerFilename="control-Header (Newszine).html")
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
