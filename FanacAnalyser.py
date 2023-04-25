@@ -15,7 +15,7 @@ import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, SortAndFlattenPersonsName, RemoveNonAlphanumericChars, UnscrambleNames, Pluralize
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, SortAndFlattenPersonsName, RemoveNonAlphanumericChars, UnscrambleListOfNames, Pluralize
 
 
 def main():
@@ -287,7 +287,7 @@ def main():
     for fz in fanacIssueList:
         # We expand this FanzineIssueInfo into one for each editor.
         # We store the original editor list in the _Temp member used for such kludgey purposes
-        eds=UnscrambleNames(fz.Editor)
+        eds=UnscrambleListOfNames(fz.Editor)
         for i, ed in enumerate(eds):
             if ed in peopleCanonicalNames:
                 eds[i]=peopleCanonicalNames[ed]
