@@ -710,25 +710,23 @@ def WriteHTMLTable(filename: str,
 
             #Log(f"WriteHTMLTable({filename} about to check hideSubsequentDuplicateBodyRows ")
             # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
-            # if not showDuplicateBodyRows:
-            #     Log(f"{lastRowBodySelect=}  {fRowBodySelect(fz)=}")
-            if showDuplicateBodyRows or not fCompareRowBodyText(lastRowBodySelect, fRowBodySelect(fz)):
+            # These are treated as two separate cases
+            if showDuplicateBodyRows:
                 # Deal with Column 2
-                # The hyperlink goes in column 2
+                # The hyperlink goes in column 2, in this case a link to the specific fanzine
                 # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
                 # The former are easy, but the latter need to be processed
                 bodytext=fRowBodyText(fz)
                 if fURL is not None:
                     # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                     splitext=bodytext.split("|", 2)
+                    link=fURL(fz)+"/"+fz.PageName
                     if len(splitext) == 2:
-                        f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
+                        f.write('        '+FormatLink(link, splitext[0])+splitext[1])
                     else:
-                        f.write('        '+FormatLink(fURL(fz), bodytext))
+                        f.write('        '+FormatLink(link, bodytext))
 
                 fc=None
-                if not showDuplicateBodyRows:
-                    fc=CountSublist(fCompareRowBodyText, fRowBodySelect, fanacIssueList[i:])
 
                 annot=""
                 if fRowBodyAnnot is not None:
@@ -744,8 +742,39 @@ def WriteHTMLTable(filename: str,
                     f.write(Smallify(f"&nbsp;&nbsp;&nbsp;&nbsp;({annot})"))
 
                 f.write('<br>\n')
-                if not showDuplicateBodyRows:
+            else:
+                # Deal with Column 2
+                # The hyperlink goes in column 2 and is a hyperlink to the *series* since there is only one row for the whole series
+                # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+                # The former are easy, but the latter need to be processed
+                if not fCompareRowBodyText(lastRowBodySelect, fRowBodySelect(fz)):
+                    bodytext=fRowBodyText(fz)
+                    if fURL is not None:
+                        # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
+                        splitext=bodytext.split("|", 2)
+                        if len(splitext) == 2:
+                            f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
+                        else:
+                            f.write('        '+FormatLink(fURL(fz), bodytext))
+
+                    fc=CountSublist(fCompareRowBodyText, fRowBodySelect, fanacIssueList[i:])
+
+                    annot=""
+                    if fRowBodyAnnot is not None:
+                        # Log(f"WriteHTMLTable({filename} nAlphaOrder and fRowBodyAnnot is not None")
+                        annot=fRowBodyAnnot(fz)
+                        if annot is not None:
+                            annot=annot.strip()
+                    if fc is not None:
+                        if annot != "":
+                            annot+="&nbsp;&nbsp;&nbsp;&nbsp;"
+                        annot+=str(fc)
+                    if annot != "":
+                        f.write(Smallify(f"&nbsp;&nbsp;&nbsp;&nbsp;({annot})"))
+
+                    f.write('<br>\n')
                     lastRowBodySelect=fRowBodySelect(fz)
+
             if fRowHeaderSelect is not None:
                 lastRowHeaderSelect=fRowHeaderSelect(fz)
         #Log(f"WriteHTMLTable({filename} main loop complete")
