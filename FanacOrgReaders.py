@@ -114,6 +114,10 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         deDupDict[fz.DirURL+fz.PageName]=fz
     fanacIssueInfo=[x for x in deDupDict.values()]
 
+    if len(fanacIssueInfo) == 0:
+        LogError("ReadFanacFanzineIssues: No fanzines found")
+        return []
+
     # Now process the list, doing page and issue counts for each series and adding them to the FanzineSeriesInfo object.
     fanacIssueInfo.sort(key=lambda el: el.Series.SeriesName)
     # With the list in series order, run through and sum up each series
