@@ -152,7 +152,7 @@ def main():
                    includeRowHeaderCounts=True,
                     #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: fz.Pagecount,
+                   fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                     #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    #
@@ -218,7 +218,7 @@ def main():
                    fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fButtonText=lambda fz: ChronButtonText(fz),
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: fz.Pagecount,
+                   fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                    topCountText=newscountText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Newszine).html")
 
@@ -236,14 +236,14 @@ def main():
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines.html"),
                    fanacIssueList,
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fButtonText=lambda fz: AlphaButtonText(fz),
-                   fRowBodyAnnot=lambda fz: AnnotateDate(fz),
+                   fDirURL=lambda fz: fz.DirURL,
+                   fURL=URL,
                    fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
                    fRowHeaderText=lambda fz: fz.SeriesName,
                    fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
-                   fDirURL=lambda fz: fz.DirURL,
-                   fURL=URL,
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowBodyAnnot=lambda fz: AnnotateDate(fz),
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, alphabetical).html",
                    inAlphaOrder=True)
@@ -269,7 +269,7 @@ def main():
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName),
-                   fRowBodyAnnot=lambda elem: Smallify(UnicodeToHtml("("+elem.Editor+")")),
+                   fRowBodyAnnot=lambda elem: UnicodeToHtml(elem.Editor),
                    fRowBodySelect=lambda elem: elem.Series.DisplayName,
                    showDuplicateBodyRows=False,
                    #
@@ -317,15 +317,14 @@ def main():
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda fz: SortAndFlattenPersonsName(fz.Editor)[0].upper(),
-                    #
+                   #
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(SortAndFlattenPersonsName(s1), SortAndFlattenPersonsName(s2)),
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
-                   # fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
-                    #
+                   fRowBodyAnnot=lambda fz: Pluralize(fz.Pagecount, ' page'),
+                   #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
@@ -340,7 +339,7 @@ def main():
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
-                   #fRowBodyAnnot=lambda fz: f"<small>({Pluralize(fz.Pagecount, ' page')})</small>",
+                   #fRowBodyAnnot=lambda fz: {Pluralize(fz.Pagecount, ' page')",
                    fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName+fz.Editor),
                    showDuplicateBodyRows=False,
                    # fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
@@ -731,15 +730,18 @@ def WriteHTMLTable(filename: str,
                 if not showDuplicateBodyRows:
                     fc=CountSublist(fCompareRowBodyText, fRowBodySelect, fanacIssueList[i:])
 
-                if inAlphaOrder and fRowBodyAnnot is not None:
+                annot=""
+                if fRowBodyAnnot is not None:
                     #Log(f"WriteHTMLTable({filename} nAlphaOrder and fRowBodyAnnot is not None")
                     annot=fRowBodyAnnot(fz)
                     if annot is not None:
                         annot=annot.strip()
-                        if annot != "":
-                            f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+annot)
                 if fc is not None:
-                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+Smallify(f"({fc})"))
+                    if annot != "":
+                        annot+="&nbsp;&nbsp;&nbsp;&nbsp;"
+                    annot+=str(fc)
+                if annot != "":
+                    f.write(Smallify(f"&nbsp;&nbsp;&nbsp;&nbsp;({annot})"))
 
                 f.write('<br>\n')
                 if not showDuplicateBodyRows:
@@ -860,7 +862,7 @@ def AnnotateDate(fz: FanzineIssueInfo) -> str:
         return ""
     if fz.FIS.FD.IsEmpty():
         return ""
-    return f"<small>({str(fz.FIS.FD.LongDates).strip()})</small>"
+    return str(fz.FIS.FD.LongDates).strip()
 
 # -------------------------------------------------------------------------
 # Take a string which is lower case and turn it to City, State, US sort of capitalization -- used in calls to WriteTable
