@@ -111,7 +111,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
     # Remove duplicate FIIs
     deDupDict: dict[str, FanzineIssueInfo]={}
     for fz in fanacIssueInfo:
-        deDupDict[fz.DirURL+fz.PageName]=fz
+        deDupDict[fz.DirURL+fz.PageFilename]=fz
     fanacIssueInfo=[x for x in deDupDict.values()]
 
     if len(fanacIssueInfo) == 0:
@@ -265,6 +265,17 @@ def ExtractPageCount(columnHeaders: list[str], row: list[TextAndHref]) -> int:
 
 
 #============================================================================================
+# Find the cell containing the page count and return its value
+def ExtractRowCountry(columnHeaders: list[str], row: list[TextAndHref], defaultcountry: str) -> str:
+
+    country=GetCellValueByColHeader(columnHeaders, row, ["Country"]).Text
+    if country is None:
+        return defaultcountry
+
+    return country.strip()
+
+
+#============================================================================================
 # Find the cell containing the mailings data
 def ExtractMailings(columnHeaders: list[str], row: list[TextAndHref]) -> list[str]:
 
@@ -321,7 +332,7 @@ def ExtractHrefAndTitle(columnHeaders: list[str], row: list[TextAndHref]) -> Tex
 
 
 # ============================================================================================
-def ExtractCountry(h: str) -> str:
+def ExtractHeaderCountry(h: str) -> str:
     temp=FindBracketedText(h, "fanac-type")
     if temp[0] is None or len(temp[0]) == 0:
         return ""
@@ -444,7 +455,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         editor+=h
 
     html=str(soup.body)
-    country=ExtractCountry(html)
+    country=ExtractHeaderCountry(html)
     if country == "":
         Log(f"No country found for {fanzineName}")
 
@@ -459,7 +470,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
             # Add the tags and the series info pointer
             for fii in fiiList:
                 # Create a special series just for this issue.
-                fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, Keywords=kwds)
+                fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
                 if isnewszines:
                     fii.Taglist.append("newszine")
         else:
@@ -595,14 +606,14 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
         LogError(f"***Failed to find date in <h2> block in singleton '{directoryUrl}'")
         return []
     fis=FanzineIssueSpec(FD=date)
-    fii=FanzineIssueInfo(IssueName=content[0], DirURL=directoryUrl, PageName="", FIS=fis, Pagecount=0)
+    fii=FanzineIssueInfo(IssueName=content[0], DirURL=directoryUrl, FIS=fis, Pagecount=0)
     Log(f"   (singleton): {fii}")
     return [fii]
 
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, editor: str, country: str, alphabetizeIndividually: bool=False) -> list[FanzineIssueInfo]:
+def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, editor: str, defaultcountry: str, alphabetizeIndividually: bool=False) -> list[FanzineIssueInfo]:
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
@@ -656,6 +667,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         title=ExtractHrefAndTitle(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
         mailings=ExtractMailings(columnHeaders, tableRow)
+        country=ExtractRowCountry(columnHeaders, tableRow, defaultcountry)
         ed=editor
         if alphabetizeIndividually:
             lineEditor=ExtractEditor(columnHeaders, tableRow)
@@ -696,7 +708,8 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageName=title.Url, FIS=fis, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings)
+        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
+                            AlphabetizeIndividually=alphabetizeIndividually)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
@@ -706,7 +719,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # Append it and log it.
         if fi is not None:
             urlT=""
-            if fi.PageName == "":
+            if fi.PageFilename == "":
                 urlT="*No PageName*"
             Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
             fiiList.append(fi)
