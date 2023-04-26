@@ -8,7 +8,6 @@ import re
 import math
 import datetime
 from bs4 import BeautifulSoup
-import unidecode
 import csv
 
 import FanacOrgReaders
@@ -60,7 +59,7 @@ def main():
     fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
 
     # Remove issues which have entries, but don't actually point to anything.
-    fanacIssueList=[x for x in fanacIssueList if x.PageName != ""]
+    fanacIssueList=[x for x in fanacIssueList if x.PageFilename != ""]
 
     # Sort the list of all fanzines issues by fanzine series name
     fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine name
@@ -80,7 +79,7 @@ def main():
             yearCount=0
             for fz in fanacIssueList:
                 if fz.FIS.Year == year:
-                    file.write(f"|| {fz.IssueName} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {fz.PageName} ||\n")
+                    file.write(f"|| {fz.IssueName} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {fz.PageFilename} ||\n")
                     yearCount+=1
             file.close()
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
@@ -91,7 +90,7 @@ def main():
     for fzi in fanacIssueList:
         if fzi.DirURL != "":
             countsGlobal+=fzi.Pagecount
-            if os.path.splitext(fzi.PageName)[1].lower() == ".pdf":
+            if os.path.splitext(fzi.PageFilename)[1].lower() == ".pdf":
                 countsGlobal.Pdfcount+=1
                 countsGlobal.Pdfpagecount+=fzi.Pagecount
             if fzi.Pagecount == 0 and ignorePageCountErrors is not None and fzi.SeriesName not in ignorePageCountErrors:
@@ -115,7 +114,7 @@ def main():
 
             if fzi.DirURL != "":
                 countsSeries+=fzi.Pagecount
-                if os.path.splitext(fzi.PageName)[1].lower() == ".pdf":
+                if os.path.splitext(fzi.PageFilename)[1].lower() == ".pdf":
                     countsSeries.Pdfcount+=1
                     countsSeries.Pdfpagecount+=fzi.Pagecount
                 lines.append(f"      {fzi.Pagecount:<4} {fzi.IssueName}")
@@ -168,6 +167,7 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
                    undatedList,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowHeaderText=lambda fz: "fRowHeaderText fake lambda",
                    fURL=URL,
                    topCountText=timestamp,
                    headerFilename="control-Header (basic).html")
@@ -201,9 +201,9 @@ def main():
     # Count the number of issue and pages of all fanzines and just newszines
     newsCount=FanzineCounts()
     for fz in fanacIssueList:
-        if fz.SeriesName.casefold() in listOfNewszines and fz.PageName != "":
+        if fz.SeriesName.casefold() in listOfNewszines and fz.PageFilename != "":
             newsCount+=fz
-            if os.path.splitext(fz.PageName)[1].lower() == ".pdf":
+            if os.path.splitext(fz.PageFilename)[1].lower() == ".pdf":
                 newsCount.Pdfcount+=1
 
     newszines=[x+"\n" for x in listOfNewszines]
@@ -315,7 +315,7 @@ def main():
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
                    fanacIssueListByEditor,
-                   fURL=lambda elem: elem.Series.DirURL,
+                   fURL=lambda elem: elem.URL,
                    fButtonText=lambda fz: SortAndFlattenPersonsName(fz.Editor)[0].upper(),
                    #
                    fRowHeaderText=lambda fz: fz.Editor,
@@ -339,10 +339,8 @@ def main():
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
-                   #fRowBodyAnnot=lambda fz: {Pluralize(fz.Pagecount, ' page')",
                    fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName+fz.Editor),
                    showDuplicateBodyRows=False,
-                   # fRowHeaderAnnot=lambda fz: f"{'' if fz[1] is None else f'<br><small><small>{UnicodeToHtml(fz.Counts.Annotate(1))}</small></small>'}",
                     #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
@@ -455,7 +453,7 @@ def main():
             # Select only issues which have an entry in the mailings column
             if len(issue.Mailings) > 0:
                 for mailing in issue.Mailings:
-                    filewriter.writerow([issue.IssueName, issue.Series, issue.SeriesName, issue.DisplayName, issue.DirURL, issue.PageName, issue.FIS, issue.Locale, issue.Pagecount, issue.Editor, issue.Taglist, mailing])
+                    filewriter.writerow([issue.IssueName, issue.Series, issue.SeriesName, issue.DisplayName, issue.DirURL, issue.PageFilename, issue.FIS, issue.Locale, issue.Pagecount, issue.Editor, issue.Taglist, mailing])
 
 
     Log("FanacAnalyzer has Completed.")
@@ -665,54 +663,55 @@ def WriteHTMLTable(filename: str,
             # Start a new main row
             # Deal with Column 1
 
-            if fRowHeaderText is not None:
-                #Log(f"WriteHTMLTable({filename} new main row started")
-                # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
-                # Note that they have defaults, so they do not need to be checked for None
-                if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
-                    if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
-                        f.write('    </div></div>\n')
+            # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
+            # Note that they have defaults, so they do not need to be checked for None
+            if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
+                if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
+                    f.write('    </div></div>\n')
 
-                    if includeRowHeaderCounts:
-                        # Count the issues in this block.
-                        fc=CountSublist(fCompareRowHeaderText, fRowHeaderSelect, fanacIssueList[i:])
+                if includeRowHeaderCounts:
+                    # Count the issues in this block.
+                    fc=CountSublist(fCompareRowHeaderText, fRowHeaderSelect, fanacIssueList[i:])
 
-                    # Since this is a new main row, we write the header in col 1
-                    # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
+                # Since this is a new main row, we write the header in col 1
+                # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
 
-                    # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
-                    buttonLinkString: str=""
-                    if fButtonText is not None and fButtonText(fz) is not None:
-                        buttonLinkString=fButtonText(fz)
-                    if buttonLinkString != lastButtonLinkString:
-                        f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
-                        lastButtonLinkString=buttonLinkString
+                # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
+                buttonLinkString: str=""
+                if fButtonText is not None and fButtonText(fz) is not None:
+                    buttonLinkString=fButtonText(fz)
+                if buttonLinkString != lastButtonLinkString:
+                    f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
+                    lastButtonLinkString=buttonLinkString
 
-                    f.write('<div class="row border">\n')  # Start a new sub-box
-                    # Write col 1
-                    f.write('  <div class=col-md-3>')
-                    if inAlphaOrder and fDirURL is not None:
-                        f.write(FormatLink(fDirURL(fz), UnicodeToHtml(fRowHeaderText(fz))))
-                        if fRowHeaderAnnot is not None:
-                            f.write(fRowHeaderAnnot(fz))
-                    elif inAlphaOrder and fDirURL is None:
-                        f.write(UnicodeToHtml(fRowHeaderText(fz)))
-                        if fRowHeaderAnnot is not None:
-                            f.write(fRowHeaderAnnot(fz))
-                    else:
-                        f.write(UnicodeToHtml(fRowHeaderText(fz)))
-                    if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
-                        f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
-                    if includeRowHeaderCounts:
-                        f.write(f"<br><small>{fc}</small>")
-                    f.write('</div>\n')
-                    f.write('    <div class=col-md-9>\n') # Start col 2
+                f.write('<div class="row border">\n')  # Start a new sub-box
+                # Write col 1
+                f.write('  <div class=col-md-3>')
+                if inAlphaOrder and fDirURL is not None:
+                    link=fDirURL(fz)
+                    if fz.Series.AlphabetizeIndividually:
+                        link+="/"+fz.PageFilename       # When entries are singletons in a collective fanzine index page, we want the col1 link to point to the fanzine, also.
+                    f.write(FormatLink(link, UnicodeToHtml(fRowHeaderText(fz))))
+                    if fRowHeaderAnnot is not None:
+                        f.write(fRowHeaderAnnot(fz))
+                elif inAlphaOrder and fDirURL is None:
+                    f.write(UnicodeToHtml(fRowHeaderText(fz)))
+                    if fRowHeaderAnnot is not None:
+                        f.write(fRowHeaderAnnot(fz))
+                else:
+                    f.write(UnicodeToHtml(fRowHeaderText(fz)))
+                if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
+                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
+                if includeRowHeaderCounts:
+                    f.write(f"<br><small>{fc}</small>")
+                f.write('</div>\n')
+                f.write('    <div class=col-md-9>\n') # Start col 2
 
             #Log(f"WriteHTMLTable({filename} about to check hideSubsequentDuplicateBodyRows ")
             # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
             # These are treated as two separate cases
+            # Deal with Column 2
             if showDuplicateBodyRows:
-                # Deal with Column 2
                 # The hyperlink goes in column 2, in this case a link to the specific fanzine
                 # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
                 # The former are easy, but the latter need to be processed
@@ -720,7 +719,7 @@ def WriteHTMLTable(filename: str,
                 if fURL is not None:
                     # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                     splitext=bodytext.split("|", 2)
-                    link=fURL(fz)+"/"+fz.PageName
+                    link=fURL(fz)
                     if len(splitext) == 2:
                         f.write('        '+FormatLink(link, splitext[0])+splitext[1])
                     else:
@@ -743,7 +742,7 @@ def WriteHTMLTable(filename: str,
 
                 f.write('<br>\n')
             else:
-                # Deal with Column 2
+                # We're NOT showing duplicate body rows
                 # The hyperlink goes in column 2 and is a hyperlink to the *series* since there is only one row for the whole series
                 # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
                 # The former are easy, but the latter need to be processed
@@ -752,10 +751,13 @@ def WriteHTMLTable(filename: str,
                     if fURL is not None:
                         # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                         splitext=bodytext.split("|", 2)
+                        link=fURL(fz)
+                        if fz.Series.AlphabetizeIndividually:
+                            link+="/"+fz.PageFilename  # When entries are singletons in a collective fanzine index page, we want the col1 link to point to the fanzine, also.
                         if len(splitext) == 2:
-                            f.write('        '+FormatLink(fURL(fz), splitext[0])+splitext[1])
+                            f.write('        '+FormatLink(link, splitext[0])+splitext[1])
                         else:
-                            f.write('        '+FormatLink(fURL(fz), bodytext))
+                            f.write('        '+FormatLink(link, bodytext))
 
                     fc=CountSublist(fCompareRowBodyText, fRowBodySelect, fanacIssueList[i:])
 
@@ -939,7 +941,7 @@ def ChronButtonText(fz: FanzineIssueInfo) -> str:
 
 #.........................................................
 def URL(fz: FanzineIssueInfo) -> str:
-    if fz is None or fz.PageName == "":
+    if fz is None or fz.PageFilename == "":
         return "<no url>"
     # Sometimes the url will be to a page in a PDF, so the URL will end with #page=nnn
     # Detect that, since the page needs to be handled specially.
@@ -950,16 +952,16 @@ def URL(fz: FanzineIssueInfo) -> str:
         url=m.groups()[0]
         page=m.groups()[1]
 
-    if "/" not in fz.PageName:
-        url=url+"/"+fz.PageName+page
+    if "/" not in fz.PageFilename:
+        url=url+"/"+fz.PageFilename+page
     else:
         # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
         # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
-        parts=fz.PageName.split("/")
+        parts=fz.PageFilename.split("/")
         if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
             url=url+"/../"+"/".join(parts[-2:])+page
         else:
-            url=fz.PageName
+            url=fz.PageFilename
     return url
 
 
