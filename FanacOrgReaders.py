@@ -269,7 +269,7 @@ def ExtractPageCount(columnHeaders: list[str], row: list[TextAndHref]) -> int:
 def ExtractRowCountry(columnHeaders: list[str], row: list[TextAndHref], defaultcountry: str) -> str:
 
     country=GetCellValueByColHeader(columnHeaders, row, ["Country"]).Text
-    if country is None:
+    if country is None or country == "":
         return defaultcountry
 
     return country.strip()
