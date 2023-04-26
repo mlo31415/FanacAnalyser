@@ -557,10 +557,16 @@ def WriteHTMLTable(filename: str,
         fCompareRowHeaderText=lambda f1, f2: f1.casefold() == f2.casefold()
     if fCompareRowBodyText is None:
         fCompareRowBodyText=lambda f1, f2: f1.casefold() == f2.casefold()
+    if fRowHeaderText is None:
+        LogError(f"WriteTable: critical parameter 'fRowHeaderText' is None in call to generate {filename}")
+        return
     if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
         fRowHeaderSelect=fRowHeaderText  # Note that this may also be None
-    if fRowBodyText is None or fURL is None:
-        LogError(f"WriteTable: critical parameter is None in call to generate {filename}")
+    if fRowBodyText is None:
+        LogError(f"WriteTable: critical parameter 'fRowBodyText' is None in call to generate {filename}")
+        return
+    if fURL is None:
+        LogError(f"WriteTable: critical parameter 'fURL' is None in call to generate {filename}")
         return
     if (not showDuplicateBodyRows) and fRowBodySelect is None:
         LogError(f"WriteTable: showDuplicateBodyRows is False, yet fRowBodySelect is None in call to generate {filename}")
