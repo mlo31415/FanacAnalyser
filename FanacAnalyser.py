@@ -7,6 +7,7 @@ import sys
 import re
 import math
 import datetime
+from unidecode import unidecode
 from bs4 import BeautifulSoup
 import csv
 
@@ -14,7 +15,8 @@ import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, SortAndFlattenPersonsName, RemoveNonAlphanumericChars, UnscrambleListOfNames, Pluralize
+from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, FlattenPersonsNameForSorting, FlattenTextForSorting
+from HelpersPackage import RemoveNonAlphanumericChars, UnscrambleListOfNames, Pluralize
 
 
 def main():
@@ -62,7 +64,7 @@ def main():
     fanacIssueList=[x for x in fanacIssueList if x.PageFilename != ""]
 
     # Sort the list of all fanzines issues by fanzine series name
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine name
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(unidecode(elem.SeriesName.casefold())))  # Sorts in place on fanzine name
 
     def NoNone(s: str) -> str:
         if s is None:
@@ -133,7 +135,7 @@ def main():
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(RemoveNonAlphanumericChars(elem.IssueName.casefold())))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.IssueName))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
@@ -227,7 +229,7 @@ def main():
     # Generate Alphabetic lists by Fanzine
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueList.sort(key=lambda elem:FormatTextForSorting(elem.SeriesName+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
+    fanacIssueList.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
                   fanacIssueList,
@@ -257,7 +259,7 @@ def main():
 
 
     # Create a properly ordered flat list suitable for WriteTable
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.Series.DisplayName).casefold())   # Sort by series name
+    fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.Series.DisplayName))   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName)      # Sort by country
 
     WriteHTMLTable(os.path.join(reportDir, "Series_by_Country.html"),
@@ -305,8 +307,8 @@ def main():
 
     # Sort the Alphabetic lists by Editor
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
-    fanacIssueListByEditor.sort(key=lambda elem: RemoveArticles(elem.SeriesName).casefold())  # Sorts in place on fanzine's name with leading articles suppressed
-    fanacIssueListByEditor.sort(key=lambda elem: SortAndFlattenPersonsName(elem.Editor))  # Sorts by editor
+    fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
                   fanacIssueListByEditor,
@@ -316,10 +318,10 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.URL,
-                   fButtonText=lambda fz: SortAndFlattenPersonsName(fz.Editor)[0].upper(),
+                   fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                    #
                    fRowHeaderText=lambda fz: fz.Editor,
-                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(SortAndFlattenPersonsName(s1), SortAndFlattenPersonsName(s2)),
+                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
@@ -332,16 +334,16 @@ def main():
     WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda fz: fz.Series.DirURL,
-                   fButtonText=lambda fz: SortAndFlattenPersonsName(fz.Editor)[0].upper(),
-                    #
+                   fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
+                   #
                    fRowHeaderText=lambda fz: fz.Editor,
-                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(SortAndFlattenPersonsName(s1), SortAndFlattenPersonsName(s2)),
+                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
                    fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName+fz.Editor),
                    showDuplicateBodyRows=False,
-                    #
+                   #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
@@ -885,10 +887,10 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: 
 # -------------------------------------------------------------------------
 # Compute the button text and URL for an alphabetic fanzine issue -- used in calls to WriteTable
 def AlphaButtonText(fz: FanzineIssueInfo) -> str:
-    c=FormatTextForSorting(fz.SeriesName)[0]
+    c=FlattenTextForSorting(fz.SeriesName)[0]
     if c == " " or c.isdigit():
         return "*"
-    return RemoveArticles(c)
+    return c.upper()
 
 # -------------------------------------------------------------------------
 # Compute a properly formatted date annotation -- used in calls to WriteTable
@@ -926,17 +928,6 @@ def Smallify(s1: str, s2: str="") -> str:
         return f"<small>{s1}</small>"
 
     return f"<small>{s1}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{s2}</small>"
-
-
-#.........................................................
-# Sort function for generating a list of fanzines sorted by editor
-# This generates an output string which is used for sorting purposes, but not for display purposes
-def FormatTextForSorting(s: str) -> str:
-    if s == "":
-        return " "
-    return RemoveArticles(RemoveNonAlphanumericChars(s)).casefold()
-
-
 
 #.........................................................
 # Compute the button text and links for chronological listings -- used in calls to WriteTable
