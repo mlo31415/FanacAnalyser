@@ -977,15 +977,6 @@ def TruncOnDigit(s: str) -> str:
     return s
 
 
-# .........................................................
-# Compute the proper sort form of a person's name -- used in calls to WriteTable
-def AlphaSortPersonsName(s: str) -> str:
-    out=SortPersonsName(s)
-    # Remove leading non-alphanumeric characters.  E.g, we want to sort "test" under t not the quote sign
-    out=re.sub("^(\W*)", "", out)
-    return out.casefold()      # Sort lower and upper case characters together
-
-
 ######################################
 ######################################
 # Run main()
