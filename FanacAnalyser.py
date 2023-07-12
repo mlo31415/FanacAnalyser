@@ -14,9 +14,9 @@ import csv
 import FanacOrgReaders
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
-from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
-from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, FlattenPersonsNameForSorting, FlattenTextForSorting
-from HelpersPackage import RemoveNonAlphanumericChars, UnscrambleListOfNames, Pluralize
+from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles
+from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
+from HelpersPackage import UnscrambleListOfNames, Pluralize
 
 
 def main():
