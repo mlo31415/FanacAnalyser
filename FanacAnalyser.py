@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 import csv
 
 import FanacOrgReaders
-from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts
+from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, InterpretNumber, UnicodeToHtml, RemoveArticles
 from HelpersPackage import RemoveAllHTMLTags2, SortPersonsName, FlattenPersonsNameForSorting, FlattenTextForSorting
@@ -40,6 +40,8 @@ def main():
         except Exception as e:
             LogError(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}")
             exit(1)
+    if not os.path.isdir(os.path.join(reportDir, "Reports by year")):
+        os.mkdir(os.path.join(reportDir, "Reports by year"))
     Log("Report directory '"+reportDir+"' created")
 
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
@@ -73,17 +75,19 @@ def main():
 
     # Read the control-year.txt file to get the year(s) to be dumped out
     selectedYears: list[tuple[int, int]]=[]
-    if os.path.exists("control-year.txt"):
-        years=ReadList("control-year.txt")
-        for year in years:  # For each year in the list of years to be dumped
-            file=open(os.path.join(reportDir, f"{year} fanac.org Fanzines.txt"), "w+")
-            year=InterpretNumber(year)
-            yearCount=0
-            for fz in fanacIssueList:
-                if fz.FIS.Year == year:
-                    file.write(f"|| {fz.IssueName} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {fz.PageFilename} ||\n")
-                    yearCount+=1
-            file.close()
+    for year in range(1926, 2023):
+        yearCount=0
+        selected: list[tuple[str, FanzineDate | None, str, str]]=[]
+        for fz in fanacIssueList:
+            if fz.FIS.Year == year:
+                #out+=f"|| {fz.IssueName} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {fz.PageFilename} ||\n"
+                selected.append((fz.IssueName, fz.FIS.FD, fz.DirURL, fz.PageFilename))
+                yearCount+=1
+        if yearCount > 0:
+            selected.sort(key=lambda x: x[1])
+            with open(os.path.join(os.path.join(reportDir, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+") as f:
+                for sel in selected:
+                    f.write(f"{sel[0]} || {NoNone(str(sel[1]))} || {sel[2]} || {sel[3]}\n")
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
 
     # Count the number of pages, issues and PDFs
