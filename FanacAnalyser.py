@@ -482,7 +482,7 @@ def main():
 #       The name of directory is the name of the directory pointed to
 
 def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
-    Log("----Begin reading Classic and Modern tables")
+    Log("----Begin reading Classic table")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
@@ -490,7 +490,7 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
     for dirs in directories:
         ReadModernOrClassicTable(fanacFanzineDirectoriesList, dirs)
 
-    Log("----Done reading Classic and Modern tables")
+    Log("----Done reading Classic table")
     return fanacFanzineDirectoriesList
 
 
