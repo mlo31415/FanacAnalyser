@@ -1,1 +1,1 @@
-.\venv\Scripts\pyinstaller.exe --onefile --log-level=DEBUG --windowed FanacAnalyser.py
+.\venv10\Scripts\pyinstaller.exe --onefile --log-level=DEBUG --windowed FanacAnalyser.py
