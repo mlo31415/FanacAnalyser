@@ -64,6 +64,9 @@ def main():
 
     # Remove issues which have entries, but don't actually point to anything.
     fanacIssueList=[x for x in fanacIssueList if x.PageFilename != ""]
+    if len(fanacIssueList) == 0:
+        Log("Exiting: No fanzines found")
+        return
 
     # Sort the list of all fanzines issues by fanzine series name
     fanacIssueList.sort(key=lambda elem: RemoveArticles(unidecode(elem.SeriesName.casefold())))  # Sorts in place on fanzine name
