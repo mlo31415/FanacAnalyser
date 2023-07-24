@@ -57,9 +57,12 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             #"A_Bas",
             #"Le_Zombie",
             # "EnGarde",
-            #"RUNE",
+            #"Matrix",
+            #"Alien_Review",
+            #"Space_Wastrel",
             #"Booklist",
-            #"1950s_One_Shots",
+            #"ddd",
+            #"Texas-SF-Inquirer",
             #"Fanthologies",
             #"1970s_One_Shots",
             #"FAPA-Misc",
@@ -711,7 +714,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
 
         # And save the results
-        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
+        fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Position=iRow, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
                             AlphabetizeIndividually=alphabetizeIndividually)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
