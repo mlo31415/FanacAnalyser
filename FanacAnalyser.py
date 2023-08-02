@@ -331,6 +331,7 @@ def main():
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
                    includeRowHeaderCounts=True,
+                   includeRowTitleCount=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowBodyAnnot=lambda fz: Pluralize(fz.Pagecount, ' page'),
@@ -347,6 +348,7 @@ def main():
                    fRowHeaderText=lambda fz: fz.Editor,
                    fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
                    includeRowHeaderCounts=True,
+                   includeRowTitleCount=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
                    fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName+fz.Editor),
@@ -567,7 +569,8 @@ def WriteHTMLTable(filename: str,
                fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
                fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,  # If present, is used to determine if the row header text has changed
                fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
-               includeRowHeaderCounts: bool = True,  # Include counts in header block!)
+               includeRowHeaderCounts: bool = True,  # Include counts in header block!
+               includeRowTitleCount: bool=False,    # (Only if includeRowHeaderCounts is True,) also include count of series.
                #
                fRowBodyText: Callable[[FanzineIssueInfo], str]=None,  # Function to supply the row's body text
                fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
@@ -706,7 +709,7 @@ def WriteHTMLTable(filename: str,
 
                 if includeRowHeaderCounts:
                     # Count the issues in this block.
-                    fc=CountSublist(fCompareRowHeaderText, fRowHeaderSelect, fanacIssueList[i:])
+                    fc=CountSublist(fCompareRowHeaderText, fRowHeaderSelect, fanacIssueList[i:], CountTitles=True)
 
                 # Since this is a new main row, we write the header in col 1
                 # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
@@ -738,7 +741,10 @@ def WriteHTMLTable(filename: str,
                 if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                     f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
                 if includeRowHeaderCounts:
-                    f.write(f"<br><small>{fc}</small>")
+                    if includeRowTitleCount:
+                        f.write(f"<br><small>{fc}</small>")
+                    else:
+                        f.write(f"<br><small>{fc}</small>")
                 f.write('</div>\n')
                 f.write('    <div class=col-md-9>\n') # Start col 2
 
@@ -823,13 +829,15 @@ def WriteHTMLTable(filename: str,
 
 
 
-def CountSublist(fCompare: Callable[[str, str], bool], fSelect: Callable[[FanzineIssueInfo], str], fanacIssueList: list[FanzineIssueInfo]):
+def CountSublist(fCompare: Callable[[str, str], bool], fSelect: Callable[[FanzineIssueInfo], str], fanacIssueList: list[FanzineIssueInfo], CountTitles: bool=False) -> FanzineCounts:
     fc=FanzineCounts()
     tempLastRowHeaderSelect=fSelect(fanacIssueList[0])
     for fztemp in fanacIssueList:  # Loop through fanacIssueList starting at the current position which is the start of a block.
         if not fCompare(tempLastRowHeaderSelect, fSelect(fztemp)):
             break  # Bail when the block selection changes
-        fc=fc+fztemp
+        fc+=fztemp
+        if CountTitles:
+            fc+=fztemp.SeriesName
     return fc
 
 
