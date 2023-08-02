@@ -356,6 +356,25 @@ def main():
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
 
+    # Sort the Alphabetic lists by Editor, but with fanzines in date order
+    fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
+
+    WriteHTMLTable(os.path.join(reportDir, "Chronological_Listing_of_Fanzines_by_Editor.html"),
+                   fanacIssueListByEditor,
+                   fURL=lambda elem: elem.URL,
+                   fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
+                   #
+                   fRowHeaderText=lambda fz: fz.Editor,
+                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
+                   includeRowHeaderCounts=True,
+                   #
+                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                   fRowBodyAnnot=lambda fz: f"{fz.FIS.FD};&nbsp;&nbsp;{Pluralize(fz.Pagecount, ' page')}",
+                   #
+                   topCountText=topcounttext+"\n"+timestamp+"\n",
+                   headerFilename="control-Header (Fanzine, by editor).html",
+                   inAlphaOrder=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
