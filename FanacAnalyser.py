@@ -334,7 +334,7 @@ def main():
                    includeRowTitleCount=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: Pluralize(fz.Pagecount, ' page'),
+                   fRowBodyAnnot=lambda fz: Pluralize(fz.Pagecount, 'page', Spacechar="&nbsp;"),
                    #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
@@ -372,7 +372,7 @@ def main():
                    includeRowHeaderCounts=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: f"{fz.FIS.FD};&nbsp;&nbsp;{Pluralize(fz.Pagecount, ' page')}",
+                   fRowBodyAnnot=lambda fz: f"{fz.FIS.FD};&nbsp;&nbsp; {Pluralize(fz.Pagecount, 'page', Spacechar='&nbsp;')}",
                    #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
