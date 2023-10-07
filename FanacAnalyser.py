@@ -236,7 +236,11 @@ def main():
     # Generate Alphabetic lists by Fanzine
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    fanacIssueList.sort(key=lambda elem: elem.Position)
+    def MessySort(x: FanzineIssueInfo): # This handles the fact that MT Void is scattered among many pages, so position does nto work for it.  Ugly.
+        if "MT Void" in x.SeriesName:
+            return x.FIS.FormatDateForSorting()
+        return f"{x.Position:0>5}"
+    fanacIssueList.sort(key=MessySort)
     fanacIssueList.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
 
     WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
