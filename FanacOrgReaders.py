@@ -290,7 +290,7 @@ def ExtractMailings(columnHeaders: list[str], row: list[TextAndHref]) -> list[st
         return []
     # The mailing text is a series of APA names followed by alphanumerics separated by ampersands or commas
     #pattern="([a-zA-Z0-9]+\s+[0-9]+[a-zA-Z]*)[,&]?\s*([a-zA-Z0-9]+\s+[0-9]+[a-zA-Z]*)?"
-    pattern="([a-zA-Z0-9\-:]+\s+[0-9]+[a-zA-Z]*)[,&]?\s*"
+    pattern="([a-zA-Z0-9'\-:]+\s+[0-9]+[a-zA-Z]*)[,&]?\s*"
 
     mailingslist=[]
     mailingText=mailingText.strip()
