@@ -652,7 +652,9 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     # We need to pull the fanzine rows in from BeautifulSoup and save them in the same format for later analysis.
     # The format will be a list of rows
     # Each row will be a list of cells
-    # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
+    # Each cell will be either a text string (usually a "/n") or a cell containing the table contents.
+    # If a content cell contains a hyperlink, a TextAndHref containing the cell text and the hyperlink
+    # If it's plain text, a TextAndHref with an empty href
     tableRows: list[list[list[TextAndHref]]]=[[]]
     for row in table.contents[1:]:  # Skip the first row
         if type(row) is not Tag:
