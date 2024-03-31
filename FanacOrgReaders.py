@@ -600,6 +600,9 @@ def GetTextAndHrefFromTag(cell: Tag) -> list[TextAndHref]:
             if tag is None:
                 tag=""
             out.append(TextAndHref(tag, href))
+        else:
+            out.append(TextAndHref(str(thing), ""))
+
     return out
 
 
