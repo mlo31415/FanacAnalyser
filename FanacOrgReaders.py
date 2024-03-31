@@ -49,6 +49,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
         # If unskippers is not empty, just the directories listed in it will be scanned.
         unskippers=[
             #"MT_Void",
+            #"Bletherings",
             #"Coventranian_Gazette",
             #"References-Fan_Histories",
             #"References",
@@ -165,7 +166,8 @@ class TextAndHref:
 #=============================================================================================
 # Given a list of column headers and a list of row cell values, return the cell matching the header
 # If cellname is a list of names, try them all and return the first that hits
-def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnames: Union[str, list[str]]) -> TextAndHref:
+# We promnise that the list is non-empty, but it can contain an empty TextAndHref
+def GetCellValueByColHeader(columnHeaders: list, row: list[list[TextAndHref]], cellnames: Union[str, list[str]]) -> list[TextAndHref]:
 
     # Make sure cell names is a list we can iterate over
     cellnameslist=cellnames if type(cellnames) is list else [cellnames]
@@ -175,29 +177,34 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
             if CanonicizeColumnHeaders(header) == CanonicizeColumnHeaders(cn):
                 # Deal with missing cells -- apparently due to an LST read problem with certain mal-formed LST files
                 try:
-                    return TextAndHref(ChangeNBSPToSpace(row[i].Text), row[i].Url)
+                    out: list[TextAndHref]=[]
+                    for tah in row[i]:
+                        out.append(TextAndHref(ChangeNBSPToSpace(tah.Text), tah.Url))
+                    if len(out) == 0:
+                        out=[TextAndHref()]
+                    return out
                 except:
-                    return TextAndHref()
+                    return [TextAndHref()]
 
-    return TextAndHref()
+    return [TextAndHref()]
 
 
 #=============================================================================================
 # Extract a date from a table row.  Note that this will usually involved merging data from multiple columns.
 # We return a FanzineDate
-def ExtractDate(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineDate:
+def ExtractDate(columnHeaders: list[str], row: list[list[TextAndHref]]) -> FanzineDate:
 
     # Does this have a Date column?  If so, that's all we need. (I hope...)
-    dateText=GetCellValueByColHeader(columnHeaders, row, "Date").Text
+    dateText=GetCellValueByColHeader(columnHeaders, row, "Date")[0].Text
     if dateText is not None and len(dateText) > 0:
         # Get the date
         with suppress(Exception):
             return FanzineDate().Match(dateText)
 
     # Next, take the various parts and assemble them and try to interpret the result using the FanzineDate() parser
-    yearText=GetCellValueByColHeader(columnHeaders, row, "Year").Text
-    monthText=GetCellValueByColHeader(columnHeaders, row, "Month").Text
-    dayText=GetCellValueByColHeader(columnHeaders, row, "Day").Text
+    yearText=GetCellValueByColHeader(columnHeaders, row, "Year")[0].Text
+    monthText=GetCellValueByColHeader(columnHeaders, row, "Month")[0].Text
+    dayText=GetCellValueByColHeader(columnHeaders, row, "Day")[0].Text
 
     if yearText is not None:
         if monthText is not None:
@@ -230,25 +237,25 @@ def ExtractDate(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineDate
 # Extract a serial number (vol, num, whole_num) from a table row
 # We return a FanzineSerial object
 # This may involve merging data from multiple columns
-def ExtractSerial(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineSerial:
+def ExtractSerial(columnHeaders: list[str], row: list[list[TextAndHref]]) -> FanzineSerial:
 
-    wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole").Text
-    volText=GetCellValueByColHeader(columnHeaders, row, "Volume").Text
-    numText=GetCellValueByColHeader(columnHeaders, row, "Number").Text
-    volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum").Text
+    wholeText=GetCellValueByColHeader(columnHeaders, row, "Whole")[0].Text
+    volText=GetCellValueByColHeader(columnHeaders, row, "Volume")[0].Text
+    numText=GetCellValueByColHeader(columnHeaders, row, "Number")[0].Text
+    volNumText=GetCellValueByColHeader(columnHeaders, row, "VolNum")[0].Text
     if type(volNumText) is tuple:
         volNumText=volNumText[0]
 
-    titleText=GetCellValueByColHeader(columnHeaders, row, ["Text", "Issue"]).Text
+    titleText=GetCellValueByColHeader(columnHeaders, row, ["Text", "Issue"])[0].Text
 
     return ExtractSerialNumber(volText, numText, wholeText, volNumText, titleText)
 
 
 #============================================================================================
 # Find the cell containing the editor's name and return its value
-def ExtractEditor(columnHeaders: list[str], row: list[TextAndHref]) -> str:
+def ExtractEditor(columnHeaders: list[str], row: list[list[TextAndHref]]) -> str:
 
-    editorText=GetCellValueByColHeader(columnHeaders, row, ["Editor", "Editors", "Author", "Authors", "Editor/Publisher"]).Text
+    editorText=GetCellValueByColHeader(columnHeaders, row, ["Editor", "Editors", "Author", "Authors", "Editor/Publisher"])[0].Text
     if editorText is None:
         return ""
 
@@ -256,13 +263,13 @@ def ExtractEditor(columnHeaders: list[str], row: list[TextAndHref]) -> str:
 
 #============================================================================================
 # Find the cell containing the page count and return its value
-def ExtractPageCount(columnHeaders: list[str], row: list[TextAndHref]) -> int:
+def ExtractPageCount(columnHeaders: list[str], row: list[list[TextAndHref]]) -> int:
 
-    pageCountText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"]).Text
+    pageCountText=GetCellValueByColHeader(columnHeaders, row, ["Pages", "Pp.", "Page"])[0].Text
     if pageCountText is None:
         # If there's no column labelled for page count, check to see if there's a "Type" column with value "CARD".
         # These are newscards and are by definition a single page.
-        typeText=GetCellValueByColHeader(columnHeaders, row, "Type").Text
+        typeText=GetCellValueByColHeader(columnHeaders, row, "Type")[0].Text
         if typeText is not None and typeText.lower() == "card":
             return 1    # All cards have a pagecount of 1
         return 0
@@ -272,9 +279,9 @@ def ExtractPageCount(columnHeaders: list[str], row: list[TextAndHref]) -> int:
 
 #============================================================================================
 # Find the cell containing the page count and return its value
-def ExtractRowCountry(columnHeaders: list[str], row: list[TextAndHref], defaultcountry: str) -> str:
+def ExtractRowCountry(columnHeaders: list[str], row: list[list[TextAndHref]], defaultcountry: str) -> str:
 
-    country=GetCellValueByColHeader(columnHeaders, row, ["Country"]).Text
+    country=GetCellValueByColHeader(columnHeaders, row, ["Country"])[0].Text
     if country is None or country == "":
         return defaultcountry
 
@@ -283,58 +290,59 @@ def ExtractRowCountry(columnHeaders: list[str], row: list[TextAndHref], defaultc
 
 #============================================================================================
 # Find the cell containing the mailings data
-def ExtractMailings(columnHeaders: list[str], row: list[TextAndHref]) -> list[str]:
+def ExtractMailings(columnHeaders: list[str], row: list[list[TextAndHref]]) -> list[str]:
 
-    mailingText=GetCellValueByColHeader(columnHeaders, row, "Mailing").Text
-    if mailingText is None or len(mailingText) == 0:
+    mailingVals=GetCellValueByColHeader(columnHeaders, row, "Mailing")
+    if len(mailingVals) == 0:
         return []
     # The mailing text is a series of APA names followed by alphanumerics separated by ampersands or commas
     #pattern="([a-zA-Z0-9]+\s+[0-9]+[a-zA-Z]*)[,&]?\s*([a-zA-Z0-9]+\s+[0-9]+[a-zA-Z]*)?"
     pattern="([a-zA-Z0-9'\-:]+\s+[0-9]+[a-zA-Z]*)[,&]?\s*"
 
     mailingslist=[]
-    mailingText=mailingText.strip()
+    for mailingText in mailingVals:
+        mailingText=mailingText.Text.strip()
 
-    # This next little bit calls subber() each time re.sub find a match
-    # This results in the matches getting appended to mailingslist
-    def subber(m) -> str:
-        mailingslist.append(m.groups()[0])
-        return ""
+        # This next little bit calls subber() each time re.sub find a match
+        # This results in the matches getting appended to mailingslist
+        def subber(m) -> str:
+            mailingslist.append(m.groups()[0])
+            return ""
 
-    mailingtext=re.sub(pattern, subber, mailingText)
-    if mailingtext:
-        mailingslist.append(mailingtext)
+        mailingtext=re.sub(pattern, subber, mailingText)
+        if mailingtext:
+            mailingslist.append(mailingtext)
 
     return mailingslist
 
 
 # ============================================================================================
 # Scan the row and locate the issue cell, title and href and return them as a tuple
-def ExtractHrefAndTitle(columnHeaders: list[str], row: list[TextAndHref]) -> TextAndHref:
+def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[list[TextAndHref]]) -> TextAndHref:
     # Find the column containing the issue name
     issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
-    if issue.IsEmpty():
+    if issue[0].IsEmpty():
         issue=GetCellValueByColHeader(columnHeaders, row, "Title")
-    if issue.IsEmpty():
+    if issue[0].IsEmpty():
         issue=GetCellValueByColHeader(columnHeaders, row, "Text")
-    if issue.IsEmpty():
+    if issue[0].IsEmpty():
        return TextAndHref("<not found>", "")
 
     # If necessary, separate the href and the name
-    if issue.Url != "":
-        return issue
+    if issue[0].Url != "":
+        return issue[0]
 
-    if issue.Text == "":
+    if issue[0].Text == "":
         return TextAndHref()
 
     # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
     # If we don't find a hyperlink in the title, scan the other cells of the row for the first col containing a hyperlink
     # We return the name from the issue cell and the hyperlink from the other cell
     for i in range(0, len(columnHeaders)):
-        if row[i].Url != "":
-            return TextAndHref(issue.Text, row[i].Url)
+        if len(row[i]) > 0 and row[i][0].Url != "":
+            return TextAndHref(issue[0].Text, row[i][0].Url)
 
-    return issue     # No hyperlink found
+    return issue[0]     # No hyperlink found
 
 
 # ============================================================================================
@@ -574,21 +582,25 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
 # Function to pull an href and the accompanying text from a Tag
 # The structure is "<a href='URL'>LINKTEXT</a>
 # We want to extract the URL and LINKTEXT
-def GetTextAndHrefFromTag(tag: Tag) -> TextAndHref:
-    try:
-        href=tag.contents[0].attrs.get("href", "")
-    except:
-        try:
-            href=tag.attrs.get("href")
-            if href is None:
-                href=""
-        except:
-            return TextAndHref("Failed href in GetHrefAndTextFromTag()", "")
+def GetTextAndHrefFromTag(cell: Tag) -> list[TextAndHref]:
+    out=[]
+    for thing in cell:
+        if isinstance(thing, Tag):
+            try:
+                href=thing.attrs.get("href", "")
+            except:
+                try:
+                    href=cell.attrs.get("href")
+                    if href is None:
+                        href=""
+                except:
+                    return [TextAndHref("Failed href in GetHrefAndTextFromTag()", "")]
 
-    tag=tag.contents[0].string
-    if tag is None:
-        tag=""
-    return TextAndHref(tag, href)
+            tag=thing.string
+            if tag is None:
+                tag=""
+            out.append(TextAndHref(tag, href))
+    return out
 
 
 #======================================================================================
@@ -638,14 +650,14 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
     # The format will be a list of rows
     # Each row will be a list of cells
     # Each cell will be either a text string or, if the cell contained a hyperlink, a tuple containing the cell text and the hyperlink
-    tableRows: list[list[TextAndHref]]=[[]]
+    tableRows: list[list[list[TextAndHref]]]=[[]]
     for row in table.contents[1:]:  # Skip the first row
         if type(row) is not Tag:
             Log(f"This should be a tag, but isn't. Skipped: {row}")
             continue
         tr=row.contents
 
-        newRow: list[TextAndHref]=[]
+        newRow: list[list[TextAndHref]]=[]
         for cell in tr:
             if not isinstance(cell, NavigableString):    # Half the rows are newlines which we might as well ignore now
                 newRow.append(GetTextAndHrefFromTag(cell))
@@ -662,15 +674,15 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
 
         # The first element of the table sometimes comes in with embedded non-breaking spaces which must be turned to real spaces.
         # (They were apparently put there deliberately some time in the past.)
-        if tableRow[0].Text != "":  # Some empty rows have no entry in col 1, not even an empty string
-            tableRow[0]=TextAndHref(RemoveFunnyWhitespace(tableRow[0].Text), tableRow[0].Url)
+        if len(tableRow[0]) > 0 and tableRow[0][0].Text != "":  # Some empty rows have no entry in col 1, not even an empty string
+            tableRow[0][0]=TextAndHref(RemoveFunnyWhitespace(tableRow[0][0].Text), tableRow[0][0].Url)
 
         # We need to extract the name, url, year, and vol/issue info for each fanzine
         # We have to treat the Text column specially, since it contains the critical href we need.
         date=ExtractDate(columnHeaders, tableRow)
         ser=ExtractSerial(columnHeaders, tableRow)
         fis=FanzineIssueSpec(FD=date, FS=ser)
-        title=ExtractHrefAndTitle(columnHeaders, tableRow)
+        title=ExtractIssueNameAndHref(columnHeaders, tableRow)
         pages=ExtractPageCount(columnHeaders, tableRow)
         mailings=ExtractMailings(columnHeaders, tableRow)
         country=ExtractRowCountry(columnHeaders, tableRow, defaultcountry)
@@ -711,7 +723,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         h, t=os.path.split(u[2])
         if t.lower().endswith(".htm") or t.lower().endswith(".html"):    # If the last part of the URL is a filename (ending in html) then we remove it since we only want the dirname
             t=""
-        dirUrl=urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5]))
+        dirUrl=str(urllib.parse.urlunparse((u[0], u[1], os.path.join(h, t), u[3], u[4], u[5])))
 
         # And save the results
         fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Position=iRow, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
