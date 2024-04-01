@@ -136,6 +136,12 @@ def main():
             for line in lines:
                 print(line, file=f)
 
+    # Produce a report on the non-PDFed fanzines
+    with open(os.path.join(reportDir, "Fanzines which are not PDFs.txt"), "w") as f:
+        for fzi in fanacIssueList:
+            if not fzi.URL.lower().endswith(".pdf"):
+                print(f"{fzi.DirURL}/{fzi.IssueName}", file=f)
+
 
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
