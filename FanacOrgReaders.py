@@ -706,6 +706,8 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
         # change the value of directoryURL for this fanzine.
         dirUrl=directoryUrl
         dir=urllib.parse.urlparse(dirUrl).path.split("/")[2]
+        # Log(f"urllib.parse(dirUrl): {urllib.parse.urlparse(dirUrl)}")
+        # Log(f"title: {title.Url} + {title.Text}")
         if title.Url != "":
             if title.Url.startswith(directoryUrl):
                 title.Url=title.Url.replace(directoryUrl, "")
@@ -718,7 +720,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag
                 if parts[1].lower() == "fanzines" and parts[2].lower() != dir.lower():
                     Log(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a different directory. Skipped")
                     continue
-                if fname:
+                if not fname.lower().endswith(".html") and not fname.lower().endswith(".htm") and not fname.lower().endswith(".pdf"):
                     LogError(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a directory, not a file. Skipped")
                     continue
                 path=title.Url.replace("/"+fname, "")
