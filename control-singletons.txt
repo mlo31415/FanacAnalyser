@@ -7,7 +7,6 @@ BNF_of_IZ
 Enchanted_Duplicator
 Entropy
 Flight of the Kangaroo, The
-Leaflet
 LeeHoffman
 Memoirs_of_a_Superflous_Fan
 Monster
