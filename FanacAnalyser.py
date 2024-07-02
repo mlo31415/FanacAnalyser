@@ -17,36 +17,43 @@ from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles
 from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
 from HelpersPackage import UnscrambleListOfNames, Pluralize
+from HelpersPackage import ReadListAsParmDict
 
 
 def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
     Log("Started")
 
-    # Read the command line arguments
-    outputDir="."
-    if len(sys.argv) > 1:
-        outputDir=sys.argv[1]
-    if not os.path.isdir(outputDir):
-        os.mkdir(outputDir)
+    g_parameters=ReadListAsParmDict("parameters.txt", isFatal=True, CaseInsensitiveCompare=True, IgnoreSpacesCompare=True)
+    Log("".join(g_parameters.Lines()))
 
-    Log("Output directory '"+outputDir+"' set")
+    # Read the command line argument, if any, which will override rootDir
+    rootDir="."
+    if len(sys.argv) > 1:
+        rootDir=sys.argv[1]
+    rootDir=g_parameters.SetIfMissingAndGet("root directory", rootDir)   # So will a value in the parameters file
+
+    # Make sure the root directory exists
+    if not os.path.isdir(rootDir):
+        os.mkdir(rootDir)
+    Log("Root directory '"+rootDir+"' set")
 
     # Create a Reports directory if needed.
-    reportDir=os.path.join(outputDir, "Reports")
-    if not os.path.isdir(reportDir):
+    reportDir=g_parameters.SetIfMissingAndGet("Report Directory", "Reports")
+    reportFilePath=str(os.path.join(rootDir, reportDir))
+    if not os.path.isdir(reportFilePath):
         try:
-            os.mkdir(reportDir)
+            os.mkdir(reportFilePath)
         except Exception as e:
-            LogError(f"***Fatal Error: Attempt to create directory {reportDir} yields exception: {e}")
+            LogError(f"***Fatal Error: Attempt to create directory {reportFilePath} yields exception: {e}")
             exit(1)
-    if not os.path.isdir(os.path.join(reportDir, "Reports by year")):
-        os.mkdir(os.path.join(reportDir, "Reports by year"))
-    Log("Report directory '"+reportDir+"' created")
+    if not os.path.isdir(os.path.join(reportFilePath, "Reports by year")):
+        os.mkdir(os.path.join(reportFilePath, "Reports by year"))
+    Log("Report directory '"+reportFilePath+"' created")
 
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
     peopleCanonicalNames={}
-    filepathname=os.path.join(reportDir, "People Canonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's directories
+    filepathname=os.path.join(rootDir, "People Canonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's directories
     if os.path.exists(filepathname):
         with open(filepathname, "r" ,encoding='utf8') as f:
             for line in f:
@@ -60,7 +67,7 @@ def main():
     fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
 
     # Read the directories list and produce a list of all fanzine issues
-    fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(fanacFanzineDirectories)
+    fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, fanacFanzineDirectories)
 
     # Remove issues which have entries, but don't actually point to anything.
     fanacIssueList=[x for x in fanacIssueList if x.PageFilename != ""]
@@ -88,13 +95,13 @@ def main():
                 yearCount+=1
         if yearCount > 0:
             selected.sort(key=lambda x: x[1])
-            with open(os.path.join(os.path.join(reportDir, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+") as f:
+            with open(os.path.join(os.path.join(reportFilePath, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+") as f:
                 for sel in selected:
                     f.write(f"{sel[0]} || {NoNone(str(sel[1]))} || {sel[2]} || {sel[3]}\n")
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
 
     # Count the number of pages, issues and PDFs
-    ignorePageCountErrors=ReadList("control-Ignore Page Count Errors.txt")
+    ignorePageCountErrors=ReadList(os.path.join(rootDir, "control-Ignore Page Count Errors.txt"))
     countsGlobal=FanzineCounts()
     for fzi in fanacIssueList:
         if fzi.DirURL != "":
@@ -106,7 +113,7 @@ def main():
                 Log(f"{fzi.IssueName} has no page count: {fzi}")
 
     # Re-run the previous producing a counts diagnostic file
-    with open(os.path.join(reportDir, "Counts diagnostics.txt"), "w") as f:
+    with open(os.path.join(reportFilePath, "Counts diagnostics.txt"), "w") as f:
         countsSeries=FanzineCounts()
         lines: [str]=[]  # We want to print everything about this series once we have completed going through the series
         oldseries=fanacIssueList[0].SeriesName
@@ -137,7 +144,7 @@ def main():
                 print(line, file=f)
 
     # Produce a report on the non-PDFed fanzines
-    with open(os.path.join(reportDir, "Fanzines which are not PDFs.txt"), "w") as f:
+    with open(os.path.join(reportFilePath, "Fanzines which are not PDFs.txt"), "w") as f:
         for fzi in fanacIssueList:
             if not fzi.URL.lower().endswith(".pdf"):
                 print(f"{fzi.DirURL}/{fzi.IssueName}", file=f)
@@ -157,7 +164,7 @@ def main():
     # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
     # List of dated issues
     datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
-    WriteHTMLTable(os.path.join(reportDir, "Chronological_Listing_of_Fanzines.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines.html"),
                    datedList,
                    fURL=URL,
                    fButtonText=lambda fz: ChronButtonText(fz),
@@ -172,14 +179,14 @@ def main():
                    #
                    headerFilename='control-Header (Fanzine, chronological).html')
 
-    WriteTxtTable(os.path.join(reportDir, "Chronological Listing of Fanzines.txt"),
+    WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Fanzines.txt"),
                   datedList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     # List of undated issues
     undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
-    WriteHTMLTable(os.path.join(reportDir, "Undated Fanzine Issues.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Undated Fanzine Issues.html"),
                    undatedList,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowHeaderText=lambda fz: "fRowHeaderText fake lambda",
@@ -192,11 +199,11 @@ def main():
     # This takes names from the file control-newszines.txt and adds fanzines tagged as newszines on their series index page
 
     # Read the control-newszines.txt file
-    newszinesSet=set([x.casefold() for x in ReadList("control-newszines.txt", isFatal=True)])
+    newszinesSet=set([x.casefold() for x in ReadList(os.path.join(rootDir, "control-newszines.txt"), isFatal=True)])
 
     # Add in the newszines discovered in the <h2> blocks
     newszinesFromH2Set=set([fii.SeriesName.casefold() for fii in fanacIssueList if "newszine" in fii.Taglist])
-    with open(os.path.join(reportDir, "Items identified as newszines by H2 tags.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Items identified as newszines by H2 tags.txt"), "w+") as f:
         newszinesFromH2List=sorted(list(newszinesFromH2Set))
         for nz in newszinesFromH2List:
             f.write(nz+"\n")
@@ -206,7 +213,7 @@ def main():
     # Make up a lists of newszines and non-newszines
     allzinesSet=set([fx.SeriesName.casefold() for fx in fanacIssueList])
 
-    with open(os.path.join(reportDir, "Items identified as non-newszines.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Items identified as non-newszines.txt"), "w+") as f:
         nonNewszines=sorted(list(allzinesSet.difference(newszinesSet)))
         for nnz in nonNewszines:
             f.write(nnz+"\n")
@@ -222,11 +229,11 @@ def main():
                 newsCount.Pdfcount+=1
 
     newszines=[x+"\n" for x in listOfNewszines]
-    with open(os.path.join(reportDir, "Items identified as newszines.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Items identified as newszines.txt"), "w+") as f:
         f.writelines(newszines)
 
     newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
-    WriteHTMLTable(os.path.join(reportDir, "Chronological_Listing_of_Newszines.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Newszines.html"),
                    fanacIssueList,
                    fURL=URL,
                    fSelector=lambda fz: fz.SeriesName.casefold() in listOfNewszines,
@@ -249,12 +256,12 @@ def main():
     fanacIssueList.sort(key=MessySort)
     fanacIssueList.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
 
-    WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines.txt"),
+    WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines.txt"),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
-    WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines.html"),
                    fanacIssueList,
                    fButtonText=lambda fz: AlphaButtonText(fz),
                    fDirURL=lambda fz: fz.DirURL,
@@ -280,7 +287,7 @@ def main():
     fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.Series.DisplayName))   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName.lower())      # Sort by country
 
-    WriteHTMLTable(os.path.join(reportDir, "Series_by_Country.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Series_by_Country.html"),
                    fanacIssueList,
                    fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
@@ -328,12 +335,12 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
-    WriteTxtTable(os.path.join(reportDir, "Alphabetical Listing of Fanzines by Editor.txt"),
+    WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines by Editor.txt"),
                   fanacIssueListByEditor,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.Editor,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
-    WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.URL,
                    fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
@@ -350,7 +357,7 @@ def main():
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
 
-    WriteHTMLTable(os.path.join(reportDir, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda fz: fz.Series.DirURL,
                    fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
@@ -372,7 +379,7 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
-    WriteHTMLTable(os.path.join(reportDir, "Chronological_Listing_of_Fanzines_by_Editor.html"),
+    WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.URL,
                    fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
@@ -402,7 +409,7 @@ def main():
         length=min(len(n1), len(n2))
         return n1[:length] != n2[:length]
 
-    WriteTxtTable(os.path.join(reportDir, "Fanzines with odd names.txt"),
+    WriteTxtTable(os.path.join(reportFilePath, "Fanzines with odd names.txt"),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
@@ -426,7 +433,7 @@ def main():
     for selectedYear in selectedYears:
         Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
 
-    with open(os.path.join(reportDir, "Statistics.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Statistics.txt"), "w+") as f:
         print(timestamp)
         print(f"All fanzines: Titles: {fzCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}", file=f)
         print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
@@ -435,7 +442,7 @@ def main():
             print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
 
 
-    WriteTxtTable(os.path.join(reportDir, "Fanzines with odd page counts.txt"),
+    WriteTxtTable(os.path.join(reportFilePath, "Fanzines with odd page counts.txt"),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
@@ -467,7 +474,7 @@ def main():
         seriesDecadeCount[decade].add(issue.SeriesName)
 
     # Print the report
-    with open(os.path.join(reportDir, "Decade counts.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Decade counts.txt"), "w+") as f:
         f.write(str(datetime.date.today())+"\n")
         f.write("Counts of fanzines and fanzine series by decade\n\n")
         f.write(" Decade  Series  Issues\n")
@@ -484,7 +491,9 @@ def main():
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate lists of mailings
     # Files are created in reports/APAs
-    with open(os.path.join(reportDir, 'mailings.csv'), 'w', newline="") as csvfile:
+    mailingsCSVFile=g_parameters.SetIfMissingAndGet("mailings csv file", "mailings.csv")
+
+    with open(os.path.join(rootDir, mailingsCSVFile), 'w', newline="") as csvfile:
         filewriter=csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
         columnheaders=["IssueName", "Series", "SeriesName", "DisplayName", "DirURL", "PageName", "FIS", "Locale", "PageCount", "Editor", "TagList", "Mailings"]

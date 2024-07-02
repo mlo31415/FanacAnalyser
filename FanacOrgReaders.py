@@ -26,7 +26,7 @@ from HelpersPackage import ParmDict
 
 
 # ============================================================================================
-def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]) -> list[FanzineIssueInfo]:
     # Read index.html files on fanac.org
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
@@ -36,11 +36,11 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
     fanacIssueInfo: list[FanzineIssueInfo]=[]
 
     # We read in a list of directories to be skipped.
-    skippers=ReadList("control-skippers.txt")
+    skippers=ReadList(os.path.join(rootDir, "control-skippers.txt"))
 
     # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
     # We also skip these
-    offsite=ReadList("control-offsite.txt")
+    offsite=ReadList(os.path.join(rootDir, "control-offsite.txt"))
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
@@ -114,7 +114,7 @@ def ReadFanacFanzineIssues(fanacDirectories: list[tuple[str, str]]) -> list[Fanz
             LogError(f"...Skipped because not a fanac.org url: {url}")
             continue
 
-        fanacIssueInfo.extend(ReadFanacFanzineIndexPage(title, url))
+        fanacIssueInfo.extend(ReadFanacFanzineIndexPage(rootDir, title, url))
 
     # TODO Drop external links which duplicate Fanac.org  (What exactly does this mean??)
 
@@ -377,7 +377,7 @@ def ExtractHeaderCountry(h: str) -> str:
 
 # ============================================================================================
 # Function to extract fanzine information from a fanac.org fanzine index.html page
-def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
 
     Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
 
@@ -387,11 +387,11 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
 
     # Fanzines with only a single page rather than an index.
     # Note that these are directory names
-    global singletons   # Not actually used anywhere else, but for performance sake should be read once and retained
+    global singletons   # Not actually used anywhere else, but, for performance sake, should be read once and retained
     try:
         singletons
     except NameError:
-        singletons=ReadList("control-singletons.txt")
+        singletons=ReadList(os.path.join(rootDir, "control-singletons.txt"))
 
     # It looks like this is a single level directory.
     soup=OpenSoup(directoryUrl)
