@@ -542,7 +542,7 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
 def ReadModernOrClassicTable(fanacFanzineDirectoriesList: list[tuple[str, str]], url: str) -> None:
     h=requests.get(url, headers={'Cache-Control': 'no-cache'})
     s=BeautifulSoup(h.content, "html.parser")
-    # We look for the first table that does not contain a "navbar"
+    # We look for the first sortable table that does not contain a "navbar"
     tables=s.find_all("table")
     for table in tables:
         if "sortable" in str(table.attrs) and not "navbar" in str(table.attrs):
