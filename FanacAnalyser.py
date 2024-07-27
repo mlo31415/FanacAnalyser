@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Set
+from typing import Callable, Set
 from time import localtime, strftime
 
 import requests
@@ -579,27 +579,27 @@ def ReadFile(filename: str) -> list[str]:
 #   fRowBodyText is what is listed in the subsection
 def WriteHTMLTable(filename: str,
                fanacIssueList: list[any],  # The sorted input list
-               fURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the URL
-               fDirURL: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the directory or root URL
-               fButtonText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the button text
+               fURL: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the URL
+               fDirURL: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the directory or root URL
+               fButtonText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the button text
                 #
-               fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text
-               fRowHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,    # Function to supply annotation to the header text/link
-               fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
-               fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,  # If present, is used to determine if the row header text has changed
-               fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
+               fRowHeaderText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text
+               fRowHeaderAnnot: Callable[[FanzineIssueInfo], str]|None = None,    # Function to supply annotation to the header text/link
+               fRowHeaderSelect: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
+               fCompareRowHeaderText: Callable[[str, str], bool]|None = None,  # If present, is used to determine if the row header text has changed
+               fHeaderAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
                includeRowHeaderCounts: bool = True,  # Include counts in header block!
                includeRowTitleCount: bool=False,    # (Only if includeRowHeaderCounts is True,) also include count of series.
                #
-               fRowBodyText: Callable[[FanzineIssueInfo], str]=None,  # Function to supply the row's body text
-               fRowBodyAnnot: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply annotation to the rows
-               fCompareRowBodyText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
-               fRowBodySelect: Optional[Callable[[FanzineIssueInfo], str]]=None,           # If present, selects the text that is being used to sort body rows
+               fRowBodyText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the row's body text
+               fRowBodyAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the rows
+               fCompareRowBodyText: Callable[[str, str], bool]|None = None,        # If present, is used to determine if the row header text has changed
+               fRowBodySelect: Callable[[FanzineIssueInfo], str]|None = None,           # If present, selects the text that is being used to sort body rows
                showDuplicateBodyRows: bool=True,
                #
                topCountText: str= "",
                headerFilename: str="",
-               fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None,            # If present, selects fanzines to be included in report.  Default is to include all.
+               fSelector: Callable[[FanzineIssueInfo], bool]|None = None,            # If present, selects fanzines to be included in report.  Default is to include all.
                inAlphaOrder: bool=False)\
                 -> None:
 
@@ -870,12 +870,12 @@ def CountSublist(fCompare: Callable[[str, str], bool], fSelect: Callable[[Fanzin
 def WriteTxtTable(filename: str,
                fanacIssueList: list[any],  # The sorted input list
                fRowBodyText: Callable[[FanzineIssueInfo], str],  # Function to supply the row's body text
-               fRowHeaderText: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text
-               fRowHeaderSelect: Optional[Callable[[FanzineIssueInfo], str]]=None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
-               fHeaderAnnot: Optional[Callable[[FanzineIssueInfo], str]] = None,  # Function to supply annotation to the headers
-               fCompareRowHeaderText: Optional[Callable[[str, str], bool]] = None,        # If present, is used to determine if the row header text has changed
+               fRowHeaderText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text
+               fRowHeaderSelect: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
+               fHeaderAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the headers
+               fCompareRowHeaderText: Callable[[str, str], bool]|None = None,        # If present, is used to determine if the row header text has changed
                topCountText: str= "",
-               fSelector: Optional[Callable[[FanzineIssueInfo], bool]]=None)\
+               fSelector: Callable[[FanzineIssueInfo], bool]|None = None)\
                 -> None:
     Log(f"WriteTxtTable({filename} called")
     if fCompareRowHeaderText is None:
