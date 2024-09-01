@@ -246,23 +246,48 @@ def main():
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    # Generate Alphabetic lists by Fanzine
+    # Generate Alphabetic lists by Fanzine title
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
-    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    def MessySort(x: FanzineIssueInfo): # This handles the fact that MT Void is scattered among many pages, so position does nto work for it.  Ugly.
-        if "MT Void" in x.SeriesName:
-            return x.FIS.FormatDateForSorting()
-        return f"{x.Position:0>5}"
-    fanacIssueList.sort(key=MessySort)
-    fanacIssueList.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series editor (added to disambiguate similarly-named fanzines
+
+    # Generate lists by title
+    # For this pair of reports, we need to create a modified fanacIssueList, duplicating entries for all issues with multiple titles
+    fanacIssueListByTitle: list[FanzineIssueInfo]=[]
+    for fz in fanacIssueList:
+        # We expand this FanzineIssueInfo into one for each title.
+        # We store the original title list in the _Temp member used for such kludgey purposes
+        names=[x.strip() for x in fz.SeriesName.split(";")]
+        if len(names) > 1:
+            for name in names:
+                fz2=fz.DeepCopy()       # We do this so that the diddling we do to create multiple entrys for the same fanzine does not impact fanacIssueList
+                fz2.Temp=fz.SeriesName
+                fz2.SeriesName=name.strip()
+                fanacIssueListByTitle.append(fz2)
+        else:
+            if len(fz.SeriesName) > 0:  # In a by-title listing, missing titles are uninteresting
+                fz2=fz.DeepCopy()
+                fz2.SeriesName=names[0].strip()
+                fanacIssueListByTitle.append(fz2)
+
+    # fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
+    # def MessySort(x: FanzineIssueInfo): # This handles the fact that MT Void is scattered among many pages, so position does nto work for it.  Ugly.
+    #     if "MT Void" in x.SeriesName:
+    #         return x.FIS.FormatDateForSorting()
+    #     return f"{x.Position:0>5}"
+    # fanacIssueListByTitle.sort(key=MessySort)
+    # fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
+
+    # Sort the Alphabetic lists by Title
+    fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    fanacIssueListByTitle.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueListByTitle.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.SeriesName))  # Sorts by title
 
     WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines.txt"),
-                  fanacIssueList,
+                  fanacIssueListByTitle,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines.html"),
-                   fanacIssueList,
+                   fanacIssueListByTitle,
                    fButtonText=lambda fz: AlphaButtonText(fz),
                    fDirURL=lambda fz: fz.DirURL,
                    fURL=URL,

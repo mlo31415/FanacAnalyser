@@ -58,6 +58,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             #"Diaspar",
             #"1970s_One_Shots",
             #"A_Bas",
+            #"Starship_Tripe",
             #"Le_Zombie",
             #"EnGarde",
             #"Matrix",
@@ -439,7 +440,6 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
     # The most common format (ignoring a scattering of <br>s) is
     #   H1
     #       series name
-    #   /H1
     #   H2
     #       Editor
     #   H2
@@ -447,7 +447,30 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
     #       [Newszine]
     #   /H2
     #   /H2
+    #   /H1
     #...or something else...
+
+    # While we expect the H1 title material to be terminated by <h2>, we can't count on that, so we also look for a terminal </h1>
+    h1s=str(soup.h1)
+    lh2=h1s.lower().find("<h2>")
+    lh1end=h1s.lower().find("</h1>")
+    if lh2 == -1:
+        lh2=99999
+    if lh1end == -1:
+        lh1end=99999
+    lend=min(lh2, lh1end)
+    h1s=h1s[:lend]
+
+    # Remove any opening bracket and terminal brackets
+    loc=h1s.find(">")
+    if loc > -1:
+        h1s=h1s[loc+1:]
+    if h1s[-1] == ">":
+        loc=h1s.rfind("<")
+        h1s=h1s[:loc]
+
+    # Replace internal br brackets with semicolons
+    seriesName=re.sub(r"</?br/?>", "; ", h1s, flags=re.IGNORECASE)
 
     h2s=str(soup.h2)
     # Split on various flavors of <br> and <h2>
@@ -478,27 +501,25 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
     if country == "":
         Log(f"No country found for {fanzineName}")
 
-    alphabetizeIndividually=kwds["Alphabetize individually"] == ""     # Check if keyword is present -- it doesn't need a value
-
     # Walk the table and extract the fanzines in it
     fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
 
-    if fiiList:
-        # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
-        if alphabetizeIndividually:
-            # Add the tags and the series info pointer
-            for fii in fiiList:
-                # Create a special series just for this issue.
-                fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
-                if isnewszines:
-                    fii.Taglist.append("newszine")
-        else:
-            # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
-            fsi=FanzineSeriesInfo(SeriesName=fanzineName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
-            for fii in fiiList:
-                fii.Series=fsi
-                if isnewszines:
-                    fii.Taglist.append("newszine")
+    # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
+    alphabetizeIndividually=kwds["Alphabetize individually"] == ""  # Check if keyword is present -- it doesn't need a value
+    if alphabetizeIndividually:
+        # Add the tags and the series info pointer
+        for fii in fiiList:
+            # Create a special series just for this issue.
+            fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
+            if isnewszines:
+                fii.Taglist.append("newszine")
+    else:
+        # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
+        fsi=FanzineSeriesInfo(SeriesName=seriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+        for fii in fiiList:
+            fii.Series=fsi
+            if isnewszines:
+                fii.Taglist.append("newszine")
 
     return fiiList
 
