@@ -274,7 +274,7 @@ def main():
             return x.FIS.FormatDateForSorting()
         return f"{x.Position:0>5}"
     fanacIssueListByTitle.sort(key=MessySort)
-    fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
+    fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor, RemoveLeadingArticles=True)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
 
 
     WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines.txt"),
