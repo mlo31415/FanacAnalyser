@@ -258,28 +258,24 @@ def main():
         names=[x.strip() for x in fz.SeriesName.split(";")]
         if len(names) > 1:
             for name in names:
-                fz2=fz.DeepCopy()       # We do this so that the diddling we do to create multiple entrys for the same fanzine does not impact fanacIssueList
+                fz2=fz.DeepCopy()       # We do this so that the diddling we do to create multiple entries for the same fanzine does not impact fanacIssueList
                 fz2.Temp=fz.SeriesName
-                fz2.SeriesName=name.strip()
+                sn2=fz2.Series.Deepcopy()
+                sn2.SeriesName=name.strip()
+                fz2.Series=sn2
                 fanacIssueListByTitle.append(fz2)
         else:
             if len(fz.SeriesName) > 0:  # In a by-title listing, missing titles are uninteresting
-                fz2=fz.DeepCopy()
-                fz2.SeriesName=names[0].strip()
-                fanacIssueListByTitle.append(fz2)
+                fanacIssueListByTitle.append(fz)
 
-    # fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    # def MessySort(x: FanzineIssueInfo): # This handles the fact that MT Void is scattered among many pages, so position does nto work for it.  Ugly.
-    #     if "MT Void" in x.SeriesName:
-    #         return x.FIS.FormatDateForSorting()
-    #     return f"{x.Position:0>5}"
-    # fanacIssueListByTitle.sort(key=MessySort)
-    # fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
+    fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
+    def MessySort(x: FanzineIssueInfo): # This handles the fact that MT Void is scattered among many pages, so position does nto work for it.  Ugly.
+        if "MT Void" in x.SeriesName:
+            return x.FIS.FormatDateForSorting()
+        return f"{x.Position:0>5}"
+    fanacIssueListByTitle.sort(key=MessySort)
+    fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
 
-    # Sort the Alphabetic lists by Title
-    fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
-    fanacIssueListByTitle.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName))  # Sorts in place on fanzine's name with leading articles suppressed
-    fanacIssueListByTitle.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.SeriesName))  # Sorts by title
 
     WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines.txt"),
                   fanacIssueListByTitle,
