@@ -16,7 +16,7 @@ import FanacOrgReaders
 from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
-from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles
+from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles, CaseInsensitiveCompare
 from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
 from HelpersPackage import UnscrambleListOfNames, Pluralize
 from HelpersPackage import ReadListAsParmDict
