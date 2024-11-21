@@ -109,7 +109,7 @@ def main():
             if os.path.splitext(fzi.PageFilename)[1].lower() == ".pdf":
                 countsGlobal.Pdfcount+=1
                 countsGlobal.Pdfpagecount+=fzi.Pagecount
-            if fzi.Pagecount == 0 and ignorePageCountErrors is not None and fzi.SeriesName not in ignorePageCountErrors:
+            if fzi.Pagecount == 0 and len(ignorePageCountErrors)> 0 and fzi.SeriesName not in ignorePageCountErrors:
                 Log(f"{fzi.IssueName} has no page count: {fzi}")
 
     # Re-run the previous producing a counts diagnostic file
