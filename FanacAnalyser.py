@@ -12,6 +12,8 @@ from bs4 import BeautifulSoup
 import csv
 
 import FanacOrgReaders
+
+from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles
@@ -24,14 +26,13 @@ def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
     Log("Started")
 
-    g_parameters=ReadListAsParmDict("parameters.txt", isFatal=True, CaseInsensitiveCompare=True, IgnoreSpacesCompare=True)
-    Log("".join(g_parameters.Lines()))
+    Settings().Load("parameters.txt", MustExist=True)
 
     # Read the command line argument, if any, which will override rootDir
     rootDir="."
     if len(sys.argv) > 1:
         rootDir=sys.argv[1]
-    rootDir=g_parameters.SetIfMissingAndGet("root directory", rootDir)   # So will a value in the parameters file
+    rootDir=Settings().Get("root directory", rootDir)   # So will a value in the parameters file
 
     # Make sure the root directory exists
     if not os.path.isdir(rootDir):
@@ -39,7 +40,7 @@ def main():
     Log("Root directory '"+rootDir+"' set")
 
     # Create a Reports directory if needed.
-    reportDir=g_parameters.SetIfMissingAndGet("Report Directory", "Reports")
+    reportDir=Settings().Get("Report Directory", "Reports")
     reportFilePath=str(os.path.join(rootDir, reportDir))
     if not os.path.isdir(reportFilePath):
         try:
@@ -512,7 +513,7 @@ def main():
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate lists of mailings
     # Files are created in reports/APAs
-    mailingsCSVFile=g_parameters.SetIfMissingAndGet("mailings csv file", "mailings.csv")
+    mailingsCSVFile=Settings().Get("mailings csv file", "mailings.csv")
 
     with open(os.path.join(rootDir, mailingsCSVFile), 'w', newline="") as csvfile:
         filewriter=csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
