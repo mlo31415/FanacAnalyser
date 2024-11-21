@@ -865,7 +865,7 @@ def WriteHTMLTable(filename: str,
         #....... Cleanup .......
         f.write('</div>\n</div>\n')
         f.writelines(ReadFile("control-Default.Footer"))
-        #Log(f"WriteHTMLTable({filename} completed")
+        Log(f"WriteHTMLTable({filename} completed")
 
 
 
