@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo, FanzineSeriesInfo
 from FanzineIssueSpecPackage import ExtractSerialNumber, FanzineCounts
 from Locale import Locale
+from Settings import Settings
 
 from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText
@@ -108,12 +109,18 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             continue
 
         # The URL we get is relative to the fanzines directory which has the URL fanac.org/fanzines
-        # We need to turn relPath into a URL
-        url=RelPathToURL(dirname)
+        # We need to turn it into a URL w can feed to BS4
+        if dirname is None:
+            continue
+        if dirname.startswith("http"):  # We don't want to mess with foreign URLs
+            continue
+        websiteurl=Settings().Get("Website URL", default="")
+        url="https://"+os.path.normpath(os.path.join(websiteurl, dirname)).replace("\\", "/")
         Log(f"{url=}")
         if url is None:
             continue
-        if not url.startswith("https://www.fanac.org"):
+        m=re.match(r"https://(www.)?fanac.org", url)     # The www. is optional
+        if m is None:
             LogError(f"...Skipped because not a fanac.org url: {url}")
             continue
 
