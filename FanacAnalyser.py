@@ -232,7 +232,7 @@ def main():
     # Count the number of issue and pages of all fanzines and of just newszines
     newsCount=FanzineCounts()
     for fz in fanacIssueList:
-        if fz.SeriesName.casefold() in listOfNewszines and fz.PageFilename != "":
+        if fz.FanzineType == "newszine" and fz.PageFilename != "":
             newsCount+=fz
             if os.path.splitext(fz.PageFilename)[1].lower() == ".pdf":
                 newsCount.Pdfcount+=1
@@ -245,7 +245,6 @@ def main():
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Newszines.html"),
                    fanacIssueList,
                    fURL=URL,
-                   fSelector=lambda fz: fz.SeriesName.casefold() in listOfNewszines,
                    fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
                    fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                    fButtonText=lambda fz: ChronButtonText(fz),
@@ -454,7 +453,7 @@ def main():
     # Count the number of distinct fanzine names (not issue names, but names of runs of fanzines.)
     # Create a set of all fanzines run names (the set to eliminate suploicates) and then get its size.
     fzCount=len(set([fz.SeriesName.casefold() for fz in fanacIssueList]))
-    nzCount=len(set([fz.SeriesName.casefold() for fz in fanacIssueList if fz.SeriesName.casefold() in listOfNewszines]))
+    nzCount=len(set([fz.SeriesName.casefold() for fz in fanacIssueList if fz.FanzineType == "newszine"]))
 
     # Print to the console and also the statistics file
     Log("\n")
