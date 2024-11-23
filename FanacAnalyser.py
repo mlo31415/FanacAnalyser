@@ -170,7 +170,7 @@ def main():
                    fURL=URL,
                    fButtonText=lambda fz: ChronButtonText(fz),
                     #
-                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                   fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                    includeRowHeaderCounts=True,
                     #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
@@ -183,7 +183,7 @@ def main():
     WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Fanzines.txt"),
                   datedList,
                   fRowBodyText=lambda fz: fz.IssueName,
-                  fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                  fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     # List of undated issues
     undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
@@ -239,6 +239,7 @@ def main():
                    fURL=URL,
                    fSelector=lambda fz: fz.SeriesName.casefold() in listOfNewszines,
                    fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                   fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                    fButtonText=lambda fz: ChronButtonText(fz),
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
