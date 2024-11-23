@@ -238,7 +238,7 @@ def main():
                 newsCount.Pdfcount+=1
 
     newszines=[x+"\n" for x in listOfNewszines]
-    with open(os.path.join(reportFilePath, "Items identified as newszines.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Items identified as newszines (Q: drop).txt"), "w+") as f:
         f.writelines(newszines)
 
     newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
