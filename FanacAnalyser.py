@@ -261,6 +261,13 @@ def main():
                    topCountText=newscountText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Newszine).html")
 
+    WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Newszines.txt"),
+                  datedList,
+                  fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
+                  fRowBodyText=lambda fz: fz.IssueName,
+                  fRowHeaderText=lambda fz: fz.FIS.MonthYear,
+                  topCountText=topcounttext+"\n"+timestamp+"\n")
+
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate Alphabetic lists by Fanzine title
