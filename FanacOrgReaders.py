@@ -507,7 +507,6 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     else:
         Log(f"No H2 block found in {directoryUrl}")
 
-
     # Extract any fanac keywords.  They will be of the form:
     #       <! fanac-keywords: Alphabetize individually -->
     # There may be many of them
@@ -845,7 +844,7 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
 
         # And save the results
         fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Position=iRow, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
-                            AlphabetizeIndividually=alphabetizeIndividually)
+                            FanzineType=FanzineType, AlphabetizeIndividually=alphabetizeIndividually)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
