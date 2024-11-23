@@ -225,6 +225,9 @@ def main():
             f.write(nnz+"\n")
 
     listOfNewszines=sorted(list(newszinesSet))
+    for fz in fanacIssueList:
+        if fz.SeriesName.casefold() in listOfNewszines:
+            fz.FanzineType="newszine"
 
     # Count the number of issue and pages of all fanzines and just newszines
     newsCount=FanzineCounts()
