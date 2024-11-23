@@ -229,7 +229,7 @@ def main():
         if fz.SeriesName.casefold() in listOfNewszines:
             fz.FanzineType="newszine"
 
-    # Count the number of issue and pages of all fanzines and just newszines
+    # Count the number of issue and pages of all fanzines and of just newszines
     newsCount=FanzineCounts()
     for fz in fanacIssueList:
         if fz.SeriesName.casefold() in listOfNewszines and fz.PageFilename != "":
@@ -927,7 +927,7 @@ def WriteTxtTable(filename: str,
             if fSelector is not None and not fSelector(fz):
                 continue
 
-            # Start a new main row
+            # Start a new main row?
             # Deal with Column 1
             if fRowHeaderText is not None:
                 # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
