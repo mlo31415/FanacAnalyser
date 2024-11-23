@@ -208,8 +208,8 @@ def main():
     newszinesSet=set([x.casefold() for x in ReadList(os.path.join(rootDir, "control-newszines.txt"), isFatal=True)])
 
     # Add in the newszines discovered in the <h2> blocks
-    newszinesFromH2Set=set([fii.SeriesName.casefold() for fii in fanacIssueList if "newszine" in fii.Taglist])
     with open(os.path.join(reportFilePath, "Items identified as newszines by H2 tags.txt"), "w+") as f:
+    newszinesFromH2Set=set([fii.SeriesName.casefold() for fii in fanacIssueList if "newszine" in fii.Taglist or fii.FanzineType.lower() == "newszine"])
         newszinesFromH2List=sorted(list(newszinesFromH2Set))
         for nz in newszinesFromH2List:
             f.write(nz+"\n")
@@ -245,7 +245,7 @@ def main():
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Newszines.html"),
                    fanacIssueList,
                    fURL=URL,
-                   fRowHeaderText=lambda fz: (fz.FIS.MonthText+" "+fz.FIS.YearText).strip(),
+                   fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
                    fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                    fButtonText=lambda fz: ChronButtonText(fz),
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
