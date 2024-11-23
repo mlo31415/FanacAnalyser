@@ -929,7 +929,7 @@ def WriteTxtTable(filename: str,
 
                     f.write("\n"+fRowHeaderText(fz))
                     if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
-                        f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
+                        f.write("    "+RemoveAllHTMLTags2(fHeaderAnnot(fz)))
                     f.write("\n")
 
             # Deal with "Column 2" (the indented stuff)
