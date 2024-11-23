@@ -241,6 +241,14 @@ def main():
     with open(os.path.join(reportFilePath, "Items identified as newszines (Q: drop).txt"), "w+") as f:
         f.writelines(newszines)
 
+
+    # List of dated issues
+    with open(os.path.join(reportFilePath, "Newszines in date order.txt"), "w") as f:
+        for fzi in fanacIssueList:
+            if fzi.FanzineType.lower() == "newszine":
+                f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
+
+
     newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Newszines.html"),
                    fanacIssueList,
