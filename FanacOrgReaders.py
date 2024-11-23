@@ -329,6 +329,10 @@ def ExtractMailings(columnHeaders: list[str], row: list[list[TextAndHref]]) -> l
 # ============================================================================================
 # Scan the row and locate the issue cell, title and href and return them as a tuple
 def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[list[TextAndHref]]) -> TextAndHref:
+    if len(row) < len(columnHeaders):
+        Log(f"ExtractIssueNameAndHref: Row has {len(row)} columns while we expected {len(columnHeaders)} columns. Row skipped.")
+        return TextAndHref()
+
     # Find the column containing the issue name
     issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
     if issue[0].IsEmpty():
