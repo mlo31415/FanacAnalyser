@@ -895,13 +895,15 @@ def WriteHTMLTable(filename: str,
 
 def CountSublist(fCompare: Callable[[str, str], bool], fRowSelect: Callable[[FanzineIssueInfo], str], fSelector: Callable[[FanzineIssueInfo], str]|None=None, fanacIssueList: list[FanzineIssueInfo]|None=None, CountTitles: bool=False) -> FanzineCounts:
     fc=FanzineCounts()
-    tempLastRowHeaderSelect=fSelect(fanacIssueList[0])
-    for fztemp in fanacIssueList:  # Loop through fanacIssueList starting at the current position which is the start of a block.
-        if not fCompare(tempLastRowHeaderSelect, fSelect(fztemp)):
+    tempLastRowHeaderSelect=fRowSelect(fanacIssueList[0])
+    for fz in fanacIssueList:  # Loop through fanacIssueList starting at the current position which is the start of a block.
+        if fSelector is not None and not fSelector(fz):
+            continue
+        if not fCompare(tempLastRowHeaderSelect, fRowSelect(fz)):
             break  # Bail when the block selection changes
-        fc+=fztemp
+        fc+=fz
         if CountTitles:
-            fc+=fztemp.SeriesName
+            fc+=fz.SeriesName
     return fc
 
 
