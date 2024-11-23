@@ -587,7 +587,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
         Log(f"No country found for {fanzineName}")
 
     # Walk the table and extract the fanzines in it
-    fiiList=ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
+    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
 
     # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
     alphabetizeIndividually=kwds["Alphabetize individually"] == ""  # Check if keyword is present -- it doesn't need a value
@@ -631,7 +631,7 @@ def ReadMTVoid(directoryUrl: str) -> list[FanzineIssueInfo]:
     html=str(soup.body)
 
     if table is not None:
-        fiiList.extend(ExtractFanzineIndexTableInfo(directoryUrl, fanzineName, table, editor, country))
+        fiiList.extend(ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country))
 
     # Now look for hyperlinks deeper into the directory. (Hyperlinks going outside the directory are not interesting.)
     links=soup.find_all("a")
@@ -745,7 +745,7 @@ def ReadSingleton(directoryUrl: str, fanzineName: str, soup) -> list[FanzineIssu
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfo(directoryUrl: str, fanzineName: str, table: Tag, editor: str, defaultcountry: str, alphabetizeIndividually: bool=False) -> list[FanzineIssueInfo]:
+def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: Tag, editor: str, defaultcountry: str, FanzineType: str="", alphabetizeIndividually: bool=False) -> list[FanzineIssueInfo]:
 
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
