@@ -514,7 +514,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     contents=str(soup)
     contents=contents.replace("\n", " ")
     kwds: ParmDict=ParmDict(CaseInsensitiveCompare=True)
-    pat="<!--\s?[Ff]anac-keywords:(.*?)-{1,4}>"
+    pat=r"<!--\s?[Ff]anac-keywords:(.*?)-{1,4}>"
     while True:
         m=re.search(pat, contents)#, re.IGNORECASE)
         if not m:
@@ -576,7 +576,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     pattern="[0-9-\?]"
     editor=""
     for h in h2s:
-        if re.match(pattern, h):
+        if re.match(r"[0-9-\?]", h):
             break
         if editor:
             editor+=", "
@@ -640,7 +640,7 @@ def ReadMTVoid(directoryUrl: str) -> list[FanzineIssueInfo]:
         # If it's an html file it's probably worth investigating
         if "href" in link.attrs.keys():     # Some pages have <A NAME="1"> tags which we need to ignore
             url=link.attrs["href"]
-            m=re.match("^[a-zA-Z0-9\-_]*.html$", url)
+            m=re.match(r"^[a-zA-Z0-9\-_]*.html$", url)
             if m is not None:
                 if url.startswith("index") or url.startswith("archive") or url.startswith("Bullsheet1-00") or url.startswith("Bullsheet2-00"):
                     u=ChangeFileInURL(directoryUrl, url)
