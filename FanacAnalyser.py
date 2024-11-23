@@ -768,7 +768,7 @@ def WriteHTMLTable(filename: str,
             # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
             # Note that they have defaults, so they do not need to be checked for None
             if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
-                if lastRowHeaderSelect:  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
+                if lastRowHeaderSelect != "":  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
                     f.write('    </div></div>\n')
 
                 if includeRowHeaderCounts:
