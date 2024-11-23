@@ -773,7 +773,7 @@ def WriteHTMLTable(filename: str,
 
                 if includeRowHeaderCounts:
                     # Count the issues in this block.
-                    fc=CountSublist(fCompareRowHeaderText, fRowHeaderSelect, fanacIssueList[i:], CountTitles=True)
+                    fc=CountSublist(fCompare=fCompareRowHeaderText, fRowSelect=fRowHeaderSelect, fSelector=fSelector, fanacIssueList=fanacIssueList[i:], CountTitles=True)
 
                 # Since this is a new main row, we write the header in col 1
                 # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
@@ -864,7 +864,7 @@ def WriteHTMLTable(filename: str,
                         else:
                             f.write('        '+FormatLink(link, bodytext))
 
-                    fc=CountSublist(fCompareRowBodyText, fRowBodySelect, fanacIssueList[i:])
+                    fc=CountSublist(fCompare=fCompareRowBodyText, fRowSelect=fRowBodySelect, fanacIssueList=fanacIssueList[i:])
 
                     annot=""
                     if fRowBodyAnnot is not None:
@@ -893,7 +893,7 @@ def WriteHTMLTable(filename: str,
 
 
 
-def CountSublist(fCompare: Callable[[str, str], bool], fSelect: Callable[[FanzineIssueInfo], str], fanacIssueList: list[FanzineIssueInfo], CountTitles: bool=False) -> FanzineCounts:
+def CountSublist(fCompare: Callable[[str, str], bool], fRowSelect: Callable[[FanzineIssueInfo], str], fSelector: Callable[[FanzineIssueInfo], str]|None=None, fanacIssueList: list[FanzineIssueInfo]|None=None, CountTitles: bool=False) -> FanzineCounts:
     fc=FanzineCounts()
     tempLastRowHeaderSelect=fSelect(fanacIssueList[0])
     for fztemp in fanacIssueList:  # Loop through fanacIssueList starting at the current position which is the start of a block.
