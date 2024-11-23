@@ -168,7 +168,6 @@ def main():
             f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
 
     # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
-    # List of dated issues
     datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines.html"),
                    datedList,
