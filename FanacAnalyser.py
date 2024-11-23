@@ -714,11 +714,10 @@ def WriteHTMLTable(filename: str,
 
         headers=set()
         for fz in fanacIssueList:
-            if fSelector is not None and not fSelector(fz):
-                continue
-            if fButtonText is not None:
-                if fButtonText(fz) is not None:
-                    headers.add(fButtonText(fz))
+            if fSelector is None or fSelector(fz):
+                if fButtonText is not None:
+                    if fButtonText(fz) is not None:
+                        headers.add(fButtonText(fz))
 
         headerlist=list(headers)
         headerlist.sort(key=lambda elem: elem.lower())
