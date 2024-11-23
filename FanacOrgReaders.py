@@ -242,7 +242,7 @@ def ExtractDate(columnHeaders: list[str], row: list[list[TextAndHref]]) -> Fanzi
 
     # Try to build up a FanzineDate "by hand", so to speak
     fd=FanzineDate(Year=yearText, MonthText=monthText)
-    Log(f"By hand: {fd}")
+    Log(f"By hand: {fd=}")
     return fd
 
 
