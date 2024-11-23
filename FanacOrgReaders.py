@@ -19,10 +19,10 @@ from Settings import Settings
 
 from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText
-from HelpersPackage import RelPathToURL, ChangeFileInURL, ChangeNBSPToSpace
+from HelpersPackage import ExtractBetweenHTMLComments, ChangeFileInURL, ChangeNBSPToSpace
 from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import IsInt, Int0
-from HelpersPackage import RemoveFunnyWhitespace
+from HelpersPackage import RemoveFunnyWhitespace, ExtractInvisibleTextInsideFanacComment
 from HelpersPackage import ParmDict
 
 
@@ -413,6 +413,84 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
     if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
         return ReadSingleton(directoryUrl, fanzineName, soup)
 
+    version=ExtractInvisibleTextInsideFanacComment(str(soup), "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
+
+    if version == "":
+        return ReadFanacFanzineIndexPageOld(fanzineName, directoryUrl, soup)
+    else:
+        return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, soup)
+
+
+def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, soup: BeautifulSoup) -> list[FanzineIssueInfo]:
+    # Locate the Index Table on this page.
+    table=LocateIndexTable(directoryUrl, soup)
+    if table is None:
+        return []
+
+    # Check to see if this is marked as a Newszine
+    isnewszines=False
+    temp=soup.h2
+    if temp is not None:
+        if temp.text.find("Newszine") > -1:
+            Log(f">>>>>> Newszine added: '{fanzineName}'")
+            isnewszines=True
+    else:
+        Log(f"No H2 block found in {directoryUrl}. Unable to check for status as Newszine.")
+
+    # Extract any fanac keywords.  They will be of the form:
+    #       <! fanac-keywords: Alphabetize individually -->
+    # There may be many of them
+    contentsAsString=str(soup)
+    contentsAsString=contentsAsString.replace("\n", " ")
+    kwds: ParmDict=ParmDict(CaseInsensitiveCompare=True)
+    pat=r"<!--\s?[Ff]anac-keywords:(.*?)-{1,4}>"
+    while True:
+        m=re.search(pat, contentsAsString)#, re.IGNORECASE)
+        if not m:
+            break
+        kwds[m.groups()[0].strip()]=""
+        contentsAsString=re.sub(pat, "", contentsAsString)#, re.IGNORECASE)
+
+    seriesName=ExtractBetweenHTMLComments(contentsAsString, "name")
+    # Replace internal br brackets with semicolons
+    seriesName=re.sub(r"</?br/?>", "; ", seriesName, flags=re.IGNORECASE)
+
+    other=ExtractBetweenHTMLComments(contentsAsString, "other")
+    if other != "":
+        other=", "+other
+    editor=ExtractBetweenHTMLComments(contentsAsString, "eds")+other
+
+    country=ExtractBetweenHTMLComments(contentsAsString, "loc")
+    if country == "":
+        Log(f"No location found for {fanzineName}")
+
+    type=ExtractBetweenHTMLComments(contentsAsString, "type")
+
+    # Walk the table and extract the fanzines in it
+    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country, FanzineType=type, alphabetizeIndividually=True)
+
+    # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
+    alphabetizeIndividually=kwds["Alphabetize individually"] == ""  # Check if keyword is present -- it doesn't need a value
+    if alphabetizeIndividually:
+        # Add the tags and the series info pointer
+        for fii in fiiList:
+            # Create a special series just for this issue.
+            fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
+            if isnewszines:
+                fii.Taglist.append("newszine")
+    else:
+        # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
+        fsi=FanzineSeriesInfo(SeriesName=seriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+        for fii in fiiList:
+            fii.Series=fsi
+            if isnewszines:
+                fii.Taglist.append("newszine")
+
+    return fiiList
+
+
+
+def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: BeautifulSoup) -> list[FanzineIssueInfo]:
     # By elimination, this must be an ordinary page, so read it.
     # Locate the Index Table on this page.
     table=LocateIndexTable(directoryUrl, soup)
