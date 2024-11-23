@@ -259,7 +259,8 @@ def main():
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                    topCountText=newscountText+"\n"+timestamp+"\n",
-                   headerFilename="control-Header (Newszine).html")
+                   headerFilename="control-Header (Newszine).html",
+                   debugflag=True)
 
     WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Newszines.txt"),
                   datedList,
