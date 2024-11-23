@@ -162,6 +162,11 @@ def main():
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
 
+    # List of dated issues
+    with open(os.path.join(reportFilePath, "Fanzines in date order.txt"), "w") as f:
+        for fzi in fanacIssueList:
+            f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
+
     # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
     # List of dated issues
     datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
