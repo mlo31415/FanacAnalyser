@@ -573,7 +573,6 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
 
     # The editor(s) names are usually the line or lines before the date range.
     # The date range is something like '1964' or '1964-1999' or '1964-1999?'
-    pattern="[0-9-\?]"
     editor=""
     for h in h2s:
         if re.match(r"[0-9-\?]", h):
