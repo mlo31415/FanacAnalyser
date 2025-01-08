@@ -471,7 +471,7 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, soup: Beau
     type=ExtractBetweenHTMLComments(contentsAsString, "type")
 
     # Walk the table and extract the fanzines in it
-    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country, FanzineType=type, alphabetizeIndividually=True)
+    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editors, country, FanzineType=type, alphabetizeIndividually=True)
 
     # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
     alphabetizeIndividually=kwds["Alphabetize individually"] == ""  # Check if keyword is present -- it doesn't need a value
@@ -484,7 +484,7 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, soup: Beau
                 fii.Taglist.append("newszine")
     else:
         # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
-        fsi=FanzineSeriesInfo(SeriesName=seriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+        fsi=FanzineSeriesInfo(SeriesName=seriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editors, Country=country, Keywords=kwds)
         for fii in fiiList:
             fii.Series=fsi
             if isnewszines:
