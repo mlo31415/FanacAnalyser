@@ -1050,16 +1050,22 @@ def URL(fz: FanzineIssueInfo) -> str:
         url=m.groups()[0]
         page=m.groups()[1]
 
-    if "/" not in fz.PageFilename:
+    if "/" not in fz.PageFilename:      # Its the pagename without any path info?
         url=url+"/"+fz.PageFilename+page
+        return url
+
+    # If there is a path bit, are we pointing to a subdirectory of the current directory?  (This is typical of older HTML fanzines.)
+    if fz.PageFilename[0] not in " /":
+        url=url+"/"+fz.PageFilename+page
+        return url
+
+    # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
+    # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
+    parts=fz.PageFilename.split("/")
+    if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
+        url=url+"/../"+"/".join(parts[-2:])+page
     else:
-        # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
-        # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
-        parts=fz.PageFilename.split("/")
-        if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
-            url=url+"/../"+"/".join(parts[-2:])+page
-        else:
-            url=fz.PageFilename
+        url=fz.PageFilename
     return url
 
 
