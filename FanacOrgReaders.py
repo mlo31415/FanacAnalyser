@@ -450,23 +450,20 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, soup: Beau
     contentsAsString=str(soup)
     contentsAsString=contentsAsString.replace("\n", " ")
     kwds: ParmDict=ParmDict(CaseInsensitiveCompare=True)
-    pat=r"<!--\s?[Ff]anac-keywords:(.*?)-{1,4}>"
-    while True:
-        m=re.search(pat, contentsAsString)#, re.IGNORECASE)
-        if not m:
-            break
-        kwds[m.groups()[0].strip()]=""
-        contentsAsString=re.sub(pat, "", contentsAsString)#, re.IGNORECASE)
+    keywords=ExtractInvisibleTextInsideFanacComment(contentsAsString, "keywords")
+    if keywords != "":
+        keywords=[x.strip() for x in keywords.split(";")]
+        for keyword in keywords:
+            kwds[keyword]=""    # We just set a value of the empty string.  Missing keywords will return None
 
     seriesName=ExtractBetweenHTMLComments(contentsAsString, "name")
     # Replace internal br brackets with semicolons
     seriesName=re.sub(r"</?br/?>", "; ", seriesName, flags=re.IGNORECASE)
 
-    other=ExtractBetweenHTMLComments(contentsAsString, "other")
-    if other != "":
-        other=", "+other
-    editor=ExtractBetweenHTMLComments(contentsAsString, "eds")+other
-
+    editors=ExtractBetweenHTMLComments(contentsAsString, "eds")
+    editors=editors.replace("<br/>", "<br>")
+    editors=[RemoveHyperlink(x).strip() for x in editors.split("<br>")]
+    editors=", ".join(editors)
     country=ExtractBetweenHTMLComments(contentsAsString, "loc")
     if country == "":
         Log(f"No location found for {fanzineName}")
