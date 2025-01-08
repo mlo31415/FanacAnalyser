@@ -644,7 +644,9 @@ def WriteHTMLTable(filename: str,
                topCountText: str= "",
                headerFilename: str="",
                fSelector: Callable[[FanzineIssueInfo], bool]|None = None,            # If present, selects fanzines to be included in report.  Default is to include all.
-               inAlphaOrder: bool=False)\
+               inAlphaOrder: bool=False,
+                #
+                debugflag=False)\
                 -> None:
 
     #Log(f"WriteHTMLTable({filename} called")
