@@ -226,7 +226,7 @@ def ExtractDate(columnHeaders: list[str], row: list[list[TextAndHref]]) -> Fanzi
     monthText=GetCellValueByColHeader(columnHeaders, row, "Month")[0].Text
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day")[0].Text
 
-    if yearText is not None:
+    if yearText is not None:        #TODO: Can we use the date interpetation code in FanzineIssueSpecPackage??
         if monthText is not None:
             if dayText is not None:
                 constructedDate=monthText+" "+dayText+", "+yearText
