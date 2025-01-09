@@ -60,7 +60,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             # "Bulletin_of_the_British_Interplanetary_Society",
             # "SFNL-RichardWilson",
             # "Novae Terrae",
-            #"1950s_One_Shots",
+            #"1970s_One_Shots",
             #"File770",
             #"Plokta",
             #"Diaspar",
@@ -226,32 +226,13 @@ def ExtractDate(columnHeaders: list[str], row: list[list[TextAndHref]]) -> Fanzi
     monthText=GetCellValueByColHeader(columnHeaders, row, "Month")[0].Text
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day")[0].Text
 
-    if yearText is not None:        #TODO: Can we use the date interpetation code in FanzineIssueSpecPackage??
-        if monthText is not None:
-            if dayText is not None:
-                constructedDate=monthText+" "+dayText+", "+yearText
-            else:
-                constructedDate=monthText+" "+yearText
-        else:
-            if dayText is not None:
-                constructedDate=dayText+" "+yearText
-            else:
-                constructedDate=yearText
-        Log(f"   constructed date='{constructedDate}'")
-        if constructedDate is not None:
-            fd=FanzineDate().Match(constructedDate)
-            if not fd.IsEmpty():
-                return fd
+    year=Int0(yearText)
+    if year > 0:
+        fd=FanzineDate(Year=year, MonthText=monthText, Day=dayText)
+        return fd
 
-    # Well, that didn't work.
-    if yearText is None or not IsInt(yearText):
-        Log("   ***Date conversion failed: no useable date columns data found")
-
-    # Try to build up a FanzineDate "by hand", so to speak
-    fd=FanzineDate(Year=yearText, MonthText=monthText)
-    Log(f"By hand: {fd=}")
-    return fd
-
+    Log("   ***Date conversion failed: no useable date columns data found")
+    return FanzineDate()
 
 #=============================================================================================
 # Extract a serial number (vol, num, whole_num) from a table row
