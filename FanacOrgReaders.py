@@ -51,7 +51,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
         unskippers=[
             #"MT_Void",
             #"MT_VOID-Pre_1990",
-            #"unterHelios",
+            #"SkyHook",
             #"Anakreon",
             #"Bletherings",
             #"Coventranian_Gazette",
@@ -70,7 +70,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             #"Le_Zombie",
             #"EnGarde",
             #"Ice",
-            #"Alien_Review",
+            #"Fantasy_News",
             #"Space_Wastrel",
             #"Leaflet",
             #"Booklist",
@@ -225,10 +225,10 @@ def ExtractDate(columnHeaders: list[str], row: list[list[TextAndHref]]) -> Fanzi
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year")[0].Text
     monthText=GetCellValueByColHeader(columnHeaders, row, "Month")[0].Text
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day")[0].Text
+    dateText=GetCellValueByColHeader(columnHeaders, row, "Date")[0].Text
 
-    year=Int0(yearText)
-    if year > 0:
-        fd=FanzineDate(Year=year, MonthText=monthText, Day=dayText)
+    if yearText is not None and yearText != "":
+        fd=FanzineDate(YearText=yearText, MonthText=monthText, Day=dayText, DateText=dateText)
         return fd
 
     Log("   ***Date conversion failed: no usable date columns data found")
