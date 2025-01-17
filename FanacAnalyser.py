@@ -178,7 +178,7 @@ def main():
                    includeRowHeaderCounts=True,
                     #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
+                   fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                     #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    #
@@ -256,7 +256,7 @@ def main():
                    fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                    fButtonText=lambda fz: ChronButtonText(fz),
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
+                   fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                    topCountText=newscountText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Newszine).html")
 
@@ -843,7 +843,7 @@ def WriteHTMLTable(filename: str,
                         annot+="&nbsp;&nbsp;&nbsp;&nbsp;"
                     annot+=str(fc)
                 if annot != "":
-                    f.write(Smallify(f"&nbsp;&nbsp;&nbsp;&nbsp;({annot})"))
+                    f.write(Smallify(f"&nbsp;&nbsp;&nbsp;({annot})"))
 
                 f.write('<br>\n')
             else:
@@ -874,10 +874,10 @@ def WriteHTMLTable(filename: str,
                             annot=annot.strip()
                     if fc is not None:
                         if annot != "":
-                            annot+="&nbsp;&nbsp;&nbsp;&nbsp;"
+                            annot+="&nbsp;&nbsp;&nbsp;"
                         annot+=str(fc)
                     if annot != "":
-                        f.write(Smallify(f"&nbsp;&nbsp;&nbsp;&nbsp;({annot})"))
+                        f.write(Smallify(f"&nbsp;&nbsp;&nbsp;({annot})"))
 
                     f.write('<br>\n')
                     lastRowBodySelect=fRowBodySelect(fz)
@@ -1028,7 +1028,7 @@ def Smallify(s1: str, s2: str="") -> str:
     if s2 == "":
         return f"<small>{s1}</small>"
 
-    return f"<small>{s1}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{s2}</small>"
+    return f"<small>{s1}&nbsp;&nbsp;&nbsp;{s2}</small>"
 
 #.........................................................
 # Compute the button text and links for chronological listings -- used in calls to WriteTable
