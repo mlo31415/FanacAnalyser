@@ -521,26 +521,27 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     #...or something else...
 
     # While we expect the H1 title material to be terminated by <h2>, we can't count on that, so we also look for a terminal </h1>
-    h1s=str(soup.h1)
-    lh2=h1s.lower().find("<h2>")
-    lh1end=h1s.lower().find("</h1>")
-    if lh2 == -1:
-        lh2=99999
-    if lh1end == -1:
-        lh1end=99999
-    lend=min(lh2, lh1end)
-    h1s=h1s[:lend]
+    sername=None
+    if soup.h1 is not None:
+        h1s=str(soup.h1)
+        locH2=h1s.lower().find("<h2>")
+        if locH2 == -1:
+            locH2=99999
+        locH1end=h1s.lower().find("</h1>")
+        if locH1end == -1:
+            locH1end=99999
+        sername=h1s[:min(locH2, locH1end)]
 
-    # Remove any opening bracket and terminal brackets
-    loc=h1s.find(">")
-    if loc > -1:
-        h1s=h1s[loc+1:]
-    if h1s[-1] == ">":
-        loc=h1s.rfind("<")
-        h1s=h1s[:loc]
+        # Remove any opening bracket and terminal brackets
+        loc=sername.find(">")
+        if loc > -1:
+            sername=sername[loc+1:]
+        if sername[-1] == ">":
+            loc=sername.rfind("<")
+            sername=sername[:loc]
 
-    # Replace internal br brackets with semicolons
-    seriesName=re.sub(r"</?br/?>", "; ", h1s, flags=re.IGNORECASE)
+        # Replace internal br brackets with semicolons
+        seriesName=re.sub(r"</?br/?>", "; ", sername, flags=re.IGNORECASE)
 
     h2s=str(soup.h2)
     # Split on various flavors of <br> and <h2>
@@ -549,6 +550,9 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     h2s=re.sub(pattern, "|", h2s)
     h2s=h2s.split("|")
     h2s=[h.strip() for h in h2s if len(h.strip()) > 0]
+
+    if sername is None:
+        seriesName=h2s[0]
 
     # Because of the sloppiness of fanac.org, sometimes the fanzine name is picked up again here.
     # We ignore the first token if it is too similar to the fanzine name
@@ -830,7 +834,7 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
         # And save the results
         fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Position=iRow, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
                             FanzineType=FanzineType, AlphabetizeIndividually=alphabetizeIndividually)
-        if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.Month is None:
+        if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.MonthNum is None:
             Log(f"   ****Skipping null table row: {fi}")
             continue
 
