@@ -43,64 +43,12 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     # We also skip these
     offsite=ReadList(os.path.join(rootDir, "control-offsite.txt"))
 
+    limitationsList=ReadList(os.path.join(rootDir, "control-limitations.txt"))
+
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
-        # This bit allows us to skip all *but* the fanzines in unskippers. It's for debugging purposes only
-        # If unskippers is empty, *everything will be scanned.
-        # If unskippers is not empty, just the directories listed in it will be scanned.
-        unskippers=[
-            #"MT_Void",
-            #"MT_VOID-Pre_1990",
-            #"SkyHook",
-            #"Anakreon",
-            #"Bletherings",
-            #"Coventranian_Gazette",
-            # "Imagination",
-            # "Bloomington_News_Letter",
-            # "Bulletin_of_the_British_Interplanetary_Society",
-            # "SFNL-RichardWilson",
-            # "Novae Terrae",
-            #"1970s_One_Shots",
-            #"File770",
-            #"Plokta",
-            #"Diaspar",
-            #"1970s_One_Shots",New(
-            #"A_Bas",
-            #"Starship_Tripe",
-            #"Le_Zombie",
-            #"EnGarde",
-            #"Ice",
-            #"Fantasy_News",
-            #"Space_Wastrel",
-            #"Leaflet",
-            #"Booklist",
-            #"ddd",
-            #"Texas-SF-Inquirer",
-            #"En Garde",
-            #"Fanthologies",
-            #"1970s_One_Shots",
-            #"FAPA-Misc",
-            #"Cloud_Chamber",
-            #"Zenith",
-            #"Outre",
-            #"1_Issue-Maybe_More_to_Come",
-            #"Melange",
-            #"PAS-tell",
-            #"Alembic",
-            #"Trimble-Other_Publications",
-            #"Now_and_Then",
-            #"Science_Fiction_Times",
-            #"Discord",
-            #"Bete_Noire",
-            #"Musicals",
-            #"Anvil",
-            #"Spiritus_Mundi",
-            #"Brit_Fantasy_Soc_Bulletin",
-            #"VOID",
-            #"Munich_Round_Up",
-            #"Fantasy_Fiction_Field"
-        ]
-        if len(unskippers) > 0 and dirname not in unskippers:  continue     # If and only if there are unskippers present, skip directories not in unskippers
+
+        if len(limitationsList) > 0 and dirname not in limitationsList:  continue     # If and only if there are unskippers present, skip directories not in unskippers
 
         LogSetHeader("'"+dirname+"'      '"+title+"'")
 
