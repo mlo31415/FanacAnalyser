@@ -21,7 +21,7 @@ from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText
 from HelpersPackage import ExtractBetweenHTMLComments, ChangeFileInURL, ChangeNBSPToSpace, RemoveHyperlink
 from HelpersPackage import CanonicizeColumnHeaders
-from HelpersPackage import IsInt, Int0
+from HelpersPackage import Int0
 from HelpersPackage import RemoveFunnyWhitespace, ExtractInvisibleTextInsideFanacComment
 from HelpersPackage import ParmDict
 
