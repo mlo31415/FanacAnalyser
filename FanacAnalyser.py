@@ -474,8 +474,8 @@ def main():
     Log(f"All fanzines: Titles: {fzCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}")
     Log(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}")
     Log(f"All PDF fanzines: Issues: {countsGlobal.Pdfcount:,}   Pages: {countsGlobal.Pdfpagecount:,}")
-    for selectedYear in selectedYears:
-        Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
+    # for selectedYear in selectedYears:
+    #     Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
 
     with open(os.path.join(reportFilePath, "Statistics.txt"), "w+") as f:
         print(timestamp)
