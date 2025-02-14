@@ -157,7 +157,7 @@ def main():
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
     fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.IssueName))  # Sorts in place on fanzine's name with leading articles suppressed
-    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
@@ -291,10 +291,10 @@ def main():
             if len(fz.SeriesName) > 0:  # In a by-title listing, missing titles are uninteresting
                 fanacIssueListByTitle.append(fz)
 
-    fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatDateForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
+    fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
     def MessySort(x: FanzineIssueInfo): # This handles the fact that MT Void is scattered among many pages, so position does nto work for it.  Ugly.
         if "MT Void" in x.SeriesName:
-            return x.FIS.FormatDateForSorting()
+            return x.FIS.FormatYearMonthForSorting()
         return f"{x.Position:0>5}"
     fanacIssueListByTitle.sort(key=MessySort)
     fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor, RemoveLeadingArticles=True)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
@@ -375,7 +375,7 @@ def main():
                 fanacIssueListByEditor.append(fz)
 
     # Sort the Alphabetic lists by Editor
-    fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
@@ -420,7 +420,7 @@ def main():
                    inAlphaOrder=True)
 
     # Sort the Alphabetic lists by Editor, but with fanzines in date order
-    fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatDateForSorting())
+    fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines_by_Editor.html"),
