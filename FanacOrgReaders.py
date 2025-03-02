@@ -392,6 +392,7 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, soup: Beau
     editors=ExtractBetweenHTMLComments(contentsAsString, "eds")
     editors=editors.replace("<br/>", "<br>").replace("\n", "<br>")
     editors=[RemoveHyperlink(x).strip() for x in editors.split("<br>")]
+    editors=[x for x in editors if len(x.strip()) > 0]
     editors=", ".join(editors)
     country=ExtractBetweenHTMLComments(contentsAsString, "loc")
     if country == "":
