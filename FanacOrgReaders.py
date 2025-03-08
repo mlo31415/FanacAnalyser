@@ -39,20 +39,26 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     # We read in a list of directories to be skipped.
     skippers=ReadList(os.path.join(rootDir, "control-skippers.txt"))
 
+    # Read in a list to be not skipped (implies all other directors are to be skipped.)
+    unskippers=ReadList(os.path.join(rootDir, "control-unskippers.txt"))
+
+    if len(unskippers) > 0:
+        skippers=[]      # Unskippers trumps skippers
+
     # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
     # We also skip these
     offsite=ReadList(os.path.join(rootDir, "control-offsite.txt"))
 
-    limitationsList=ReadList(os.path.join(rootDir, "control-limitations.txt"))
-
     fanacDirectories.sort(key=lambda tup: tup[1])
     for title, dirname in fanacDirectories:
 
-        if len(limitationsList) > 0 and dirname not in limitationsList:  continue     # If and only if there are unskippers present, skip directories not in unskippers
+        if len(unskippers) > 0:
+            if dirname not in unskippers and (dirname[-1] == "/" and dirname[:-1] not in unskippers):   # Handle dinames ending in "/"
+                continue     # If and only if there are unskippers present, skip directories not in unskippers
 
         LogSetHeader("'"+dirname+"'      '"+title+"'")
 
-        if dirname in skippers:
+        if dirname in skippers or (dirname[-1] == "/" and dirname[:-1] in skippers):     # Deal with terminal "/"
             LogError(f"...Skipping because it is in skippers: {dirname}")
             continue
         if dirname in offsite:
