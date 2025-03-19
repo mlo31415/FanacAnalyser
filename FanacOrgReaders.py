@@ -832,7 +832,7 @@ def LookForTable(soup: BeautifulSoup, flags: dict[str, str]) -> Optional[Tag]:
 def LocateIndexTable(directoryUrl: str, soup: BeautifulSoup, silence: bool=False) -> Optional[Tag]:
 
     # Because the structures of the pages are so random, we need to search the body for the table.
-    # *So far* nearly all of the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
+    # *So far* nearly all the tables have been headed by <table border="1" cellpadding="5">, so we look for that.
     table=LookForTable(soup, {"border" : "1", "cellpadding" : "5"})
     if table is not None:
         return table
