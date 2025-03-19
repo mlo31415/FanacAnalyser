@@ -575,7 +575,7 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
     fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
     directories=ReadList("control-topleveldirectories.txt")
     for dirs in directories:
-        ReadModernOrClassicTable(fanacFanzineDirectoriesList, dirs)
+        ReadClassicFanzinePageTable(fanacFanzineDirectoriesList, dirs)
 
     Log("----Done reading Classic table")
     return fanacFanzineDirectoriesList
@@ -583,7 +583,7 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
-def ReadModernOrClassicTable(fanacFanzineDirectoriesList: list[tuple[str, str]], url: str) -> None:
+def ReadClassicFanzinePageTable(fanacFanzineDirectoriesList: list[tuple[str, str]], url: str) -> None:
     h=requests.get(url, headers={'Cache-Control': 'no-cache'})
     s=BeautifulSoup(h.content, "html.parser")
     # We look for the first sortable table that does not contain a "navbar"
