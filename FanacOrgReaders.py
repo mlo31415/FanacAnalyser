@@ -53,7 +53,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     for title, dirname in fanacDirectories:
 
         if len(unskippers) > 0:
-            if dirname not in unskippers and (dirname[-1] == "/" and dirname[:-1] not in unskippers):   # Handle dinames ending in "/"
+            if dirname not in unskippers and (dirname[-1] == "/" and dirname[:-1] not in unskippers):   # Handle dirnames ending in "/"
                 continue     # If and only if there are unskippers present, skip directories not in unskippers
 
         LogSetHeader("'"+dirname+"'      '"+title+"'")
