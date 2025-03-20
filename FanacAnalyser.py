@@ -6,9 +6,9 @@ import os
 import sys
 import re
 import math
+import html
 import datetime
 from unidecode import unidecode
-from bs4 import BeautifulSoup
 import csv
 
 import FanacOrgReaders
@@ -19,7 +19,7 @@ from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
 from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles, CaseInsensitiveCompare
 from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
 from HelpersPackage import UnscrambleListOfNames, Pluralize
-from HelpersPackage import ReadListAsParmDict
+from FanacFanzinesHelpers import ReadClassicFanzinesTable
 
 
 def main():
@@ -585,24 +585,30 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
 def ExtractTitlesFromClassicFanzinePage(fanacFanzineDirectoriesList: list[tuple[str, str]], url: str) -> None:
     h=requests.get(url, headers={'Cache-Control': 'no-cache'})
-    s=BeautifulSoup(h.content, "html.parser")
-    # We look for the first sortable table that does not contain a "navbar"
-    tables=s.find_all("table")
-    for table in tables:
-        if "sortable" in str(table.attrs) and not "navbar" in str(table.attrs):
-            # OK, we've found the main table.  Now read it
-            trs=table.find_all("tr")
-            for i in range(1, len(trs)):
-                # Now the data rows
-                try:
-                    if len(trs[i].find_all("td")[1].contents[0].contents[0]) > 0:   # I've seen bogus entries where this isn't true
-                        name=trs[i].find_all("td")[1].contents[0].contents[0].contents[0]
-                        dirname=trs[i].find_all("td")[1].contents[0].attrs["href"][:-1]
-                        AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
-                except:
-                    LogError("Bogus row found by ReadModernOrClassicTable")    # There's really nothing to be done except debug...
-                    assert()    #TODO: Remove this, as it is temporary
-    return
+    rows=ReadClassicFanzinesTable(str(h.content))
+    assert rows is not None
+
+
+    for row in rows[1:]:
+        cols=re.split(r"</td>(?:|\n|\\n)*<td[^>]*>", row, flags=re.IGNORECASE|re.DOTALL)
+        assert len(cols) > 1
+        href=cols[1]
+        href=re.sub(r"</?strong>", "", href, flags=re.IGNORECASE|re.MULTILINE)      # Remove b<strong> and </strong> as they're not informative
+        m=re.match(r".*?<a href=(.*?)>(.*?)</a>", href, flags=re.IGNORECASE|re.DOTALL)
+        if m is None:
+            Log(f"ReadModernOrClassicTable: unscannable: {cols}")
+            continue
+        dirname=m.groups()[0]
+        dirname=html.unescape(dirname)
+        if dirname[0] == '"' and dirname[-1] == '"':
+            dirname=dirname[1:-1]
+        name=m.groups()[1]
+        name=html.unescape(name)
+        #name=name.replace("&gt;", ">").replace("&lt;", "<").replace("&amp;", "&").replace("&quot;", "'")
+        if name[0] == "'" and name [-1] == "'":
+            name=name[1:-1]
+        AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
+
 
 
 def ReadFile(filename: str) -> list[str]:
