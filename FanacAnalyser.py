@@ -575,7 +575,7 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
     fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
     directories=ReadList("control-topleveldirectories.txt")
     for dirs in directories:
-        (fanacFanzineDirectoriesList, dirs)
+        ExtractTitlesFromClassicFanzinePage(fanacFanzineDirectoriesList, dirs)
 
     Log("----Done reading Classic table")
     return fanacFanzineDirectoriesList
