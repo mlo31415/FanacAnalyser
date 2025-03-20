@@ -12,6 +12,7 @@ from unidecode import unidecode
 import csv
 
 import FanacOrgReaders
+from FanacOrgReaders import FetchFileFromServer
 
 from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
@@ -583,12 +584,14 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
-def ExtractTitlesFromClassicFanzinePage(fanacFanzineDirectoriesList: list[tuple[str, str]], url: str) -> None:
-    h=requests.get(url, headers={'Cache-Control': 'no-cache'})
-    rows=ReadClassicFanzinesTable(str(h.content))
+def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
+    contents=FetchFileFromServer(url)
+    # Extract a table of the html for all the rows in the Classic Fanzines table
+    rows=ReadClassicFanzinesTable(contents)
     assert rows is not None
 
-
+    # Interpret the html for each row and append it to fanacFanzineDirectoriesList
+    fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
     for row in rows[1:]:
         cols=re.split(r"</td>(?:|\n|\\n)*<td[^>]*>", row, flags=re.IGNORECASE|re.DOTALL)
         assert len(cols) > 1
@@ -608,6 +611,8 @@ def ExtractTitlesFromClassicFanzinePage(fanacFanzineDirectoriesList: list[tuple[
         if name[0] == "'" and name [-1] == "'":
             name=name[1:-1]
         AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
+
+    return fanacFanzineDirectoriesList
 
 
 

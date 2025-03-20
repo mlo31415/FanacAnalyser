@@ -347,9 +347,7 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
         singletons=ReadList(os.path.join(rootDir, "control-singletons.txt"))
 
     # It looks like this is a single level directory.
-    soup=OpenSoup(directoryUrl)
-    if soup is None:
-        return []
+    html=FetchFileFromServer(directoryUrl)
 
     # We need to handle singletons specially
     if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
@@ -564,7 +562,9 @@ def ReadMTVoid(directoryUrl: str) -> list[FanzineIssueInfo]:
     editor="Evelyn Leeper and Mark Leeper"
     country="US"
 
-    soup=OpenSoup(directoryUrl)
+    html=FetchFileFromServer(directoryUrl)
+    soup=BeautifulSoup(html, "html.parser")
+    Log("...BeautifulSoup opened")
     if soup is None:
         return fiiList
 
@@ -597,7 +597,7 @@ def ReadMTVoid(directoryUrl: str) -> list[FanzineIssueInfo]:
 
 #======================================================================================
 # Open a directory's index webpage using BeautifulSoup
-def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
+def FetchFileFromServer(directoryUrl: str) -> str|None:
     # Download the index.html, which is
     # * The fanzine's Issue Index Table page
     # * A singleton page
@@ -606,30 +606,26 @@ def OpenSoup(directoryUrl: str) -> Optional[BeautifulSoup]:
     try:
         h=requests.get(directoryUrl, timeout=1, headers={'Cache-Control': 'no-cache'})
     except:
-        LogError(f"\n***OpenSoup failed. Retrying after 1.0 sec: {directoryUrl}")
+        LogError(f"\n***FetchFileFromServer failed. Retrying after 1.0 sec: {directoryUrl}")
         time.sleep(0.5)
         try:    # Do first retry
             h=requests.get(directoryUrl, timeout=2, headers={'Cache-Control': 'no-cache'})
         except:
             try:  # Do second retry
-                LogError(f"\n***OpenSoup failed again. Retrying after 2.0 sec: {directoryUrl}")
+                LogError(f"\n***FetchFileFromServer failed again. Retrying after 2.0 sec: {directoryUrl}")
                 time.sleep(2.0)
                 h=requests.get(directoryUrl, timeout=4, headers={'Cache-Control': 'no-cache'})
             except:
                 try:  # Do third retry
-                    LogError(f"\n***OpenSoup failed again. Retrying after 5.0 sec: {directoryUrl}")
+                    LogError(f"\n***FetchFileFromServer failed again. Retrying after 5.0 sec: {directoryUrl}")
                     time.sleep(5.0)
                     h=requests.get(directoryUrl, timeout=8, headers={'Cache-Control': 'no-cache'})
                 except:
-                    LogError(f"\n***OpenSoup failed four times. Load attempt aborted: {directoryUrl}")
+                    LogError(f"\n***FetchFileFromServer failed four times. Load attempt aborted: {directoryUrl}")
                     return None
     Log("...loaded", noNewLine=True)
 
-    # Next, parse the page looking for the body
-    # soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
-    soup=BeautifulSoup(h.content, "html.parser")
-    Log("...BeautifulSoup opened")
-    return soup
+    return str(h.content)
 
 
 #=====================================================================================
