@@ -349,22 +349,38 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
     # It looks like this is a single level directory.
     html=FetchFileFromServer(directoryUrl)
 
-    # We need to handle singletons specially
-    if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
-        return ReadSingleton(directoryUrl, fanzineName, soup)
-
-    version=ExtractInvisibleTextInsideFanacComment(str(soup), "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
+    # Get the FIP version
+    version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
 
     if version == "":
+        # Next, parse the page looking for the body
+        # soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
+        soup=BeautifulSoup(html, "html.parser")
+        Log("...BeautifulSoup opened")
+        if soup is None:
+            return []
+
+        # We need to handle singletons specially
+        if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
+            return ReadSingleton(directoryUrl, fanzineName, soup)
+
         return ReadFanacFanzineIndexPageOld(fanzineName, directoryUrl, soup)
     else:
-        return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, soup)
+        return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html)
 
 
-def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, soup: BeautifulSoup) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
+    # Next, parse the page looking for the body
+    # soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
+    soup=BeautifulSoup(html, "html.parser")
+    Log("...BeautifulSoup opened")
+    if soup is None:
+        return []
+
     # Locate the Index Table on this page.
     table=LocateIndexTable(directoryUrl, soup)
     if table is None:
+        LogError(f"ReadFanacFanzineIndexPageNew: Can't find Index Table in {directoryUrl}.")
         return []
 
     # Check to see if this is marked as a Newszine
@@ -433,6 +449,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     # Locate the Index Table on this page.
     table=LocateIndexTable(directoryUrl, soup)
     if table is None:
+        LogError(f"ReadFanacFanzineIndexPageNew: Can't find Index Table in {directoryUrl}.")
         return []
 
     # Check to see if this is marked as a Newszine
