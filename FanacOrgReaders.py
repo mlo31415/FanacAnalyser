@@ -713,7 +713,8 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
     table.contents=[t for t in table.contents if not isinstance(t, NavigableString)]
     if len(table.contents[0].text) == 0:
         LogError("***FanacOrgReaders: No table column headers found. Skipped")
-    columnHeaders=table.contents[0].text.strip().split("\n")
+    columnHeaders=re.split(r"\\n|\n", table.contents[0].text.strip())
+    columnHeaders=[x for x in columnHeaders if x != ""]
     columnHeaders: list[str]=[CanonicizeColumnHeaders(c) for c in columnHeaders]
 
     # We need to pull the fanzine rows in from BeautifulSoup and save them in the same format for later analysis.
