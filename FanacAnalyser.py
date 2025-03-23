@@ -73,14 +73,17 @@ def main():
     savedListExists=os.path.exists("Saved Fanzine List.json")
     if savedListExists:
         Log(f"{savedListExists=}")
-    # First, look to see if we need to read the website.
-    # This could because we're not making use of the save list or we want to, but it does not exist.
-    if not useSavedList or (useSavedList and not savedListExists):
-        # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
-        fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
 
-        # Read the directories list and produce a list of all fanzine issues
-        fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, fanacFanzineDirectories)
+    # First, determine if we need to read the website.
+    # This could because we're not making use of the save list or we want to, but it does not exist.
+    if useSavedList and savedListExists:
+        Log("Loading the saved fanzine list", timestamp=True)
+        with open("Saved Fanzine List.json", "r") as f:
+            fanacIssueList=jsonpickle.decode(f.read())
+            Log("Loading complete", timestamp=True)
+    else:
+        # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
+        fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, ReadAllFanacFanzineMainPages())
         Log("Load of Fanzine list from website complete", timestamp=True)
         if useSavedList:
             # We need to save the fanzine list
@@ -90,14 +93,6 @@ def main():
                 f.write(dump)
                 Log("Saving complete", timestamp=True)
 
-    else:
-        if savedListExists:
-            Log("Loading the saved fanzine list", timestamp=True)
-            with open("Saved Fanzine List.json", "r") as f:
-                fanacIssueList=jsonpickle.decode(f.read())
-                Log("Loading complete", timestamp=True)
-        else:
-            assert False
 
     # Remove issues which have entries, but don't actually point to anything.
     fanacIssueList=[x for x in fanacIssueList if x.PageFilename != ""]
