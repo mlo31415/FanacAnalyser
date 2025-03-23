@@ -1,3 +1,4 @@
+import json
 from typing import Callable, Set
 from time import localtime, strftime
 
@@ -10,6 +11,7 @@ import html
 import datetime
 from unidecode import unidecode
 import csv
+import jsonpickle
 
 import FanacOrgReaders
 from FanacOrgReaders import FetchFileFromServer
@@ -65,11 +67,39 @@ def main():
                     n2=line[loc+3:].strip()
                     peopleCanonicalNames[n1]=n2
 
-    # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
-    fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
+    # If the parameter "Use Saved Fanzine List" does not exist or
+    #   if it does exist, but no saved fanzine list.json exists, we read a new list of fanzines
+    useSavedList=len(Settings().Get("Use Saved Fanzine List", False)) > 0
+    if useSavedList:
+        Log(f"{useSavedList=}")
+    savedListExists=os.path.exists("Saved Fanzine List.json")
+    if savedListExists:
+        Log(f"{savedListExists=}")
+    # First, look to see if we need to read the website.
+    # This could because we're not making use of the save list or we want to, but it does not exist.
+    if not useSavedList or (useSavedList and not savedListExists):
+        # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
+        fanacFanzineDirectories=ReadAllFanacFanzineMainPages()
 
-    # Read the directories list and produce a list of all fanzine issues
-    fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, fanacFanzineDirectories)
+        # Read the directories list and produce a list of all fanzine issues
+        fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, fanacFanzineDirectories)
+        Log("Load of Fanzine list from website complete", timestamp=True)
+        if useSavedList:
+            # We need to save the fanzine list
+            Log("Saving the fanzine list", timestamp=True)
+            with open("Saved Fanzine List.json", "w+") as f:
+                dump=jsonpickle.encode(fanacIssueList, indent=2)
+                f.write(dump)
+                Log("Saving complete", timestamp=True)
+
+    else:
+        if savedListExists:
+            Log("Loading the saved fanzine list", timestamp=True)
+            with open("Saved Fanzine List.json", "r") as f:
+                fanacIssueList=jsonpickle.decode(f.read())
+                Log("Loading complete", timestamp=True)
+        else:
+            assert False
 
     # Remove issues which have entries, but don't actually point to anything.
     fanacIssueList=[x for x in fanacIssueList if x.PageFilename != ""]
