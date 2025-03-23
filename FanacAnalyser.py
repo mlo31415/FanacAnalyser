@@ -1,8 +1,6 @@
-import json
 from typing import Callable, Set
 from time import localtime, strftime
 
-import requests
 import os
 import sys
 import re
@@ -19,7 +17,7 @@ from FanacOrgReaders import FetchFileFromServer
 from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
-from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles, CaseInsensitiveCompare
+from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles
 from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
 from HelpersPackage import UnscrambleListOfNames, Pluralize
 from FanacFanzinesHelpers import ReadClassicFanzinesTable
