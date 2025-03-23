@@ -133,6 +133,7 @@ def main():
             selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
 
     # Count the number of pages, issues and PDFs
+    Log("Perform the general count", timestamp=True)
     ignorePageCountErrors=ReadList(os.path.join(rootDir, "control-Ignore Page Count Errors.txt"))
     countsGlobal=FanzineCounts()
     for fzi in fanacIssueList:
@@ -145,6 +146,7 @@ def main():
                 Log(f"{fzi.IssueName} has no page count: {fzi}")
 
     # Re-run the previous producing a counts diagnostic file
+    Log("Count again with a counts diuagnostic file", timestamp=True)
     with open(os.path.join(reportFilePath, "Counts diagnostics.txt"), "w") as f:
         countsSeries=FanzineCounts()
         lines: [str]=[]  # We want to print everything about this series once we have completed going through the series
@@ -176,6 +178,7 @@ def main():
                 print(line, file=f)
 
     # Produce a report on the non-PDFed fanzines
+    Log("Generate report on non-PDFed fanzines", timestamp=True)
     with open(os.path.join(reportFilePath, "Fanzines which are not PDFs.txt"), "w") as f:
         for fzi in fanacIssueList:
             if not fzi.URL.lower().endswith(".pdf"):
@@ -187,6 +190,7 @@ def main():
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Produce various lists of fanzines for upcoming WriteTables
     # List sorted alphabetically, and by date within that
+    Log("Begin generating reports", timestamp=True)
     fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.IssueName))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueList.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
 
@@ -194,12 +198,14 @@ def main():
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
 
     # List of dated issues
+    Log("Begin Report 'Fanzines in date order.txt'", timestamp=True)
     with open(os.path.join(reportFilePath, "Fanzines in date order.txt"), "w") as f:
         for fzi in fanacIssueList:
             f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
 
     # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
     datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
+    Log("Begin Report 'Chronological_Listing_of_Fanzines.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines.html"),
                    datedList,
                    fURL=URL,
@@ -215,12 +221,14 @@ def main():
                    #
                    headerFilename='control-Header (Fanzine, chronological).html')
 
+    Log("Begin Report 'Chronological Listing of Fanzines.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Fanzines.txt"),
                   datedList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     # List of undated issues
+    Log("Begin Report 'Undated Fanzine Issues.html'", timestamp=True)
     undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
     WriteHTMLTable(os.path.join(reportFilePath, "Undated Fanzine Issues.html"),
                    undatedList,
@@ -229,6 +237,8 @@ def main():
                    fURL=URL,
                    topCountText=timestamp,
                    headerFilename="control-Header (basic).html")
+
+    Log("Chronological fanzine reports complete.'", timestamp=True)
 
 
     # Generate a list of all the newszines (in lower case)
@@ -278,7 +288,7 @@ def main():
             if fzi.FanzineType.lower() == "newszine":
                 f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
 
-
+    Log("Begin Report 'Chronological_Listing_of_Newszines.html'", timestamp=True)
     newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Newszines.html"),
                    fanacIssueList,
@@ -291,12 +301,15 @@ def main():
                    topCountText=newscountText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Newszine).html")
 
+    Log("Begin Report 'Chronological Listing of Newszines.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Newszines.txt"),
                   datedList,
                   fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
+
+    Log("Chronological Newszine reports complete.', timestamp=True)")
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -330,12 +343,13 @@ def main():
     fanacIssueListByTitle.sort(key=MessySort)
     fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor, RemoveLeadingArticles=True)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
 
-
+    Log("Begin Report 'Alphabetical Listing of Fanzines.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines.txt"),
                   fanacIssueListByTitle,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
+    Log("Begin Report 'Alphabetical_Listing_of_Fanzines.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines.html"),
                    fanacIssueListByTitle,
                    fButtonText=lambda fz: AlphaButtonText(fz),
@@ -350,6 +364,7 @@ def main():
                    headerFilename="control-Header (Fanzine, alphabetical).html",
                    inAlphaOrder=True)
 
+    Log("Alphabetical fanzine reports complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -362,6 +377,7 @@ def main():
     fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.Series.DisplayName))   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName.lower())      # Sort by country
 
+    Log("Begin Report 'Series_by_Country.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Series_by_Country.html"),
                    fanacIssueList,
                    fURL=lambda elem: elem.Series.DirURL,
@@ -379,7 +395,7 @@ def main():
                    headerFilename="control-Header (Fanzine, by country).html",
                    inAlphaOrder=True)
 
-
+    Log("Reports by country complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -410,11 +426,13 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
+    Log("Begin Report 'Alphabetical Listing of Fanzines by Editor.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines by Editor.txt"),
                   fanacIssueListByEditor,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.Editor,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
+    Log("Begin Report 'Alphabetical_Listing_of_Fanzines_by_Editor.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.URL,
@@ -432,6 +450,7 @@ def main():
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
 
+    Log("Begin Report 'Alphabetical_Listing_of_Fanzine_Series_by_Editor.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda fz: fz.Series.DirURL,
@@ -454,6 +473,7 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
+    Log("Begin Report 'Chronological_Listing_of_Fanzines_by_Editor.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines_by_Editor.html"),
                    fanacIssueListByEditor,
                    fURL=lambda elem: elem.URL,
@@ -484,6 +504,7 @@ def main():
         length=min(len(n1), len(n2))
         return n1[:length] != n2[:length]
 
+    Log("Begin Report 'Fanzines with odd names.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Fanzines with odd names.txt"),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
@@ -516,7 +537,7 @@ def main():
         for selectedYear in selectedYears:
             print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
 
-
+    Log("Begin Report 'Fanzines with odd page counts.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Fanzines with odd page counts.txt"),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
@@ -524,6 +545,7 @@ def main():
                   topCountText=timestamp,
                   fSelector=lambda fz: fz.Pagecount > 250)
 
+    Log("Reports complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
