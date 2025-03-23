@@ -342,7 +342,7 @@ def main():
                    #
                    fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName),
                    fRowBodyAnnot=lambda elem: UnicodeToHtml(elem.Editor),
-                   fRowBodySelect=lambda elem: elem.Series.DisplayName,
+                   fRowBodySelect=lambda elem: elem.Series.DisplayName+elem.Editor,
                    showDuplicateBodyRows=False,
                    #
                    topCountText=timestamp,
