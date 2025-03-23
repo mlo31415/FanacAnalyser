@@ -1,5 +1,0 @@
-# A list of URLs of top level directories to be searched for fanzines to include
-# ("#" marks a comment and everything from the # to the end of the line is ignored)
-
-http://www.fanac.org/fanzines/Classic_Fanzines.html
-http://www.fanac.org/fanzines/Unusual_Items.html
