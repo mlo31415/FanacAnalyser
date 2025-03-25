@@ -10,6 +10,7 @@ import datetime
 from unidecode import unidecode
 import csv
 import jsonpickle
+from collections import defaultdict
 
 import FanacOrgReaders
 from FanacOrgReaders import FetchFileFromServer
@@ -108,22 +109,22 @@ def main():
             return ""
         return s
 
-    # Read the control-year.txt file to get the year(s) to be dumped out
-    selectedYears: list[tuple[int, int]]=[]
-    for year in range(1926, 2023):
-        yearCount=0
-        selected: list[tuple[str, FanzineDate | None, str, str]]=[]
-        for fz in fanacIssueList:
-            if fz.FIS.Year == year:
-                #out+=f"|| {fz.IssueName} || {NoNone(str(fz.FIS))} || {fz.DirURL} || {fz.PageFilename} ||\n"
-                selected.append((fz.IssueName, fz.FIS.FD, fz.DirURL, fz.PageFilename))
-                yearCount+=1
-        if yearCount > 0:
-            selected.sort(key=lambda x: x[1])
-            with open(os.path.join(os.path.join(reportFilePath, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+") as f:
-                for sel in selected:
-                    f.write(f"{sel[0]} || {NoNone(str(sel[1]))} || {sel[2]} || {sel[3]}\n")
-            selectedYears.append((year, yearCount))  # Create a list of tuples (selected year, count)
+    # Create a dictionary with an entry for every year that turns up in the list of all fanzines
+    # The value is a tuple of all the information we need to write a line for that fanzines in the report
+    years: defaultdict[int, list[tuple[str, FanzineDate, str, str]]]=defaultdict(list)
+    for fz in fanacIssueList:
+        # For each fanzine issue, append a tuple describing it to the correct year
+        years[fz.FIS.FD.Year].append((fz.IssueName, fz.FIS.FD, fz.DirURL, fz.PageFilename))
+
+    # Generate a year report for every year that has a fanzine.
+    for year in years.keys():
+        # Sort the year into date order
+        years[year].sort(key=lambda x: x[1])
+        # Write the year's report
+        with open(os.path.join(os.path.join(reportFilePath, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+") as f:
+            for sel in years[year]:
+                f.write(f"{sel[0]} || {NoNone(str(sel[1]))} || {sel[2]} || {sel[3]}\n")
+
 
     # Count the number of pages, issues and PDFs
     Log("Perform the general count", timestamp=True)
