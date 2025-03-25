@@ -67,7 +67,7 @@ def main():
 
     # If the parameter "Use Saved Fanzine List" does not exist or
     #   if it does exist, but no saved fanzine list.json exists, we read a new list of fanzines
-    useSavedList=len(Settings().Get("Use Saved Fanzine List", False)) > 0
+    useSavedList=len(Settings().Get("Use Saved Fanzine List", "")) > 0
     if useSavedList:
         Log(f"{useSavedList=}")
     savedListExists=os.path.exists("Saved Fanzine List.json")
