@@ -528,8 +528,14 @@ def main():
         print(f"All fanzines: Titles: {fzCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}", file=f)
         print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
         print(f"All PDF fanzines: Issues: {countsGlobal.Pdfcount:,}   Pages: {countsGlobal.Pdfpagecount:,}", file=f)
-        for selectedYear in selectedYears:
-            print(f"{selectedYear[0]} Fanzines: {selectedYear[1]}", file=f)
+        yearcounts: list[tuple[int, int]]=[]
+        for year, val in years.items():
+            if year is None:
+                year=0
+            yearcounts.append((year, len(val)))
+        yearcounts.sort(key=lambda x: x[0])
+        for year, count in yearcounts:
+            print(f"{year} Fanzines: {count}", file=f)
 
     Log("Begin Report 'Fanzines with odd page counts.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Fanzines with odd page counts.txt"),
