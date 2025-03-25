@@ -1062,7 +1062,7 @@ def AlphaButtonText(fz: FanzineIssueInfo) -> str:
 # Compute a properly formatted date annotation -- used in calls to WriteTable
 def AnnotateDate(fz: FanzineIssueInfo) -> str:
     if type(fz) is not FanzineIssueInfo:
-        assert ()
+        assert False
     if fz.FIS is None:
         return ""
     if fz.FIS.FD.IsEmpty():
