@@ -123,7 +123,11 @@ def main():
         # Write the year's report
         with open(os.path.join(os.path.join(reportFilePath, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+") as f:
             for sel in years[year]:
-                f.write(f"{sel[0]} || {NoNone(str(sel[1]))} || {sel[2]} || {sel[3]}\n")
+                try:
+                    f.write(f"{sel[0]} || {NoNone(str(sel[1]))} || {sel[2]} || {sel[3]}\n")
+                except UnicodeEncodeError:
+                    LogError(f"UnicodeEncodeError in: {sel}")
+                    LogError("   ...skipped")
 
 
     # Count the number of pages, issues and PDFs
