@@ -642,7 +642,10 @@ def FetchFileFromServer(directoryUrl: str) -> str|None:
                     return None
     Log("...loaded", noNewLine=True)
 
-    return str(h.content)
+    # This kludge is to deal with an elipses character in "Afterworlds - An Eclectic Bill Bowers Appreciation… and Fanthology…" which for some reason is mishandled
+    txt=h.text.replace("â¦", "...")
+
+    return txt
 
 
 #=====================================================================================
