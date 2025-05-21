@@ -386,7 +386,7 @@ def main():
                    #
                    fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName),
                    fRowBodyAnnot=lambda elem: UnicodeToHtml(elem.Editor),
-                   fRowBodySelect=lambda elem: elem.Series.DisplayName+elem.Editor,
+                   fRowBodySelect=lambda elem: elem.Series.DisplayName.strip()+":"+elem.Editor.strip(),
                    showDuplicateBodyRows=False,
                    #
                    topCountText=timestamp,
@@ -421,8 +421,8 @@ def main():
 
     # Sort the Alphabetic lists by Editor
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
-    fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName))  # Sorts in place on fanzine's name with leading articles suppressed
-    fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
+    fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName.strip()))  # Sorts in place on fanzine's name with leading articles suppressed
+    fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor.strip()))  # Sorts by editor
 
     Log("Begin Report 'Alphabetical Listing of Fanzines by Editor.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines by Editor.txt"),
@@ -460,7 +460,7 @@ def main():
                    includeRowTitleCount=True,
                    #
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
-                   fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName+fz.Editor),
+                   fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName.strip()+":"+fz.Editor.strip()),
                    showDuplicateBodyRows=False,
                    #
                    topCountText=topcounttext+"\n"+timestamp+"\n",
