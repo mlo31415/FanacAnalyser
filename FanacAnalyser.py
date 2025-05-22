@@ -76,7 +76,7 @@ def main():
         Log(f"{savedListExists=}")
 
     # First, determine if we need to read the website.
-    # This could because we're not making use of the save list or we want to, but it does not exist.
+    # This could because we're not making use of the savd list or we want to use it, but it does not exist.
     if useSavedList and savedListExists:
         Log("Loading the saved fanzine list", timestamp=True)
         with open("Saved Fanzine List.json", "r") as f:
