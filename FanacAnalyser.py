@@ -372,7 +372,9 @@ def main():
 
 
     # Create a properly ordered flat list suitable for WriteTable
-    fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.Series.DisplayName.strip()+":"+elem.Editor.strip()))   # Sort by series name
+    bodyRowText=lambda elem: elem.Series.DisplayName.strip()+":"+elem.Editor.strip()
+    bodyRowSelect=lambda elem: FlattenTextForSorting(bodyRowText(elem))
+    fanacIssueList.sort(key=bodyRowSelect)   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName.lower())      # Sort by country
 
     Log("Begin Report 'Series_by_Country.html'", timestamp=True)
@@ -386,7 +388,7 @@ def main():
                    #
                    fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName),
                    fRowBodyAnnot=lambda elem: UnicodeToHtml(elem.Editor),
-                   fRowBodySelect=lambda elem: elem.Series.DisplayName.strip()+":"+elem.Editor.strip(),
+                   fRowBodySelect=bodyRowText,
                    showDuplicateBodyRows=False,
                    #
                    topCountText=timestamp,
