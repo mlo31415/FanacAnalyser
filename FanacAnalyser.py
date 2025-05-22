@@ -96,6 +96,7 @@ def main():
 
 
     # Remove issues which have entries, but don't actually point to anything.
+    # These are typically placeholders for issues we don't yet have a scan of.
     fanacIssueList=[x for x in fanacIssueList if x.PageFilename != ""]
     if len(fanacIssueList) == 0:
         Log("Exiting: No fanzines found")
