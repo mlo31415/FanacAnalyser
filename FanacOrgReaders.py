@@ -348,6 +348,9 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
 
     # It looks like this is a single level directory.
     html=FetchFileFromServer(directoryUrl)
+    if html is None:
+        LogError(f"ReadFanacFanzineIndexPage: Failed to fetch {directoryUrl}. Not processed.")
+        return []
 
     # Get the FIP version
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
