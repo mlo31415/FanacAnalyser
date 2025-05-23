@@ -20,7 +20,7 @@ from Settings import Settings
 from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText
 from HelpersPackage import ExtractBetweenHTMLComments, ChangeFileInURL, ChangeNBSPToSpace, RemoveHyperlink
-from HelpersPackage import CanonicizeColumnHeaders
+from HelpersPackage import CanonicizeColumnHeaders, DropTrailingSequenceNumber
 from HelpersPackage import Int0
 from HelpersPackage import RemoveFunnyWhitespace, ExtractInvisibleTextInsideFanacComment
 from HelpersPackage import ParmDict
@@ -432,7 +432,7 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str)
         # Add the tags and the series info pointer
         for fii in fiiList:
             # Create a special series just for this issue.
-            fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
+            fii.Series=FanzineSeriesInfo(SeriesName=DropTrailingSequenceNumber(fii.IssueName), DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
             if isnewszines:
                 fii.Taglist.append("newszine")
     else:
