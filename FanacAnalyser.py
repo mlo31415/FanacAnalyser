@@ -334,23 +334,18 @@ def main():
             if len(fz.SeriesName) > 0:  # In a by-title listing, missing titles are uninteresting
                 fanacIssueListByTitle.append(fz)
 
-    fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
-    def MessySort(x: FanzineIssueInfo): # This handles the fact that MT Void is scattered among many pages, so position does nto work for it.  Ugly.
-        if "MT Void" in x.SeriesName:
-            return x.FIS.FormatYearMonthForSorting()
-        return f"{x.Position:0>5}"
-    fanacIssueListByTitle.sort(key=MessySort)
-    fanacIssueListByTitle.sort(key=lambda elem:FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor, RemoveLeadingArticles=True)) # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
+    SortFanacIssueListByTitle(fanacIssueListByTitle)
+    SortFanacIssueListByTitle(fanacIssueList)
 
     Log("Begin Report 'Alphabetical Listing of Fanzines.txt'", timestamp=True)
     WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines.txt"),
-                  fanacIssueListByTitle,
+                  fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
     Log("Begin Report 'Alphabetical_Listing_of_Fanzines.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines.html"),
-                   fanacIssueListByTitle,
+                   fanacIssueList,
                    fButtonText=lambda fz: AlphaButtonText(fz),
                    fDirURL=lambda fz: fz.DirURL,
                    fURL=URL,
@@ -613,6 +608,19 @@ def main():
     Log("FanacAnalyzer has Completed.")
 
     LogClose()
+
+
+def SortFanacIssueListByTitle(fanacIssueListByTitle):
+    fanacIssueListByTitle.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())  # Sorts in place on order in index page, which is usually a good proxy for date
+
+    def MessySort(x: FanzineIssueInfo):  # This handles the fact that MT Void is scattered among many pages, so position does not work for it.  Ugly.
+        if "MT Void" in x.SeriesName:
+            return x.FIS.FormatYearMonthForSorting()
+        return f"{x.Position:0>5}"
+
+    fanacIssueListByTitle.sort(key=MessySort)
+    fanacIssueListByTitle.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor,
+                                                                      RemoveLeadingArticles=True))  # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
 
 
 # End of main()
