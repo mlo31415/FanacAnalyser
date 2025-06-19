@@ -397,7 +397,7 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str)
         Log(f"No H2 block found in {directoryUrl}. Unable to check for status as Newszine.")
 
     # Extract any fanac keywords.  They will be of the form:
-    #       <! fanac-keywords: Alphabetize individually -->
+    #       <! fanac-keywords: xxxxx -->
     # There may be many of them
     contentsAsString=str(soup)
     contentsAsString=contentsAsString.replace("\n", " ")
@@ -421,14 +421,15 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str)
     if country == "":
         Log(f"No location found for {fanzineName}")
 
-    type=ExtractBetweenHTMLComments(contentsAsString, "type")
+    fztype=ExtractBetweenHTMLComments(contentsAsString, "type")
 
     # Walk the table and extract the fanzines in it
-    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editors, country, FanzineType=type, alphabetizeIndividually=True)
+    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editors, country, FanzineType=fztype, alphabetizeIndividually=True)
 
-    # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
-    alphabetizeIndividually=kwds["Alphabetize individually"] == ""  # Check if keyword is present -- it doesn't need a value
-    if alphabetizeIndividually:
+    # Some series pages have the fanzine type "Collection".  If present, we create a series entry for *each* individual issue on the page.
+    # Some early series pages have the keyword "Alphabetize individually".  This is the same as being a Collection, but is otherwise ignored.
+    if kwds["Alphabetize individually"] is not None or fztype.lower() == "collection":
+
         # Add the tags and the series info pointer
         for fii in fiiList:
             # Create a special series just for this issue.
@@ -466,7 +467,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
         Log(f"No H2 block found in {directoryUrl}")
 
     # Extract any fanac keywords.  They will be of the form:
-    #       <! fanac-keywords: Alphabetize individually -->
+    #       <! fanac-keywords: xxxxx -->
     # There may be many of them
     contents=str(soup)
     contents=contents.replace("\n", " ")
@@ -532,15 +533,25 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     if SequenceMatcher(None, h2s[0], fanzineName).ratio() > 0.7:
         h2s=h2s[1:]
 
-    # The editor(s) names are usually the line or lines before the date range.
+    # The editor(s) names are usually the line or lines before the date range.  So names can be in more than one element of h2s
     # The date range is something like '1964' or '1964-1999' or '1964-1999?'
     editor=""
+    dateRangeFound=False
+    fanzineType=""
     for h in h2s:
-        if re.match(r"[0-9-\?]", h):
-            break
-        if editor:
-            editor+=", "
-        editor+=h
+        if re.match(r"[0-9-?]", h):     # Look for a date range: 1999-2004, as this definitively ends the list of editors
+            dateRangeFound=True
+            continue
+        if not dateRangeFound:
+            if editor:
+                editor+=", "
+            editor+=h
+            continue
+        if dateRangeFound:
+            if h.lower() == "collection":
+                fanzineType="Collection"
+
+
 
     html=str(soup.body)
     country=ExtractHeaderCountry(html)
@@ -550,9 +561,8 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     # Walk the table and extract the fanzines in it
     fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
 
-    # Some series pages have the keyword "Alphabetize individually".  If present, we create a series entry for *each* individual issue on the page.
-    alphabetizeIndividually=kwds["Alphabetize individually"] == ""  # Check if keyword is present -- it doesn't need a value
-    if alphabetizeIndividually:
+    # Some old-style pages may have a hand-edited "alphabetize individually" keywork.  Test for that.
+    if kwds["Alphabetize individually"] is not None or fanzineType == "Collection":
         # Add the tags and the series info pointer
         for fii in fiiList:
             # Create a special series just for this issue.
