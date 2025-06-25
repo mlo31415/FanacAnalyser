@@ -868,7 +868,12 @@ def WriteHTMLTable(filename: str,
 
                 f.write('<div class="row border">\n')  # Start a new sub-box
                 # Write col 1
-                f.write('  <div class=col-md-3>')
+                # We sometimes have a very long single word in a fanzine name which does not wrap, but which collides with the second column.
+                # Detect it and, if necessary, add a wrap to the HTML
+                wrapper=""
+                if max([len(x) for x in fRowHeaderText(fz).split(" ")]) > 20:
+                    wrapper=" text-break"
+                f.write(f'  <div class="col-md-3{wrapper}">')
                 if inAlphaOrder and fDirURL is not None:
                     link=fDirURL(fz)
                     if fz.Series.AlphabetizeIndividually:
@@ -882,13 +887,16 @@ def WriteHTMLTable(filename: str,
                         f.write(fRowHeaderAnnot(fz))
                 else:
                     f.write(UnicodeToHtml(fRowHeaderText(fz)))
+
                 if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
                     f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
+
                 if includeRowHeaderCounts:
                     if includeRowTitleCount:
                         f.write(f"<br><small>{fc}</small>")
                     else:
                         f.write(f"<br><small>{fc}</small>")
+
                 f.write('</div>\n')
                 f.write('    <div class=col-md-9>\n') # Start col 2
 
