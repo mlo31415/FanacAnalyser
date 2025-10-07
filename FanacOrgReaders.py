@@ -561,7 +561,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: Beau
     # Walk the table and extract the fanzines in it
     fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
 
-    # Some old-style pages may have a hand-edited "alphabetize individually" keywork.  Test for that.
+    # Some old-style pages may have a hand-edited "alphabetize individually" keywork.  Test for that as well as for type=Collection.
     if kwds["Alphabetize individually"] is not None or fanzineType == "Collection":
         # Add the tags and the series info pointer
         for fii in fiiList:
