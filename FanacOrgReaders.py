@@ -772,6 +772,8 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
         ser=ExtractSerial(columnHeaders, tableRow)
         fis=FanzineIssueSpec(FD=date, FS=ser)
         title=ExtractIssueNameAndHref(columnHeaders, tableRow)
+        if "fanac.org/fanzines/" in title.Url.lower() and title.Url[-1] == "/":
+            continue    # This is an independent fanzine index page referred to in this FIP. It will be dealt with on its own and can be skipped for now.
         pages=ExtractPageCount(columnHeaders, tableRow)
         mailings=ExtractMailings(columnHeaders, tableRow)
         country=ExtractRowCountry(columnHeaders, tableRow, defaultcountry)
