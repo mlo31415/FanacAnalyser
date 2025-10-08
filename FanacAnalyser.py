@@ -148,7 +148,7 @@ def main():
     Log("Count again with a counts diuagnostic file", timestamp=True)
     with open(os.path.join(reportFilePath, "Counts diagnostics.txt"), "w") as f:
         countsSeries=FanzineCounts()
-        lines: [str]=[]  # We want to print everything about this series once we have completed going through the series
+        lines: list[str]=[]  # We want to print everything about this series once we have completed going through the series
         oldseries=fanacIssueList[0].SeriesName
         for fzi in fanacIssueList:
 
@@ -157,7 +157,7 @@ def main():
                 print(f"{oldseries}      {countsSeries.Issuecount} issues   {countsSeries.Pagecount} pages  ", file=f)
                 for line in lines:
                     print(line, file=f)
-                lines: [str]=[]
+                lines: list[str]=[]
                 countsSeries=FanzineCounts()
             oldseries=fzi.SeriesName # Safe to do because any changes if fz.SeriesName was just handled
 
@@ -702,7 +702,7 @@ def ReadFile(filename: str) -> list[str]:
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteHTMLTable(filename: str,
-               fanacIssueList: list[any],  # The sorted input list
+               fanacIssueList: list,  # The sorted input list
                fURL: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the URL
                fDirURL: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the directory or root URL
                fButtonText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the button text
@@ -1003,7 +1003,7 @@ def CountSublist(fCompare: Callable[[str, str], bool], fRowSelect: Callable[[Fan
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
 def WriteTxtTable(filename: str,
-               fanacIssueList: list[any],  # The sorted input list
+               fanacIssueList: list,  # The sorted input list
                fRowBodyText: Callable[[FanzineIssueInfo], str],  # Function to supply the row's body text
                fRowHeaderText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text
                fRowHeaderSelect: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
