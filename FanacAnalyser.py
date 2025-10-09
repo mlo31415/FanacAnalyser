@@ -912,11 +912,10 @@ def WriteHTMLTable(filename: str,
                 if fURL is not None:
                     # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                     splitext=bodytext.split("|", 2)
-                    link=fURL(fz)
                     if len(splitext) == 2:
-                        f.write('        '+FormatLink(link, splitext[0])+splitext[1])
-                    else:
-                        f.write('        '+FormatLink(link, bodytext))
+                        bodytext=splitext[0]
+                    link=fURL(fz)
+                    f.write('        '+FormatLink(link, bodytext))
 
                 fc=None
 
