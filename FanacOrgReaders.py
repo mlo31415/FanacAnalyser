@@ -795,6 +795,7 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
             if title.Url.startswith(directoryUrl):
                 title.Url=title.Url.replace(directoryUrl, "")
                 title.Url=title.Url.removeprefix("/")   # Delete any remnant leading "/"
+
             elif title.Url.startswith("http://www.fanac.org/") or title.Url.startswith("http://fanac.org/") or title.Url.startswith("https://www.fanac.org/") or title.Url.startswith("https://fanac.org/"):
                 # OK, this is a fanac URL.  Divide it into a file and a path
                 parts=urllib.parse.urlparse(title.Url).path.split("/")

@@ -7,6 +7,7 @@ import re
 import math
 import html
 import datetime
+import urllib.parse
 from unidecode import unidecode
 import csv
 import jsonpickle
@@ -145,7 +146,7 @@ def main():
                 Log(f"{fzi.IssueName} has no page count: {fzi}")
 
     # Re-run the previous producing a counts diagnostic file
-    Log("Count again with a counts diuagnostic file", timestamp=True)
+    Log("Count again with a counts diagnostics file", timestamp=True)
     with open(os.path.join(reportFilePath, "Counts diagnostics.txt"), "w") as f:
         countsSeries=FanzineCounts()
         lines: list[str]=[]  # We want to print everything about this series once we have completed going through the series
@@ -180,7 +181,7 @@ def main():
     Log("Generate report on non-PDFed fanzines", timestamp=True)
     with open(os.path.join(reportFilePath, "Fanzines which are not PDFs.txt"), "w") as f:
         for fzi in fanacIssueList:
-            if not fzi.URL.lower().endswith(".pdf"):
+            if not ".pdf" in fzi.URL.lower():
                 print(f"{fzi.DirURL}/{fzi.IssueName}", file=f)
 
 
@@ -207,7 +208,7 @@ def main():
     Log("Begin Report 'Chronological_Listing_of_Fanzines.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines.html"),
                    datedList,
-                   fURL=URL,
+                   fURL=lambda elem: elem.URL,
                    fButtonText=lambda fz: ChronButtonText(fz),
                     #
                    fRowHeaderText=lambda fz: fz.FIS.MonthYear,
@@ -233,7 +234,7 @@ def main():
                    undatedList,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowHeaderText=lambda fz: "fRowHeaderText fake lambda",
-                   fURL=URL,
+                   fURL=lambda elem: elem.URL,
                    topCountText=timestamp,
                    headerFilename="control-Header (basic).html")
 
@@ -291,7 +292,7 @@ def main():
     newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
     WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Newszines.html"),
                    fanacIssueList,
-                   fURL=URL,
+                   fURL=lambda elem: elem.URL,
                    fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
                    fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                    fButtonText=lambda fz: ChronButtonText(fz),
@@ -348,7 +349,7 @@ def main():
                    fanacIssueList,
                    fButtonText=lambda fz: AlphaButtonText(fz),
                    fDirURL=lambda fz: fz.DirURL,
-                   fURL=URL,
+                   fURL=lambda elem: elem.URL,
                    fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
                    fRowHeaderText=lambda fz: fz.SeriesName,
                    fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
@@ -376,7 +377,7 @@ def main():
     Log("Begin Report 'Series_by_Country.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Series_by_Country.html"),
                    fanacIssueList,
-                   fURL=lambda elem: elem.Series.DirURL,
+                   fURL=lambda elem: elem.Series.URL,
                    fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
                    #
                    fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
@@ -449,7 +450,7 @@ def main():
     Log("Begin Report 'Alphabetical_Listing_of_Fanzine_Series_by_Editor.html'", timestamp=True)
     WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
                    fanacIssueListByEditor,
-                   fURL=lambda fz: fz.Series.DirURL,
+                   fURL=lambda fz: fz.Series.URL,
                    fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                    #
                    fRowHeaderText=lambda fz: fz.Editor,
@@ -875,9 +876,7 @@ def WriteHTMLTable(filename: str,
                     wrapper=" text-break"
                 f.write(f'  <div class="col-md-3{wrapper}">')
                 if inAlphaOrder and fDirURL is not None:
-                    link=fDirURL(fz)
-                    if fz.Series.AlphabetizeIndividually:
-                        link+="/"+fz.PageFilename       # When entries are singletons in a collective fanzine index page, we want the col1 link to point to the fanzine, also.
+                    link=fURL(fz)
                     f.write(FormatLink(link, UnicodeToHtml(fRowHeaderText(fz))))
                     if fRowHeaderAnnot is not None:
                         f.write(fRowHeaderAnnot(fz))
@@ -921,7 +920,6 @@ def WriteHTMLTable(filename: str,
 
                 annot=""
                 if fRowBodyAnnot is not None:
-                    #Log(f"WriteHTMLTable({filename} nAlphaOrder and fRowBodyAnnot is not None")
                     annot=fRowBodyAnnot(fz)
                     if annot is not None:
                         annot=annot.strip()
@@ -941,15 +939,15 @@ def WriteHTMLTable(filename: str,
                 if not fCompareRowBodyText(lastRowBodySelect, fRowBodySelect(fz)):
                     bodytext=fRowBodyText(fz)
                     if fURL is not None:
-                        # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
-                        splitext=bodytext.split("|", 2)
+
                         link=fURL(fz)
                         if fz.Series.AlphabetizeIndividually:
                             link+="/"+fz.PageFilename  # When entries are singletons in a collective fanzine index page, we want the col1 link to point to the fanzine, also.
+                        # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
+                        splitext=bodytext.split("|", 2)
                         if len(splitext) == 2:
-                            f.write('        '+FormatLink(link, splitext[0])+splitext[1])
-                        else:
-                            f.write('        '+FormatLink(link, bodytext))
+                            bodytext=splitext[0]
+                        f.write('        '+FormatLink(link, bodytext))
 
                     fc=CountSublist(fCompare=fCompareRowBodyText, fRowSelect=fRowBodySelect, fanacIssueList=fanacIssueList[i:])
 
@@ -1123,37 +1121,6 @@ def ChronButtonText(fz: FanzineIssueInfo) -> str:
     if fz.FIS is None or fz.FIS.Year is None:
         return " "
     return str(fz.FIS.Year)[0:3]+"0s"
-
-#.........................................................
-def URL(fz: FanzineIssueInfo) -> str:
-    if fz is None or fz.PageFilename == "":
-        return "<no url>"
-    # Sometimes the url will be to a page in a PDF, so the URL will end with #page=nnn
-    # Detect that, since the page needs to be handled specially.
-    page=""
-    url=fz.DirURL
-    m=re.match("(.*)(#page=[0-9]+)$", url)
-    if m is not None:
-        url=m.groups()[0]
-        page=m.groups()[1]
-
-    if "/" not in fz.PageFilename:      # Its the pagename without any path info?
-        url=url+"/"+fz.PageFilename+page
-        return url
-
-    # If there is a path bit, are we pointing to a subdirectory of the current directory?  (This is typical of older HTML fanzines.)
-    if fz.PageFilename[0] not in " /":
-        url=url+"/"+fz.PageFilename+page
-        return url
-
-    # There are two possibilities: This is a reference to somewhere in the fanzines directory or this is a reference elsewhere.
-    # If it is in fanzines, then the url ends with <stuff>/fanzines/<dir>/<file>.html
-    parts=fz.PageFilename.split("/")
-    if len(parts) > 2 and parts[-3:-2][0] == "fanzines":
-        url=url+"/../"+"/".join(parts[-2:])+page
-    else:
-        url=fz.PageFilename
-    return url
 
 
 # .........................................................
