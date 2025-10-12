@@ -912,15 +912,16 @@ def WriteHTMLTable(filename: str,
                 if max([len(x) for x in fRowHeaderText(fz).split(" ")]) > 20:
                     wrapper=" text-break"
                 f.write(f'  <div class="col-md-3{wrapper}">')
-                if inAlphaOrder and fDirURL is not None:
-                    link=fURL(fz)
-                    f.write(FormatLink(link, UnicodeToHtml(fRowHeaderText(fz))))
-                    if fRowHeaderAnnot is not None:
-                        f.write(fRowHeaderAnnot(fz))
-                elif inAlphaOrder and fDirURL is None:
-                    f.write(UnicodeToHtml(fRowHeaderText(fz)))
-                    if fRowHeaderAnnot is not None:
-                        f.write(fRowHeaderAnnot(fz))
+                if fDirURL is not None:
+                    if inAlphaOrder:
+                        link=fURL(fz)   #TODO: Maybe fdirurl?
+                        f.write(FormatLink(link, UnicodeToHtml(fRowHeaderText(fz))))
+                        if fRowHeaderAnnot is not None:
+                            f.write(fRowHeaderAnnot(fz))
+                    else:
+                        f.write(UnicodeToHtml(fRowHeaderText(fz)))
+                        if fRowHeaderAnnot is not None:
+                            f.write(fRowHeaderAnnot(fz))
                 else:
                     f.write(UnicodeToHtml(fRowHeaderText(fz)))
 
