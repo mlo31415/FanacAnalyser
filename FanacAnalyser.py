@@ -7,7 +7,6 @@ import re
 import math
 import html
 import datetime
-import urllib.parse
 from unidecode import unidecode
 import csv
 import jsonpickle
@@ -54,6 +53,10 @@ def main():
     if not os.path.isdir(os.path.join(reportFilePath, "Reports by year")):
         os.mkdir(os.path.join(reportFilePath, "Reports by year"))
     Log("Report directory '"+reportFilePath+"' created")
+
+    # Get the control list of specific reports to be run
+    # If the list contains only comments, all reports will be run
+    reportsToRun=ReadList(os.path.join(rootDir, "control-OnlyThisReport.txt"))
 
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
     peopleCanonicalNames={}
@@ -203,12 +206,14 @@ def main():
         for fzi in fanacIssueList:
             f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
 
-    # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
     datedList=[f for f in fanacIssueList if not f.FIS.IsEmpty()]
-    Log("Begin Report 'Chronological_Listing_of_Fanzines.html'", timestamp=True)
-    WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines.html"),
+
+    # Note that because things are sorted by date, for a given month+year, things with no day sort before things with a day
+    report="Chronological_Listing_of_Fanzines.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteHTMLTable(os.path.join(reportFilePath, report),
                    datedList,
-                   fURL=lambda elem: elem.URL,
                    fButtonText=lambda fz: ChronButtonText(fz),
                     #
                    fRowHeaderText=lambda fz: fz.FIS.MonthYear,
@@ -220,25 +225,29 @@ def main():
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    #
                    headerFilename='control-Header (Fanzine, chronological).html')
-
-    Log("Begin Report 'Chronological Listing of Fanzines.txt'", timestamp=True)
-    WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Fanzines.txt"),
+    report="Chronological Listing of Fanzines.txt"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteTxtTable(os.path.join(reportFilePath, report),
                   datedList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
+        Log(f"Report: {report} complete.", timestamp=True)
+
     # List of undated issues
-    Log("Begin Report 'Undated Fanzine Issues.html'", timestamp=True)
-    undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
-    WriteHTMLTable(os.path.join(reportFilePath, "Undated Fanzine Issues.html"),
+    report="Undated Fanzine Issues.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
+        WriteHTMLTable(os.path.join(reportFilePath, report),
                    undatedList,
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowHeaderText=lambda fz: "fRowHeaderText fake lambda",
-                   fURL=lambda elem: elem.URL,
                    topCountText=timestamp,
                    headerFilename="control-Header (basic).html")
 
-    Log("Chronological fanzine reports complete.'", timestamp=True)
+        Log(f"Report: {report} complete.", timestamp=True)
 
 
     # Generate a list of all the newszines (in lower case)
@@ -288,28 +297,32 @@ def main():
             if fzi.FanzineType.lower() == "newszine":
                 f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
 
-    Log("Begin Report 'Chronological_Listing_of_Newszines.html'", timestamp=True)
-    newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
-    WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Newszines.html"),
-                   fanacIssueList,
-                   fURL=lambda elem: elem.URL,
-                   fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
+    report="Chronological_Listing_of_Newszines.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
+        WriteHTMLTable(os.path.join(reportFilePath, report),
+                       fanacIssueList,
+                       fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
                    fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                    fButtonText=lambda fz: ChronButtonText(fz),
                    fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
                    fRowBodyAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                    topCountText=newscountText+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Newszine).html")
+        Log(f"Report: {report} complete.", timestamp=True)
 
-    Log("Begin Report 'Chronological Listing of Newszines.txt'", timestamp=True)
-    WriteTxtTable(os.path.join(reportFilePath, "Chronological Listing of Newszines.txt"),
+    report="Chronological Listing of Newszines.txt"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteTxtTable(os.path.join(reportFilePath, report),
                   datedList,
                   fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.FIS.MonthYear,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
 
-    Log("Chronological Newszine reports complete.', timestamp=True)")
+        Log(f"Report: {report} complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -338,18 +351,23 @@ def main():
     SortFanacIssueListByTitle(fanacIssueListByTitle)
     SortFanacIssueListByTitle(fanacIssueList)
 
-    Log("Begin Report 'Alphabetical Listing of Fanzines.txt'", timestamp=True)
-    WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines.txt"),
+    report="Alphabetical Listing of Fanzines.txt"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteTxtTable(os.path.join(reportFilePath, report),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
-    Log("Begin Report 'Alphabetical_Listing_of_Fanzines.html'", timestamp=True)
-    WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines.html"),
+        Log(f"Report: {report} complete.", timestamp=True)
+
+    report="Alphabetical_Listing_of_Fanzines.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteHTMLTable(os.path.join(reportFilePath, report),
                    fanacIssueList,
                    fButtonText=lambda fz: AlphaButtonText(fz),
                    fDirURL=lambda fz: fz.DirURL,
-                   fURL=lambda elem: elem.URL,
                    fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
                    fRowHeaderText=lambda fz: fz.SeriesName,
                    fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
@@ -359,7 +377,7 @@ def main():
                    headerFilename="control-Header (Fanzine, alphabetical).html",
                    inAlphaOrder=True)
 
-    Log("Alphabetical fanzine reports complete.", timestamp=True)
+        Log(f"Report: {report} complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -374,10 +392,13 @@ def main():
     fanacIssueList.sort(key=bodyRowSelect)   # Sort by series name
     fanacIssueList.sort(key=lambda elem: elem.Locale.CountryName.lower())      # Sort by country
 
-    Log("Begin Report 'Series_by_Country.html'", timestamp=True)
-    WriteHTMLTable(os.path.join(reportFilePath, "Series_by_Country.html"),
+
+    report="Series_by_Country.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteHTMLTable(os.path.join(reportFilePath, report),
                    fanacIssueList,
-                   fURL=lambda elem: elem.Series.URL,
+                   fURL=lambda elem: elem.Series.DirURL,
                    fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
                    #
                    fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
@@ -392,7 +413,7 @@ def main():
                    headerFilename="control-Header (Fanzine, by country).html",
                    inAlphaOrder=True)
 
-    Log("Reports by country complete.", timestamp=True)
+        Log(f"Report: {report} complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -423,16 +444,21 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName.strip()))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor.strip()))  # Sorts by editor
 
-    Log("Begin Report 'Alphabetical Listing of Fanzines by Editor.txt'", timestamp=True)
-    WriteTxtTable(os.path.join(reportFilePath, "Alphabetical Listing of Fanzines by Editor.txt"),
+    report="Alphabetical Listing of Fanzines by Editor.txt"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteTxtTable(os.path.join(reportFilePath, report),
                   fanacIssueListByEditor,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.Editor,
                   topCountText=topcounttext+"\n"+timestamp+"\n")
-    Log("Begin Report 'Alphabetical_Listing_of_Fanzines_by_Editor.html'", timestamp=True)
-    WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzines_by_Editor.html"),
+        Log(f"Report: {report} complete.", timestamp=True)
+
+    report="Alphabetical_Listing_of_Fanzines_by_Editor.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteHTMLTable(os.path.join(reportFilePath, report),
                    fanacIssueListByEditor,
-                   fURL=lambda elem: elem.URL,
                    fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                    #
                    fRowHeaderText=lambda fz: fz.Editor,
@@ -446,11 +472,14 @@ def main():
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
+        Log(f"Report: {report} complete.", timestamp=True)
 
-    Log("Begin Report 'Alphabetical_Listing_of_Fanzine_Series_by_Editor.html'", timestamp=True)
-    WriteHTMLTable(os.path.join(reportFilePath, "Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"),
+    report="Alphabetical_Listing_of_Fanzine_Series_by_Editor.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteHTMLTable(os.path.join(reportFilePath, report),
                    fanacIssueListByEditor,
-                   fURL=lambda fz: fz.Series.URL,
+                   fURL=lambda fz: fz.Series.DirURL,
                    fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                    #
                    fRowHeaderText=lambda fz: fz.Editor,
@@ -465,15 +494,17 @@ def main():
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
+        Log(f"Report: {report} complete.", timestamp=True)
 
     # Sort the Alphabetic lists by Editor, but with fanzines in date order
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor))  # Sorts by editor
 
-    Log("Begin Report 'Chronological_Listing_of_Fanzines_by_Editor.html'", timestamp=True)
-    WriteHTMLTable(os.path.join(reportFilePath, "Chronological_Listing_of_Fanzines_by_Editor.html"),
+    report="Chronological_Listing_of_Fanzines_by_Editor.html"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteHTMLTable(os.path.join(reportFilePath, report),
                    fanacIssueListByEditor,
-                   fURL=lambda elem: elem.URL,
                    fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                    #
                    fRowHeaderText=lambda fz: fz.Editor,
@@ -486,6 +517,7 @@ def main():
                    topCountText=topcounttext+"\n"+timestamp+"\n",
                    headerFilename="control-Header (Fanzine, by editor).html",
                    inAlphaOrder=True)
+        Log(f"Report: {report} complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -501,13 +533,16 @@ def main():
         length=min(len(n1), len(n2))
         return n1[:length] != n2[:length]
 
-    Log("Begin Report 'Fanzines with odd names.txt'", timestamp=True)
-    WriteTxtTable(os.path.join(reportFilePath, "Fanzines with odd names.txt"),
+    report="Fanzines with odd names.txt"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteTxtTable(os.path.join(reportFilePath, report),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=timestamp+"\n",
                   fSelector=lambda fx: OddNames(fx.IssueName, fx.SeriesName))
+        Log(f"Report: {report} complete.", timestamp=True)
 
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -540,15 +575,17 @@ def main():
         for year, count in yearcounts:
             print(f"{year} Fanzines: {count}", file=f)
 
-    Log("Begin Report 'Fanzines with odd page counts.txt'", timestamp=True)
-    WriteTxtTable(os.path.join(reportFilePath, "Fanzines with odd page counts.txt"),
+    report="Fanzines with odd page counts.txt"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report '{report}'", timestamp=True)
+        WriteTxtTable(os.path.join(reportFilePath, report),
                   fanacIssueList,
                   fRowBodyText=lambda fz: fz.IssueName,
                   fRowHeaderText=lambda fz: fz.SeriesName,
                   topCountText=timestamp,
                   fSelector=lambda fz: fz.Pagecount > 250)
 
-    Log("Reports complete.", timestamp=True)
+        Log("Reports complete.", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -704,8 +741,8 @@ def ReadFile(filename: str) -> list[str]:
 #   fRowBodyText is what is listed in the subsection
 def WriteHTMLTable(filename: str,
                fanacIssueList: list,  # The sorted input list
-               fURL: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the URL
-               fDirURL: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the directory or root URL
+               fDirURL: Callable[[FanzineIssueInfo], str]|None=lambda fz: fz.DirURL,    # Function to supply the directory or root URL
+               fURL: Callable[[FanzineIssueInfo], str]|None=lambda elem: elem.URL, # Function to supply the URL
                fButtonText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the button text
                 #
                fRowHeaderText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text
