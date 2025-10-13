@@ -742,21 +742,21 @@ def ReadFile(filename: str) -> list[str]:
 def WriteHTMLTable(filename: str,
                fanacIssueList: list,  # The sorted input list
                fDirURL: Callable[[FanzineIssueInfo], str]|None=lambda fz: fz.DirURL,    # Function to supply the directory or root URL
-               fURL: Callable[[FanzineIssueInfo], str]|None=lambda elem: elem.URL, # Function to supply the URL
+               fURL: Callable[[FanzineIssueInfo], str]|None=lambda fz: fz.URL, # Function to supply the URL for the specific item
                fButtonText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the button text
-                #
+                # A set of individual items (appearing in the right column) are collected under a header in the left column
                fRowHeaderText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text
                fRowHeaderAnnot: Callable[[FanzineIssueInfo], str]|None = None,    # Function to supply annotation to the header text/link
-               fRowHeaderSelect: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text to be used to separate headers. (Needed to disambiguate fanzines series with the same title
-               fCompareRowHeaderText: Callable[[str, str], bool]|None = None,  # If present, is used to determine if the row header text has changed
+               fRowHeaderSelect: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply an individual items text to be used to decide its header
+               fCompareRowHeaderText: Callable[[str, str], bool]|None = None,  # If present, is used to determine two header ytexts to see if they are different.
                fHeaderAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
                includeRowHeaderCounts: bool = True,  # Include counts in header block!
-               includeRowTitleCount: bool=False,    # (Only if includeRowHeaderCounts is True,) also include count of series.
+               includeRowTitleCount: bool=False,    # (Only if includeRowHeaderCounts is True) also include count of series.
                #
                fRowBodyText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the row's body text
                fRowBodyAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the rows
-               fCompareRowBodyText: Callable[[str, str], bool]|None = None,        # If present, is used to determine if the row header text has changed
-               fRowBodySelect: Callable[[FanzineIssueInfo], str]|None = None,           # If present, selects the text that is being used to sort body rows
+               fCompareRowBodyText: Callable[[str, str], bool]|None = None,    # If present, is used to compare two fRowBodySelect()s to see if they are identical
+               fRowBodySelect: Callable[[FanzineIssueInfo], str]|None = None,   # If present, generates the text to compare body rows so that duplicates can be skipped
                showDuplicateBodyRows: bool=True,
                #
                topCountText: str= "",
