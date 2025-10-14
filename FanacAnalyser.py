@@ -361,30 +361,30 @@ def main():
                   topCountText=topcounttext+"\n"+timestamp+"\n")
         Log(f"Report: {report} complete.", timestamp=True)
 
-    report="Alphabetical_Listing_of_Fanzines.html"
+    report="Alphabetical_Listing_of_Fanzines.html" #qwert
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report '{report}'", timestamp=True)
         WriteHTMLTable(os.path.join(reportFilePath, report),
-                   fanacIssueList,
-                   fButtonText=lambda fz: AlphaButtonText(fz),
-                   fDirURL=lambda fz: fz.DirURL,
-                   fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
-                   fRowHeaderText=lambda fz: fz.SeriesName,
-                   fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
-                   fRowBodyAnnot=lambda fz: AnnotateDate(fz),
-                   topCountText=topcounttext+"\n"+timestamp+"\n",
-                   headerFilename="control-Header (Fanzine, alphabetical).html",
-                   inAlphaOrder=True)
+                       fanacIssueList,
+                       fRowHeaderURL=lambda fz: fz.Series.URL,
+                       fButtonText=lambda fz: AlphaButtonText(fz),
+                       fRowHeaderText=lambda fz: fz.SeriesName,
+                       fRowHeaderAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
+                       fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
+                       fRowBodyText=lambda fz: UnicodeToHtml(fz.IssueName),
+                       fRowBodyAnnot=lambda fz: AnnotateDate(fz),
+                       topCountText=topcounttext+"\n"+timestamp+"\n",
+                       headerFilename="control-Header (Fanzine, alphabetical).html",
+                       inAlphaOrder=True)
 
         Log(f"Report: {report} complete.", timestamp=True)
+
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate a list of fanzine series sorted by country
     # For this, we don't actually want a list of individual issues, so we need to collapse fanacIssueList into a fanzineSeriesList
     # FanacIssueList is a list of FanzineIssueInfo objects.  We will read through them all and create a dictionary keyed by fanzine series name with the country as value.
-
 
     # Create a properly ordered flat list suitable for WriteTable
     bodyRowText=lambda elem: elem.Series.DisplayName.strip()+":"+elem.Editor.strip()
@@ -397,21 +397,21 @@ def main():
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report '{report}'", timestamp=True)
         WriteHTMLTable(os.path.join(reportFilePath, report),
-                   fanacIssueList,
-                   fURL=lambda elem: elem.Series.DirURL,
-                   fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
-                   #
-                   fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
-                   includeRowHeaderCounts=True,
-                   #
-                   fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName),
-                   fRowBodyAnnot=lambda elem: UnicodeToHtml(elem.Editor),
-                   fRowBodySelect=bodyRowText,
-                   showDuplicateBodyRows=False,
-                   #
-                   topCountText=timestamp,
-                   headerFilename="control-Header (Fanzine, by country).html",
-                   inAlphaOrder=True)
+                       fanacIssueList,
+                       fBodyURL=lambda elem: elem.Series.DirURL,
+                       fButtonText=lambda elem: CapIt(elem.Locale.CountryName),
+                       #
+                       fRowHeaderText=lambda elem: CapIt(elem.Locale.CountryName),
+                       includeRowHeaderCounts=True,
+                       #
+                       fRowBodyText=lambda elem: UnicodeToHtml(elem.Series.DisplayName),
+                       fRowBodyAnnot=lambda elem: UnicodeToHtml(elem.Editor),
+                       fRowBodySelect=bodyRowText,
+                       showDuplicateBodyRows=False,
+                       #
+                       topCountText=timestamp,
+                       headerFilename="control-Header (Fanzine, by country).html",
+                       inAlphaOrder=True)
 
         Log(f"Report: {report} complete.", timestamp=True)
 
@@ -478,22 +478,22 @@ def main():
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report '{report}'", timestamp=True)
         WriteHTMLTable(os.path.join(reportFilePath, report),
-                   fanacIssueListByEditor,
-                   fURL=lambda fz: fz.Series.DirURL,
-                   fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
-                   #
-                   fRowHeaderText=lambda fz: fz.Editor,
-                   fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
-                   includeRowHeaderCounts=True,
-                   includeRowTitleCount=True,
-                   #
-                   fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
-                   fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName.strip()+":"+fz.Editor.strip()),
-                   showDuplicateBodyRows=False,
-                   #
-                   topCountText=topcounttext+"\n"+timestamp+"\n",
-                   headerFilename="control-Header (Fanzine, by editor).html",
-                   inAlphaOrder=True)
+                       fanacIssueListByEditor,
+                       fBodyURL=lambda fz: fz.Series.DirURL,
+                       fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
+                       #
+                       fRowHeaderText=lambda fz: fz.Editor,
+                       fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
+                       includeRowHeaderCounts=True,
+                       includeRowTitleCount=True,
+                       #
+                       fRowBodyText=lambda fz: UnicodeToHtml(fz.SeriesName),
+                       fRowBodySelect=lambda fz: UnicodeToHtml(fz.Series.SeriesName.strip()+":"+fz.Editor.strip()),
+                       showDuplicateBodyRows=False,
+                       #
+                       topCountText=topcounttext+"\n"+timestamp+"\n",
+                       headerFilename="control-Header (Fanzine, by editor).html",
+                       inAlphaOrder=True)
         Log(f"Report: {report} complete.", timestamp=True)
 
     # Sort the Alphabetic lists by Editor, but with fanzines in date order
@@ -732,6 +732,7 @@ def ReadFile(filename: str) -> list[str]:
         LogFailureAndRaiseIfMissing(filename)
     return []
 
+
 #================================================================================
 # fRowHeaderText and fRowBodyText and fSelector are all lambdas
 #   fSelector decides if this fanzine is to be listed and returns True for fanzines to be listed, and False for ones to be skipped. (If None, nothing will be skipped)
@@ -739,10 +740,10 @@ def ReadFile(filename: str) -> list[str]:
 #   fRowHeaderText and fRowBodyText are functions which pull information out of a fanzineIssue from fanzineIssueList
 #   fRowHeaderText is the item used to decide when to start a new subsection
 #   fRowBodyText is what is listed in the subsection
-def WriteHTMLTable(filename: str,
+def WriteHTMLTable(filename: str,   #qwert
                fanacIssueList: list,  # The sorted input list
-               fDirURL: Callable[[FanzineIssueInfo], str]|None=lambda fz: fz.DirURL,    # Function to supply the directory or root URL
-               fURL: Callable[[FanzineIssueInfo], str]|None=lambda fz: fz.URL, # Function to supply the URL for the specific item
+               fRowHeaderURL: Callable[[FanzineIssueInfo], str]|None=None,    # Function to supply the URL for the header text
+               fBodyURL: Callable[[FanzineIssueInfo], str]|None=lambda fz: fz.URL, # Function to supply the URL for the specific item
                fButtonText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the button text
                 # A set of individual items (appearing in the right column) are collected under a header in the left column
                fRowHeaderText: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply the header text
@@ -780,7 +781,7 @@ def WriteHTMLTable(filename: str,
     if fRowBodyText is None:
         LogError(f"WriteTable: critical parameter 'fRowBodyText' is None in call to generate {filename}")
         return
-    if fURL is None:
+    if fBodyURL is None:
         LogError(f"WriteTable: critical parameter 'fURL' is None in call to generate {filename}")
         return
     if (not showDuplicateBodyRows) and fRowBodySelect is None:
@@ -877,7 +878,7 @@ def WriteHTMLTable(filename: str,
             # Do we skip this fanzine completely?
             if fSelector is not None and not fSelector(fz):
                 continue
-            if fURL is not None and fURL(fz) is None:        #TODO: Why do we skip when fURL(fz) is None ??
+            if fBodyURL is not None and fBodyURL(fz) is None:        #TODO: Why do we skip when fBodyURL(fz) is None ??
                 continue
 
             # Start a new main row
@@ -893,7 +894,7 @@ def WriteHTMLTable(filename: str,
                     # Count the issues in this block.
                     fc=CountSublist(fCompare=fCompareRowHeaderText, fRowSelect=fRowHeaderSelect, fSelector=fSelector, fanacIssueList=fanacIssueList[i:], CountTitles=True)
 
-                # Since this is a new main row, we write the header in col 1
+                # Since this is a new main row, we write the row header in col 1
                 # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
 
                 # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
@@ -905,16 +906,16 @@ def WriteHTMLTable(filename: str,
                     lastButtonLinkString=buttonLinkString
 
                 f.write('<div class="row border">\n')  # Start a new sub-box
-                # Write col 1
+                # Write the 1st column header for a bunch of 2nd column fz's
                 # We sometimes have a very long single word in a fanzine name which does not wrap, but which collides with the second column.
                 # Detect it and, if necessary, add a wrap to the HTML
                 wrapper=""
                 if max([len(x) for x in fRowHeaderText(fz).split(" ")]) > 20:
                     wrapper=" text-break"
                 f.write(f'  <div class="col-md-3{wrapper}">')
-                if fDirURL is not None:
+                if fRowHeaderURL is not None:
                     if inAlphaOrder:
-                        link=fURL(fz)   #TODO: Maybe fdirurl?
+                        link=fRowHeaderURL(fz)
                         f.write(FormatLink(link, UnicodeToHtml(fRowHeaderText(fz))))
                         if fRowHeaderAnnot is not None:
                             f.write(fRowHeaderAnnot(fz))
@@ -946,12 +947,12 @@ def WriteHTMLTable(filename: str,
                 # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
                 # The former are easy, but the latter need to be processed
                 bodytext=fRowBodyText(fz)
-                if fURL is not None:
+                if fBodyURL is not None:
                     # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                     splitext=bodytext.split("|", 2)
                     if len(splitext) == 2:
                         bodytext=splitext[0]
-                    link=fURL(fz)
+                    link=fBodyURL(fz)
                     f.write('        '+FormatLink(link, bodytext))
 
                 fc=None
@@ -976,11 +977,11 @@ def WriteHTMLTable(filename: str,
                 # The former are easy, but the latter need to be processed
                 if not fCompareRowBodyText(lastRowBodySelect, fRowBodySelect(fz)):
                     bodytext=fRowBodyText(fz)
-                    if fURL is not None:
+                    if fBodyURL is not None:
 
-                        link=fURL(fz)
+                        link=fBodyURL(fz)
                         if fz.Series.AlphabetizeIndividually:
-                            link+="/"+fz.PageFilename  # When entries are singletons in a collective fanzine index page, we want the col1 link to point to the fanzine, also.
+                            link=fz.URL
                         # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                         splitext=bodytext.split("|", 2)
                         if len(splitext) == 2:
