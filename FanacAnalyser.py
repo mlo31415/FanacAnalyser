@@ -58,6 +58,8 @@ def main():
     # If the list contains only comments, all reports will be run
     reportsToRun=ReadList(os.path.join(rootDir, "control-OnlyThisReport.txt"))
 
+    bogusEditors=ReadList(os.path.join(rootDir, "control-BogusEditors.txt"))
+
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
     peopleCanonicalNames={}
     filepathname=os.path.join(rootDir, "People Canonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's directories
@@ -443,6 +445,9 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName.strip()))  # Sorts in place on fanzine's name with leading articles suppressed
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor.strip()))  # Sorts by editor
+
+    # Remove those editors we have skipped in control-BogusEditors.txt
+    fanacIssueListByEditor=[fz for fz in fanacIssueListByEditor if fz.Editor.strip() not in bogusEditors ]
 
     report="Alphabetical Listing of Fanzines by Editor.txt"
     if len(reportsToRun) == 0 or report in reportsToRun:
