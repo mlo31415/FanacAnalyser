@@ -801,11 +801,6 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
                 parts=urllib.parse.urlparse(title.Url).path.split("/")
                 fname=parts[-1:][0]
                 # If it points to a different folder under fanzines, note the fact and ignore the link as it is almost certainly a duplicate
-                if parts[1].lower() == "fanzines" and parts[2].lower() != dir.lower():
-                    Log(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a different directory. Skipped")
-                    continue
-                if not fname.lower().endswith(".html") and not fname.lower().endswith(".htm") and not fname.lower().endswith(".pdf"):
-                    LogError(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a directory, not a file. Skipped")
                 # if parts[1].lower() == "fanzines" and parts[2].lower() != dir.lower():
                 #     Log(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a different directory. Skipped")
                 #     continue
