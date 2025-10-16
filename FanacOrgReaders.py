@@ -806,6 +806,9 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
                     continue
                 if not fname.lower().endswith(".html") and not fname.lower().endswith(".htm") and not fname.lower().endswith(".pdf"):
                     LogError(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a directory, not a file. Skipped")
+                # if parts[1].lower() == "fanzines" and parts[2].lower() != dir.lower():
+                #     Log(f"   FanacOrgReaders: href='{title.Url}' seems to be pointing to a different directory. Skipped")
+                #     continue
                     continue
                 path=title.Url.replace("/"+fname, "")
                 title.Url=fname
