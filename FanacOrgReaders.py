@@ -42,9 +42,6 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     # Read in a list to be not skipped (implies all other directors are to be skipped.)
     unskippers=ReadList(os.path.join(rootDir, "control-unskippers.txt"))
 
-    # if len(unskippers) > 0:
-    #     skippers=[]      # Unskippers trumps skippers
-
     # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
     # We also skip these
     offsite=ReadList(os.path.join(rootDir, "control-offsite.txt"))
