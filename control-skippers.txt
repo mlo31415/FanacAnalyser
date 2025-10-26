@@ -5,3 +5,4 @@
 # Legal Rules, The                # This is off in the conventions directory
 # NOLAzine                        # BeautifulSoup found no index table in index.html
 # Cosmag                          # Another weired one-off format
+APA_Mailings
