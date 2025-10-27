@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Union, Optional, Self
 from contextlib import suppress
 
 import os
@@ -116,16 +116,24 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
 
 
 class TextAndHref:
-    # When inited by a single string, it will be decoded into href+text if it can be.
-    def __init__(self, text: str="", href: str|None=None):
+    # It accepts three initialization calls:
+    #   TextAnHref(str)  -->   Attempt to turn it into text+href; if this fails it's just text
+    #   TextAndHref(TextAndHref)  -- >  just make a copy
+    #   TextAndHref(text, href)  -->  just assemble the arguments into a TextAndHref(
+    def __init__(self, text: str|Self="", href: str|None=None):
         if href is None:
+            if isinstance(text, TextAndHref):
+                self.Url=text.Url
+                self.Text=text.Text.strip()
+                return
+
             _, self.Url, self.Text, _=FindHrefInString(text)
             if self.Url == "" and self.Text == "":
-                self.Text=text
+                self.Text=text.strip()
             return
 
         # Both arguments were supplied
-        self.Text: str=text
+        self.Text: str=text.strip()
         self.Url: str=href
 
     def IsEmpty(self) -> bool:
@@ -169,7 +177,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
                                     sp="<"+sp
                                 tahs.append(TextAndHref(sp))
                             return tahs
-                    return TextAndHref(row[i])
+                    return TextAndHref(row[i])  # Note that this handle both pure text and TextAndHref cell values returning a TextAndHref value
                 except:
                     return TextAndHref()
 
@@ -290,7 +298,7 @@ def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) ->
         Log(f"ExtractIssueNameAndHref: Row has {len(row)} columns while we expected {len(columnHeaders)} columns. Row skipped.")
         return TextAndHref()
 
-    # Find the column containing the issue name
+    # Find the column containing the issue name.  There are several possibilities.
     issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
     if issue.IsEmpty():
         issue=GetCellValueByColHeader(columnHeaders, row, "Title")
@@ -299,10 +307,11 @@ def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) ->
     if issue.IsEmpty():
        return TextAndHref("<not found>", "")
 
-    # If necessary, separate the href and the name
+    # If we already have found a URL, we're done.
     if issue.Url != "":
         return issue
 
+    # We now know the there is no URL.  If there's no text, either, return an empty TextAndHref
     if issue.Text == "":
         return TextAndHref()
 
@@ -311,7 +320,7 @@ def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) ->
     # We return the name from the issue cell and the hyperlink from the other cell
     for i in range(0, len(columnHeaders)):
         if len(row) > 0 and row[i].Url != "":
-            return TextAndHref(issue[0].Text, row[i].Url)
+            return TextAndHref(issue.Text, row[i].Url)
 
     return issue     # No hyperlink found
 
@@ -1001,7 +1010,7 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: 
         fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Position=iRow, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
                             FanzineType=FanzineType, AlphabetizeIndividually=alphabetizeIndividually)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.MonthNum is None:
-            Log(f"   ****Skipping null table row: {fi}")
+            Log(f"   ****Skipping null table row (#1): {fi}")
             continue
 
         Log(f"   {fi=}")
@@ -1051,7 +1060,7 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
         headerTable=html[loc:loc+locend]
         bodyTable, row=ReadTableRow(headerTable, "TR", "TH")
 
-    columnHeaders: list[str]=[CanonicizeColumnHeaders(c) for c in row]
+    columnHeaders: list[str]=[CanonicizeColumnHeaders(c.Text) for c in row] # Canonicize and return to being just a str list
 
     # The mailing column may contain hyperlinks.  Suppress them, leaving only the link text.
     mailingCol=None
@@ -1059,17 +1068,17 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
         mailingCol=columnHeaders.index("Mailing")
 
     # Now loop getting the rows
-    rows=[]
+    rows: list[TextAndHref]=[]
     while len(bodyTable) > 0:
         bodyTable, row=ReadTableRow(bodyTable, "TR", "TD")
         if len(row) == 0:
             break
         for i, cell in enumerate(row):    # Turn '<BR>' into empty string
-            if cell.lower() == "<br>":
-                row[i]=""
+            if cell.Text.lower() == "<br>":
+                row[i].Text=""
         if mailingCol is not None:
-            if row[mailingCol] != "":
-                row[mailingCol]=RemoveHyperlink(row[mailingCol], repeat=True)    # Get rid of any hyperlinks
+            if row[mailingCol].Text != "":
+                row[mailingCol].Url=""    # Get rid of any hyperlinks
 
         rows.append(row)
 
@@ -1092,6 +1101,7 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
         date=ExtractDate(columnHeaders, tableRow)
         ser=ExtractSerial(columnHeaders, tableRow)
         fis=FanzineIssueSpec(FD=date, FS=ser)
+
         title=ExtractIssueNameAndHref(columnHeaders, tableRow)
         if "fanac.org/fanzines/" in title.Url.lower() and title.Url[-1] == "/":
             continue    # This is an independent fanzine index page referred to in this FIP. It will be dealt with on its own and can be skipped for now.
@@ -1140,7 +1150,7 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
         fi=FanzineIssueInfo(IssueName=title.Text, DirURL=dirUrl, PageFilename=title.Url, FIS=fis, Position=iRow, Pagecount=pages, Editor=ed, Country=country, Mailings=mailings,
                             FanzineType=FanzineType, AlphabetizeIndividually=alphabetizeIndividually)
         if fi.IssueName == "<not found>" and fi.FIS.Vol is None and fi.FIS.Year is None and fi.FIS.MonthNum is None:
-            Log(f"   ****Skipping null table row: {fi}")
+            Log(f"   ****Skipping null table row (#2): {fi}")
             continue
 
         Log(f"   {fi=}")
@@ -1158,7 +1168,7 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
     return fiiList
 
 
-def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[str]]:
+def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextAndHref]]:
 
     tabletext=tablein.strip()
     selection=""
@@ -1170,15 +1180,13 @@ def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[str]]
         selection=m.group(1).strip()
         tabletext=tabletext[m.end():].strip()
 
-    row=[]
+    row: list[TextAndHref] = []
     while len(selection) > 0:
         m=re.match(rf"<{coldelim} *[^>]*?>(.*?)</{coldelim}>", selection, re.IGNORECASE)
         if m is None:
             break
-        row.append(m.group(1).strip())
+        row.append(TextAndHref(m.group(1).strip()))
         selection=selection[m.end():].strip()
-
-    row=[x.strip() for x in row]    # Make sure empty rows really are empty
 
     return tabletext, row
 
