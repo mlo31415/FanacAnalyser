@@ -1076,7 +1076,7 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
         for i, cell in enumerate(row):    # Turn '<BR>' into empty string
             if cell.Text.lower() == "<br>":
                 row[i].Text=""
-        if mailingCol is not None:
+        if mailingCol is not None and mailingCol <len(row):
             if row[mailingCol].Text != "":
                 row[mailingCol].Url=""    # Get rid of any hyperlinks
 
@@ -1087,7 +1087,7 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
     fiiList: list[FanzineIssueInfo]=[]
     for iRow, tableRow in enumerate(rows):
         # Skip null rows
-        if len(tableRow) == 0 or (len(tableRow) == 1 and len(tableRow[0].strip()) == 0):
+        if len(tableRow) == 0 or (len(tableRow) == 1 and len(tableRow[0].Text.strip()) == 0):
             continue
         Log(f"   {tableRow=}")
 
