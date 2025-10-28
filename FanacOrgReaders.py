@@ -648,7 +648,8 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
                 topblock=ret
 
     if topblock is None:
-        assert False
+        Log(f"***********************************\n*** No top block found in {directoryUrl}\n***********************************")
+        return []
 
     items=re.split(r"(</?h1>|</?h2>|<br>)+", topblock, flags=re.IGNORECASE | re.DOTALL)
     items=[x.strip() for x in items if len(x) > 1 and (x[0]!="<" and x[-1]!=">")]
