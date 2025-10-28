@@ -677,7 +677,7 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
     # First, look for a date range.  This will pin down the number of editors.
     dateindex=None
     for i, item in enumerate(items):
-        m=re.match(r"^[0-9]*\?*-[0-9]*\?*$", item)
+        m=re.match(r"^[0-9]*\?* *- *[0-9]*\?*$", item)
         if m is not None:
             dateindex=i
             dateRange=items[dateindex]
