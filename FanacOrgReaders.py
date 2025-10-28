@@ -654,6 +654,7 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
     items=re.split(r"(</?h1>|</?h2>|<br>)+", topblock, flags=re.IGNORECASE | re.DOTALL)
     items=[x.strip() for x in items if len(x) > 1 and (x[0]!="<" and x[-1]!=">")]
     items=[x for x in items if len(x.strip()) > 0]   # Remove any empty items
+    items=[x for x in items if x.lower() != "<br>"]
     if len(items) == 4:
         t1=items[0]
         # Because of the sloppiness of fanac.org, sometimes the fanzine name is picked up again here.
