@@ -1206,8 +1206,6 @@ def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextA
 
     # Extract the rows from the rows html
     row: list[TextAndHref] = []
-    while len(selection) > 0:
-        m=re.match(rf"<{coldelim} *[^>]*?>(.*?)</{coldelim}>", selection, re.IGNORECASE)
     while len(rowstext) > 0:
         m=re.match(rf"<{coldelim} *([^>]*?)>(.*?)</{coldelim}>", rowstext, re.IGNORECASE)
         if m is None:
