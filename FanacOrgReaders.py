@@ -9,8 +9,6 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 import requests
 import urllib.parse
-from dataclasses import dataclass
-
 
 from FanzineIssueSpecPackage import FanzineIssueSpec, FanzineDate, FanzineSerial, FanzineIssueInfo, FanzineSeriesInfo
 from FanzineIssueSpecPackage import ExtractSerialNumber, FanzineCounts
