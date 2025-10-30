@@ -1104,11 +1104,11 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectoriesList if e2 == dirname]
     if dups:
-        Log(f"   AddFanacDirectory: duplicate: {name=}  {dirname=}")
+        LogError(f"   AddFanacDirectory: duplicate directory: {name=}  {dirname=}")
         return
 
     if dirname.startswith("http"):
-        Log(f"    AddFanacDirectory: ignored, because is HTML: {dirname}")
+        LogError(f"    AddFanacDirectory: ignored, because is HTML: {dirname}")
         return
 
     # Add name and directory reference
