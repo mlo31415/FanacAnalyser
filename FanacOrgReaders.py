@@ -17,7 +17,7 @@ from Settings import Settings
 
 from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText, ParseFirstStringBracketedText, FindHrefInString, ExtractHTMLUsingFanacStartEndCommentPair
-from HelpersPackage import ExtractBetweenHTMLComments, ChangeFileInURL, ChangeNBSPToSpace, RemoveHyperlink
+from HelpersPackage import ExtractBetweenHTMLComments, ChangeFileInURL, RemoveHyperlink
 from HelpersPackage import CanonicizeColumnHeaders, DropTrailingSequenceNumber
 from HelpersPackage import Int0
 from HelpersPackage import RemoveFunnyWhitespace, ExtractInvisibleTextInsideFanacComment
