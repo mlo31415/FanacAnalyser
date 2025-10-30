@@ -475,137 +475,137 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str)
 
     return fiiList
 
-
-
-def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: BeautifulSoup) -> list[FanzineIssueInfo]:
-    # By elimination, this must be an ordinary page, so read it.
-    # Locate the Index Table on this page.
-    table=LocateIndexTable(directoryUrl, soup)
-    if table is None:
-        LogError(f"ReadFanacFanzineIndexPageNew: Can't find Index Table in {directoryUrl}.")
-        return []
-
-    # Check to see if this is marked as a Newszine
-    isnewszines=False
-    temp=soup.h2
-    if temp is not None:
-        if temp.text.find("Newszine") > -1:
-            Log(f">>>>>> Newszine added: '{fanzineName}'")
-            isnewszines=True
-    else:
-        Log(f"No H2 block found in {directoryUrl}")
-
-    # Extract any fanac keywords.  They will be of the form:
-    #       <! fanac-keywords: xxxxx -->
-    # There may be many of them
-    contents=str(soup)
-    contents=contents.replace("\n", " ")
-    kwds: ParmDict=ParmDict(CaseInsensitiveCompare=True)
-    pat=r"<!--\s?[Ff]anac-keywords:(.*?)-{1,4}>"
-    while True:
-        m=re.search(pat, contents)#, re.IGNORECASE)
-        if not m:
-            break
-        kwds[m.groups()[0].strip()]=""
-        contents=re.sub(pat, "", contents)#, re.IGNORECASE)
-
-    # Try to pull the editor information out of the page
-    # The most common format (ignoring a scattering of <br>s) is
-    #   H1
-    #       series name
-    #   H2
-    #       Editor
-    #   H2
-    #       dates
-    #       [Newszine]
-    #   /H2
-    #   /H2
-    #   /H1
-    #...or something else...
-
-    # While we expect the H1 title material to be terminated by <h2>, we can't count on that, so we also look for a terminal </h1>
-    sername=None
-    if soup.h1 is not None:
-        h1s=str(soup.h1)
-        locH2=h1s.lower().find("<h2>")
-        if locH2 == -1:
-            locH2=99999
-        locH1end=h1s.lower().find("</h1>")
-        if locH1end == -1:
-            locH1end=99999
-        sername=h1s[:min(locH2, locH1end)]
-
-        # Remove any opening bracket and terminal brackets
-        loc=sername.find(">")
-        if loc > -1:
-            sername=sername[loc+1:]
-        if sername[-1] == ">":
-            loc=sername.rfind("<")
-            sername=sername[:loc]
-
-        # Replace internal br brackets with semicolons
-        seriesName=re.sub(r"</?br/?>", "; ", sername, flags=re.IGNORECASE)
-
-    h2s=str(soup.h2)
-    # Split on various flavors of <br> and <h2>
-    #pattern="<br>|</br>|<br/>|<BR>|</BR>|<BR/>|<h2>|</h2>|<h2/>|<H2>|</H2>|<H2/>"
-    pattern="<.+?>"
-    h2s=re.sub(pattern, "|", h2s)
-    h2s=h2s.split("|")
-    h2s=[h.strip() for h in h2s if len(h.strip()) > 0]
-
-    if sername is None:
-        seriesName=h2s[0]
-
-    # Because of the sloppiness of fanac.org, sometimes the fanzine name is picked up again here.
-    # We ignore the first token if it is too similar to the fanzine name
-    if SequenceMatcher(None, h2s[0], fanzineName).ratio() > 0.7:
-        h2s=h2s[1:]
-
-    # The editor(s) names are usually the line or lines before the date range.  So names can be in more than one element of h2s
-    # The date range is something like '1964' or '1964-1999' or '1964-1999?'
-    editor=""
-    dateRangeFound=False
-    fanzineType=""
-    for h in h2s:
-        if re.match(r"[0-9-?]", h):     # Look for a date range: 1999-2004, as this definitively ends the list of editors
-            dateRangeFound=True
-            continue
-        if not dateRangeFound:
-            if editor:
-                editor+=", "
-            editor+=h
-            continue
-        if dateRangeFound:
-            if h.lower() == "collection":
-                fanzineType="Collection"
-
-
-    html=str(soup.body)
-    country=ExtractHeaderCountry(html)
-    if country == "":
-        Log(f"No country found for {fanzineName}")
-
-    # Walk the table and extract the fanzines in it
-    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
-
-    # Some old-style pages may have a hand-edited "alphabetize individually" keywork.  Test for that as well as for type=Collection.
-    if kwds["Alphabetize individually"] is not None or fanzineType == "Collection":
-        # Add the tags and the series info pointer
-        for fii in fiiList:
-            # Create a special series just for this issue.
-            fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
-            if isnewszines:
-                fii.Taglist.append("newszine")
-    else:
-        # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
-        fsi=FanzineSeriesInfo(SeriesName=seriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
-        for fii in fiiList:
-            fii.Series=fsi
-            if isnewszines:
-                fii.Taglist.append("newszine")
-
-    return fiiList
+#
+#
+# def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, soup: BeautifulSoup) -> list[FanzineIssueInfo]:
+#     # By elimination, this must be an ordinary page, so read it.
+#     # Locate the Index Table on this page.
+#     table=LocateIndexTable(directoryUrl, soup)
+#     if table is None:
+#         LogError(f"ReadFanacFanzineIndexPageNew: Can't find Index Table in {directoryUrl}.")
+#         return []
+#
+#     # Check to see if this is marked as a Newszine
+#     isnewszines=False
+#     temp=soup.h2
+#     if temp is not None:
+#         if temp.text.find("Newszine") > -1:
+#             Log(f">>>>>> Newszine added: '{fanzineName}'")
+#             isnewszines=True
+#     else:
+#         Log(f"No H2 block found in {directoryUrl}")
+#
+#     # Extract any fanac keywords.  They will be of the form:
+#     #       <! fanac-keywords: xxxxx -->
+#     # There may be many of them
+#     contents=str(soup)
+#     contents=contents.replace("\n", " ")
+#     kwds: ParmDict=ParmDict(CaseInsensitiveCompare=True)
+#     pat=r"<!--\s?[Ff]anac-keywords:(.*?)-{1,4}>"
+#     while True:
+#         m=re.search(pat, contents)#, re.IGNORECASE)
+#         if not m:
+#             break
+#         kwds[m.groups()[0].strip()]=""
+#         contents=re.sub(pat, "", contents)#, re.IGNORECASE)
+#
+#     # Try to pull the editor information out of the page
+#     # The most common format (ignoring a scattering of <br>s) is
+#     #   H1
+#     #       series name
+#     #   H2
+#     #       Editor
+#     #   H2
+#     #       dates
+#     #       [Newszine]
+#     #   /H2
+#     #   /H2
+#     #   /H1
+#     #...or something else...
+#
+#     # While we expect the H1 title material to be terminated by <h2>, we can't count on that, so we also look for a terminal </h1>
+#     sername=None
+#     if soup.h1 is not None:
+#         h1s=str(soup.h1)
+#         locH2=h1s.lower().find("<h2>")
+#         if locH2 == -1:
+#             locH2=99999
+#         locH1end=h1s.lower().find("</h1>")
+#         if locH1end == -1:
+#             locH1end=99999
+#         sername=h1s[:min(locH2, locH1end)]
+#
+#         # Remove any opening bracket and terminal brackets
+#         loc=sername.find(">")
+#         if loc > -1:
+#             sername=sername[loc+1:]
+#         if sername[-1] == ">":
+#             loc=sername.rfind("<")
+#             sername=sername[:loc]
+#
+#         # Replace internal br brackets with semicolons
+#         seriesName=re.sub(r"</?br/?>", "; ", sername, flags=re.IGNORECASE)
+#
+#     h2s=str(soup.h2)
+#     # Split on various flavors of <br> and <h2>
+#     #pattern="<br>|</br>|<br/>|<BR>|</BR>|<BR/>|<h2>|</h2>|<h2/>|<H2>|</H2>|<H2/>"
+#     pattern="<.+?>"
+#     h2s=re.sub(pattern, "|", h2s)
+#     h2s=h2s.split("|")
+#     h2s=[h.strip() for h in h2s if len(h.strip()) > 0]
+#
+#     if sername is None:
+#         seriesName=h2s[0]
+#
+#     # Because of the sloppiness of fanac.org, sometimes the fanzine name is picked up again here.
+#     # We ignore the first token if it is too similar to the fanzine name
+#     if SequenceMatcher(None, h2s[0], fanzineName).ratio() > 0.7:
+#         h2s=h2s[1:]
+#
+#     # The editor(s) names are usually the line or lines before the date range.  So names can be in more than one element of h2s
+#     # The date range is something like '1964' or '1964-1999' or '1964-1999?'
+#     editor=""
+#     dateRangeFound=False
+#     fanzineType=""
+#     for h in h2s:
+#         if re.match(r"[0-9-?]", h):     # Look for a date range: 1999-2004, as this definitively ends the list of editors
+#             dateRangeFound=True
+#             continue
+#         if not dateRangeFound:
+#             if editor:
+#                 editor+=", "
+#             editor+=h
+#             continue
+#         if dateRangeFound:
+#             if h.lower() == "collection":
+#                 fanzineType="Collection"
+#
+#
+#     html=str(soup.body)
+#     country=ExtractHeaderCountry(html)
+#     if country == "":
+#         Log(f"No country found for {fanzineName}")
+#
+#     # Walk the table and extract the fanzines in it
+#     fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country, alphabetizeIndividually=True)
+#
+#     # Some old-style pages may have a hand-edited "alphabetize individually" keywork.  Test for that as well as for type=Collection.
+#     if kwds["Alphabetize individually"] is not None or fanzineType == "Collection":
+#         # Add the tags and the series info pointer
+#         for fii in fiiList:
+#             # Create a special series just for this issue.
+#             fii.Series=FanzineSeriesInfo(SeriesName=fii.IssueName, DirURL=directoryUrl, Issuecount=1, Pagecount=0, Editor=fii.Editor, Country=country, AlphabetizeIndividually=True, Keywords=kwds)
+#             if isnewszines:
+#                 fii.Taglist.append("newszine")
+#     else:
+#         # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
+#         fsi=FanzineSeriesInfo(SeriesName=seriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editor, Country=country, Keywords=kwds)
+#         for fii in fiiList:
+#             fii.Series=fsi
+#             if isnewszines:
+#                 fii.Taglist.append("newszine")
+#
+#     return fiiList
 
 def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
     # By elimination, this must be an ordinary page, so read it.
