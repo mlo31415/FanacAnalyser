@@ -394,20 +394,7 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
 
     if version == "":
-        if True:        # For test purposes always use the NoSoup version
-            return ReadFanacFanzineIndexPageOldNoSoup(fanzineName, directoryUrl, html)
-        # Next, parse the page looking for the body
-        # soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
-        soup=BeautifulSoup(html, "html.parser")
-        Log("...BeautifulSoup opened")
-        if soup is None:
-            return []
-
-        # We need to handle singletons specially
-        if directoryUrl.endswith(".html") or directoryUrl.endswith(".htm") or directoryUrl.split("/")[-1:][0] in singletons:
-            return ReadSingleton(directoryUrl, fanzineName, soup)
-
-        return ReadFanacFanzineIndexPageOld(fanzineName, directoryUrl, soup)
+        return ReadFanacFanzineIndexPageOldNoSoup(fanzineName, directoryUrl, html)
     else:
         return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html)
 
