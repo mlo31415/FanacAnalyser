@@ -400,54 +400,34 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
 
 
 def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
-    # Next, parse the page looking for the body
-    soup=BeautifulSoup(html, "html.parser")
-    Log("...BeautifulSoup opened")
-    if soup is None:
-        return []
-
-    # Locate the Index Table on this page.
-    table=LocateIndexTable(directoryUrl, soup)
-    if table is None:
-        LogError(f"ReadFanacFanzineIndexPageNew: Can't find Index Table in {directoryUrl}.")
+    if html is None:
         return []
 
     # Check to see if this is marked as a Newszine
-    isnewszines=False
-    temp=soup.h2
-    if temp is not None:
-        if temp.text.find("Newszine") > -1:
-            Log(f">>>>>> Newszine added: '{fanzineName}'")
-            isnewszines=True
-    else:
-        Log(f"No H2 block found in {directoryUrl}. Unable to check for status as Newszine.")
+    fztype=ExtractBetweenHTMLComments(html, "type")
+    isnewszines="Newszine" == fztype
 
     # Extract any fanac keywords.  They will be of the form:
     #       <! fanac-keywords: xxxxx -->
     # There may be many of them
-    contentsAsString=str(soup)
-    contentsAsString=contentsAsString.replace("\n", " ")
     kwds: ParmDict=ParmDict(CaseInsensitiveCompare=True)
-    keywords=ExtractInvisibleTextInsideFanacComment(contentsAsString, "keywords")
+    keywords=ExtractInvisibleTextInsideFanacComment(html, "keywords")
     if keywords != "":
         keywords=[x.strip() for x in keywords.split(";")]
         for keyword in keywords:
             kwds[keyword]=""    # We just set a value of the empty string.  Missing keywords will return None
 
-    seriesName=ExtractBetweenHTMLComments(contentsAsString, "name")
-    # Replace internal br brackets with semicolons
-    seriesName=re.sub(r"</?br/?>", "; ", seriesName, flags=re.IGNORECASE)
+    seriesName=ExtractBetweenHTMLComments(html, "name")
+    seriesName=re.sub(r"</?br/?>", "; ", seriesName, flags=re.IGNORECASE)    # Replace internal <br> with semicolons
 
-    editors=ExtractBetweenHTMLComments(contentsAsString, "eds")
+    editors=ExtractBetweenHTMLComments(html, "eds")
     editors=editors.replace("<br/>", "<br>").replace("\n", "<br>")
     editors=[RemoveHyperlink(x).strip() for x in editors.split("<br>")]
     editors=[x for x in editors if len(x.strip()) > 0]
     editors=", ".join(editors)
-    country=ExtractBetweenHTMLComments(contentsAsString, "loc")
+    country=ExtractBetweenHTMLComments(html, "loc")
     if country == "":
         Log(f"No location found for {fanzineName}")
-
-    fztype=ExtractBetweenHTMLComments(contentsAsString, "type")
 
     # Walk the table and extract the fanzines in it
     # # The table is bounded by <!-- fanac-table-headers start--> and <!-- fanac-table-rows end-->
