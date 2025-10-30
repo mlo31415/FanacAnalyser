@@ -665,8 +665,9 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
         return []
 
     items=re.split(r"(</?h1>|</?h2>|<br>)+", topblock, flags=re.IGNORECASE | re.DOTALL)
-    items=[x.strip() for x in items if len(x) > 1 and (x[0]!="<" and x[-1]!=">")]
-    items=[x for x in items if len(x.strip()) > 0]   # Remove any empty items
+    items=[x.strip() for x in items]    # Strip all items
+    items=[x for x in items if len(x) > 0]  # Remove empty entries
+    items=[x for x in items if len(x) == 1 or (len(x) > 1 and not (x[0] == "<" and x[-1] == ">"))]     # Remove entries entirely contained in <>
     items=[x for x in items if x.lower() != "<br>"]
     if len(items) == 4:
         t1=items[0]
@@ -721,6 +722,12 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
     if len(items) == 2:
         seriesName=items[0]
         editors=items[1]
+
+    if len(items) < 2:
+        # When there is only one item for editor and title, it's almost always the editor which has been left out.
+        # This is usually because there were many, so we set the editor "various"
+        editors="various"
+        seriesName=items[0]
 
     else:
         seriesName=items[0]
