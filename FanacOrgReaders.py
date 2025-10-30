@@ -401,7 +401,6 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
 
 def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
     # Next, parse the page looking for the body
-    # soup=BeautifulSoup(h.content, "lxml")   # "html.parser"
     soup=BeautifulSoup(html, "html.parser")
     Log("...BeautifulSoup opened")
     if soup is None:
@@ -730,33 +729,6 @@ def GetTextAndHrefFromTag(cell: Tag) -> list[TextAndHref]:
 
     return out
 
-#=====================================================================================
-# Function to pull an href and the accompanying text from a Tag
-# The structure is "<a href='URL'>LINKTEXT</a>
-# We want to extract the URL and LINKTEXT
-def GetTextAndHrefFromTagNoSoup(cell: str) -> TextAndHref:
-    out=[]
-    for thing in cell:
-        if isinstance(thing, Tag):
-            try:
-                href=thing.attrs.get("href", "")
-            except:
-                try:
-                    href=cell.attrs.get("href")
-                    if href is None:
-                        href=""
-                except:
-                    return [TextAndHref("Failed href in GetHrefAndTextFromTag()", "")]
-
-            tag=thing.string
-            if tag is None:
-                tag=""
-            out.append(TextAndHref(tag, href))
-        else:
-            out.append(TextAndHref(str(thing), ""))
-
-    return out
-
 
 #======================================================================================
 # Read a singleton-format fanzine page
@@ -916,8 +888,6 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
     # OK, we probably have the issue table.  Now decode it.
     # The first row is the column headers
     # Subsequent rows are fanzine issue rows
-
-
     if useNewTableStructure:
         headerTable=ExtractHTMLUsingFanacStartEndCommentPair(html, "table-headers")
         # At this point, we should just have <TH>xxxxx</TH> column headers
