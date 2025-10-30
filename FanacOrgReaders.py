@@ -1171,22 +1171,35 @@ def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, fanzineName: str, h
 def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextAndHref]]:
 
     tabletext=tablein.strip()
-    selection=""
+    rowstext=""
     if len(tabletext) > 0:
-        m=re.match(rf"<{rowdelim} *[^>]*?>(.*?)</{rowdelim}>", tabletext, re.IGNORECASE | re.DOTALL)
+        # Look for the stuff bounded by <TR>...</TR> which will be the rows html. (By this point we have already dealt with the column header html.)
+        tabletext=tabletext.replace(r"\n", " ").strip()
+        m=re.match(rf"<{rowdelim}>(.*?)</{rowdelim}>", tabletext, re.IGNORECASE | re.DOTALL)
         if m is None:
             assert False
             return tabletext, row
-        selection=m.group(1).strip()
+        rowstext=m.group(1).strip()
         tabletext=tabletext[m.end():].strip()
 
+    # Extract the rows from the rows html
     row: list[TextAndHref] = []
     while len(selection) > 0:
         m=re.match(rf"<{coldelim} *[^>]*?>(.*?)</{coldelim}>", selection, re.IGNORECASE)
+    while len(rowstext) > 0:
+        m=re.match(rf"<{coldelim} *([^>]*?)>(.*?)</{coldelim}>", rowstext, re.IGNORECASE)
         if m is None:
             break
-        row.append(TextAndHref(m.group(1).strip()))
-        selection=selection[m.end():].strip()
+        row.append(TextAndHref(m.group(2).strip()))
+        end=m.end()
+
+        # Look for a colspan= in the 1st column
+        m=re.match(r".*?colspan=['\"]([0-9]+)['\"]", m.group(1), re.IGNORECASE)
+        if m is not None:   # We have a colspan.  Add empty columns following.
+            ncols=int(m.group(1).strip())-1
+            for i in range(ncols):
+                row.append(TextAndHref())
+        rowstext=rowstext[end:].strip()
 
     return tabletext, row
 
