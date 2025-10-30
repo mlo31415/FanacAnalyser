@@ -40,12 +40,27 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     # Read in a list to be not skipped (implies all other directors are to be skipped.)
     unskippers=ReadList(os.path.join(rootDir, "control-unskippers.txt"))
 
+    # Read the starter -- if present, we scan through classic fanzines until we find this one.
+    starter=ReadList(os.path.join(rootDir, "control-startat.txt"))
+    # Remove any trailing slash
+    starter=[x.removesuffix("/") for x in starter]
+
     # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
     # We also skip these
+
     offsite=ReadList(os.path.join(rootDir, "control-offsite.txt"))
 
     fanacDirectories.sort(key=lambda tup: tup[1])
+    starterFound=False
     for title, dirname in fanacDirectories:
+
+        pass
+        if len(starter) > 0:    # If a starting directory has been specified
+            dirname=dirname.removesuffix("/")
+            if dirname == starter[0]:
+                starterFound=True
+            if not starterFound:    # Skip until we find it
+                continue
 
         if len(unskippers) > 0:
             if dirname not in unskippers and (dirname[-1] == "/" and dirname[:-1] not in unskippers):   # Handle dirnames ending in "/"
