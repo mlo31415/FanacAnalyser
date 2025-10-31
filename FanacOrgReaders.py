@@ -2,7 +2,6 @@ import os
 import re
 from difflib import SequenceMatcher
 
-from MTVOIDReader import ReadMTVoid
 from SharedReaders import TextAndHref, FetchFileFromServer, DecodeTableRow
 
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo
@@ -140,10 +139,6 @@ def ExtractHeaderCountry(h: str) -> str:
 def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
 
     Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
-
-    # MT Void has special handling.
-    if fanzineName == "MT Void, The":
-        return ReadMTVoid("https://fanac.org/fanzines/MT_Void/")
 
     # # Fanzines with only a single page rather than an index.
     # # Note that these are directory names
