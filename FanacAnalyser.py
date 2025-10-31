@@ -13,7 +13,7 @@ import jsonpickle
 from collections import defaultdict
 
 import FanacOrgReaders
-from FanacOrgReaders import FetchFileFromServer
+from SharedReaders import FetchFileFromServer
 
 from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
@@ -446,7 +446,7 @@ def main():
     fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName.strip()))  # Sorts in place on fanzine's name with leading articles suppressed
     for fz in fanacIssueList:
         if fz.Editor.endswith(" et al"):    # Some editors are listed like "Damon Knight et al" For the By Editor reports, we don't want the et al to appear.
-            fz.Editor=fz.Editor.removesuffix(" et al");
+            fz.Editor=fz.Editor.removesuffix(" et al")
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor.strip()))  # Sorts by editor
 
     # Remove those editors we have skipped in control-BogusEditors.txt
