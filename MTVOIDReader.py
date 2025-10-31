@@ -32,7 +32,6 @@ def ReadMTVoid(directoryUrl: str) -> list[FanzineIssueInfo]:
     # Look for and interpret all flagged tables on this page, and look for links to subdirectories.
     # Scan for flagged tables on this page
     table=LocateIndexTable(directoryUrl, soup, silence=True)
-    html=str(soup.body)
 
     if table is not None:
         fiiList.extend(ExtractFanzineIndexTableInfoOld(directoryUrl, fanzineName, table, editor, country))
