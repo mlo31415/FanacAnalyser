@@ -161,13 +161,13 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
     if fanzineName == "MT Void, The":
         return ReadMTVoid("https://fanac.org/fanzines/MT_Void/")
 
-    # Fanzines with only a single page rather than an index.
-    # Note that these are directory names
-    global singletons   # Not actually used anywhere else, but, for performance sake, should be read once and retained
-    try:
-        singletons
-    except NameError:
-        singletons=ReadList(os.path.join(rootDir, "control-singletons.txt"))
+    # # Fanzines with only a single page rather than an index.
+    # # Note that these are directory names
+    # global singletons   # Not actually used anywhere else, but, for performance sake, should be read once and retained
+    # try:
+    #     singletons
+    # except NameError:
+    #     singletons=ReadList(os.path.join(rootDir, "control-singletons.txt"))
 
     # It looks like this is a single level directory.
     html=FetchFileFromServer(directoryUrl)
