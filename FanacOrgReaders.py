@@ -134,22 +134,6 @@ def ExtractHeaderCountry(h: str) -> str:
     Log(f'ExtractCountry: "{temp[0]}" --> {loc}')
     return loc.CountryName
 
-    # # There are two formats for this text:
-    # #       Country: <country>
-    # #       <country>:<city>, <state>
-    # temp=RemoveAllHTMLTags2(temp[0])
-    #
-    # # Look for "Country: <country>
-    # m=re.search("\s*Country:\s*([a-zA-Z ]+)", temp)
-    # if m is not None:
-    #     return m.groups()[0]
-    #
-    # # Look for <country>:<state/city>
-    # m=re.search("\s*([a-zA-Z. ]+):([a-zA-Z. ]*)[,]?\s*([a-zA-Z. ]?)", temp)
-    # if m is not None:
-    #     return m.groups()[0]
-    #
-    # return ""
 
 # ============================================================================================
 # Function to extract fanzine information from a fanac.org fanzine index.html page
