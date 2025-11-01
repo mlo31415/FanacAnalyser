@@ -32,13 +32,13 @@ class TextAndHref:
                 return
 
             _, self.Url, self.Text, _=FindHrefInString(text)
-            if self.Url == "" and self.Text == "":
+            if self.Url == "" and self.Text == "":  # Did FindHrefInString() failed to make sense of the input?
                 self.Text=text.strip()
             return
 
         # Both arguments were supplied
-        self.Text: str=text.strip()
-        self.Url: str=href
+        self.Text=text.strip()
+        self.Url=href
 
     def IsEmpty(self) -> bool:
         return self.Text == "" and self.Url == ""
