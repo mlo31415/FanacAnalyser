@@ -758,7 +758,6 @@ def WriteHTMLTable(filename: str,   #qwert
                fRowHeaderAnnot: Callable[[FanzineIssueInfo], str]|None = None,    # Function to supply annotation to the header text/link
                fRowHeaderSelect: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply an individual items text to be used to decide its header
                fCompareRowHeaderText: Callable[[str, str], bool]|None = None,  # If present, is used to determine two header ytexts to see if they are different.
-               fHeaderAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the headers  (unclear this is still needed!)
                includeRowHeaderCounts: bool = True,  # Include counts in header block!
                includeRowTitleCount: bool=False,    # (Only if includeRowHeaderCounts is True) also include count of series.
                #
@@ -934,8 +933,6 @@ def WriteHTMLTable(filename: str,   #qwert
                 else:
                     f.write(UnicodeToHtml(fRowHeaderText(fz)))
 
-                if fHeaderAnnot is not None and fHeaderAnnot(fz) is not None:
-                    f.write("&nbsp;&nbsp;&nbsp;&nbsp;"+fHeaderAnnot(fz))
 
                 if includeRowHeaderCounts:
                     if includeRowTitleCount:
