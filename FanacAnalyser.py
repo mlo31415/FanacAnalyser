@@ -803,8 +803,6 @@ def WriteHTMLTable(
 
     # The file being created.
     with open(filename, "w+") as f:
-        #Log(f"WriteHTMLTable({filename} output file opened")
-
         #--------------------------
         #....... Header .......
         # HTML needs to include a header.
@@ -861,8 +859,6 @@ def WriteHTMLTable(
         # Write out the button bar
         f.write(buttonlist+"<p><p>\n")
 
-        #Log(f"WriteHTMLTable({filename} header complete")
-
         #--------------------------
         #....... Main table .......
         # Start the table if this is HTML
@@ -885,7 +881,6 @@ def WriteHTMLTable(
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
         for i in range(len(fanacIssueList)):
             fz=fanacIssueList[i]
-            #Log(f"WriteHTMLTable({filename} {fz=}")
 
             # Do we skip this fanzine completely?
             if fSelector is not None and not fSelector(fz):
