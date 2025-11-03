@@ -317,7 +317,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
                                     sp="<"+sp
                                 tahs.append(TextAndHref(sp))
                             return tahs
-                    return TextAndHref(row[i])  # Note that this handle both pure text and TextAndHref cell values returning a TextAndHref value
+                    return TextAndHref(row[i])  # Note that this handles both pure text and TextAndHref cell values returning a TextAndHref value
                 except:
                     return TextAndHref()
 
