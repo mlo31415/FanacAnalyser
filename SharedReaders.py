@@ -12,7 +12,7 @@ import urllib.parse
 from Log import Log, LogError
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineIssueSpec, FanzineDate, FanzineSerial
 
-from HelpersPackage import CanonicizeColumnHeaders, RemoveFunnyWhitespace, FindHrefInString
+from HelpersPackage import CanonicizeColumnHeaders, FindHrefInString #, RemoveFunnyWhitespace
 from HelpersPackage import Int0, InterpretNumber, InterpretInteger
 
 
