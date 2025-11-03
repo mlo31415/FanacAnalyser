@@ -6,7 +6,6 @@ from contextlib import suppress
 import requests
 import time
 
-#from bs4 import NavigableString, Tag
 import urllib.parse
 
 from Log import Log, LogError
