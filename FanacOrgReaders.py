@@ -246,7 +246,7 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
         kwds[m.groups()[0].strip()]=""
         contents=re.sub(pat, "", contents)#, re.IGNORECASE)
 
-    # While we expect the H1 title material to be delimited by <h2> and <br>, but we can't count on that, so we look for a terminal </h1>
+    # While we expect the H1 title material to be delimited by <h2> and <br>, we can't count on that, so we look for a terminal </h1>
     leading, h1s, trailing=ParseFirstStringBracketedText(html, "h1", IgnoreCase=True)
     topblock=None
     if h1s != "" :
@@ -267,7 +267,7 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
     items=re.split(r"(</?h1>|</?h2>|<br>)+", topblock, flags=re.IGNORECASE | re.DOTALL)
     items=[x.strip() for x in items]    # Strip all items
     items=[x for x in items if len(x) > 0]  # Remove empty entries
-    items=[x for x in items if len(x) == 1 or (len(x) > 1 and not (x[0] == "<" and x[-1] == ">"))]     # Remove entries entirely contained in <>
+    #items=[x for x in items if len(x) == 1 or (len(x) > 1 and not (x[0] == "<" and x[-1] == ">"))]     # Remove entries entirely contained in <>
     items=[x for x in items if x.lower() != "<br>"]
     if len(items) == 4:
         t1=items[0]
@@ -285,16 +285,29 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
     listOfFanzineTypes=["fanzine", "genzine", "newszine", "collection", "apazine"]
 
     # First, look for a date or a date range.  This will pin down the number of editors.
-    # Possibiliti
+    # Examples: 1999   1999-2000   1995-6   ???   1999-???   1990s-2000s   1999--2002  2005-present   1999-2000,2019
     dateindex=None
     for i, item in enumerate(items):
-        m=re.match(f"^[0-9\-? ,]+(present)?", item)
+        m=re.match(r"^[0-9s\-? ,]+(present)?$", item)
         # if "-" in item:
         #     m=re.match(r"^[0-9]*s*\?* *-* *([0-9]*s*\?*|present)*$", item)
         # else:
         #     m=re.match(r"^[0-9]*s*\?*$", item)
         if m is not None:
             dateindex=i
+            break
+
+    # Ignore any <h2>s following the date
+    items1=items[:dateindex-1]
+    items2=items[dateindex:]
+    items2=[x for x in items2 if len(x) == 1 and x.lower() != "<h2>"]
+    items=items1+items2
+
+    # Find the index of any <h2> remaining which will necessarily precede the date since any later h2s have been removed
+    h2index=None
+    for i, item in enumerate(items):
+        if item.lower() == "<h2>":
+            h2index=i
             break
 
     # If a date is found, then there should be either 0 or one items after it.  If there is 1, then it's the fanzine type
@@ -316,25 +329,33 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
     # Now we want to find the series name and editors
     # This will normally be
     #   series name
+    #   a second series name
+    #   <h2>
     #   editor, [editor, ...]
+    #   or maybe editor
     #   But sometimes a "/" will be used and sometimes the editors will appear on separate lines
 
-    # The easy case: There are two items
-    editors: str=""
-    seriesName: str=""
-    if len(items) == 2:
-        seriesName=items[0]
-        editors=items[1]
+    if h2index is not None:
+        seriesName=", ".join(items[:h2index])
+        editors=", ".join(items[h2index+1:dateindex])
 
-    elif len(items) < 2:
-        # When there is only one item for editor and title, it's almost always the editor which has been left out.
-        # This is usually because there were many, so we set the editor "various"
-        editors="various"
-        seriesName=items[0]
+    else:
+        # The easy case: There are exactly two items before the date
+        editors: str=""
+        seriesName: str=""
+        if len(items) == 2:
+            seriesName=items[0]
+            editors=items[1]
 
-    elif len(items) > 2:
-        seriesName=items[0]
-        editors=", ".join(items[1:])
+        elif len(items) < 2:
+            # When there is only one item for editor and title, it's almost always the editor which has been left out.
+            # This is usually because there were many, so we set the editor "various"
+            editors="various"
+            seriesName=items[0]
+
+        elif len(items) > 2:
+            seriesName=items[0]
+            editors=", ".join(items[1:])
 
     # Make sure the editors and "," separated and not "/" or "//" separated
     editors=editors.replace("//", ",").replace("/", ",")
