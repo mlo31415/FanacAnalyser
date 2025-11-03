@@ -306,10 +306,10 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
                 try:
                     if cellNameSought == "Mailings":
                         # If there's an href in the cell, we need to see if there are mulitple.  Likewise if there are none.
-                        if row[i].lower().count("href=") > 1:
-                            split=re.split(r"> *[,&] *<", row[i], flags=re.IGNORECASE)
+                        if row[i].Text.lower().count("href=") > 1:
+                            split=re.split(r"> *[,&] *<", row[i].Text, flags=re.IGNORECASE)
                             tahs=[]
-                            for i, sp in enumerate(split):    # re.split trims away some starting and ending <>. Restore them.
+                            for sp in split:    # re.split trims away some starting and ending <>. Restore them.
                                 sp=sp.strip()
                                 if sp[-1] != ">":
                                     sp=sp+">"
