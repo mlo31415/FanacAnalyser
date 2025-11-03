@@ -12,7 +12,7 @@ from Settings import Settings
 from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText, ParseFirstStringBracketedText, ExtractHTMLUsingFanacStartEndCommentPair
 from HelpersPackage import ExtractBetweenHTMLComments, RemoveHyperlink
-from HelpersPackage import CanonicizeColumnHeaders, DropTrailingSequenceNumber
+from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import ExtractInvisibleTextInsideFanacComment
 from HelpersPackage import ParmDict
 
