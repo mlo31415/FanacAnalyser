@@ -1,6 +1,5 @@
 import os
 import re
-#from difflib import SequenceMatcher
 
 from SharedReaders import TextAndHref, FetchFileFromServer, DecodeTableRow
 
