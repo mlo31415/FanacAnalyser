@@ -701,7 +701,8 @@ def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
     contents=FetchFileFromServer(url)
     # Extract a table of the html for all the rows in the Classic Fanzines table
     rows=ReadClassicFanzinesTable(contents)
-    assert rows is not None
+    if rows is None:
+        return []
 
     # Interpret the html for each row and append it to fanacFanzineDirectoriesList
     fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
