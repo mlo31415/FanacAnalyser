@@ -192,7 +192,7 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str)
     # m=re.match(r".*<!-- fanac-table-headers start-->(.*)<!-- fanac-table-rows end-->", html, flags=re.IGNORECASE|re.DOTALL)
     # if m is None:
     #     assert False
-    fiiList=ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl, html, editors, country, fztype, alphabetizeIndividually=True, useNewTableStructure=True)
+    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, html, editors, country, fztype, alphabetizeIndividually=True, useNewTableStructure=True)
 
     # Some series pages have the fanzine type "Collection".  If present, we create a series entry for *each* individual issue on the page.
     # Some early series pages have the keyword "Alphabetize individually".  This is the same as being a Collection, but is otherwise ignored.
@@ -358,7 +358,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, html: str)
         Log(f"No country found for {fanzineName}")
 
     # Walk the table and extract the fanzines in it
-    fiiList=ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl, html, editors, country, fanzineType, alphabetizeIndividually=True)
+    fiiList=ExtractFanzineIndexTableInfoOld(directoryUrl, html, editors, country, fanzineType, alphabetizeIndividually=True)
 
     # Some old-style pages may have a hand-edited "alphabetize individually" keywork.  Test for that as well as for type=Collection.
     if kwds["Alphabetize individually"] is not None or fanzineType == "Collection":
@@ -381,7 +381,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, html: str)
 
 #=========================================================================================
 # Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfoOldNoSoup(directoryUrl: str, html: str, editor: str, defaultcountry: str, fanzineType: str="",
+def ExtractFanzineIndexTableInfoOld(directoryUrl: str, html: str, editor: str, defaultcountry: str, fanzineType: str="",
     alphabetizeIndividually: bool=False, useNewTableStructure: bool=False) -> list[FanzineIssueInfo]:
 
     Log(directoryUrl+"\n")
