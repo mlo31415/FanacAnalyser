@@ -88,7 +88,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             LogError(f"...Skipped because not a fanac.org url: {url}")
             continue
 
-        fanacIssueInfo.extend(ReadFanacFanzineIndexPage(rootDir, title, url))
+        fanacIssueInfo.extend(ReadFanacFanzineIndexPage(title, url))
 
     # TODO Drop external links which duplicate Fanac.org  (What exactly does this mean??)
 
@@ -136,7 +136,7 @@ def ExtractHeaderCountry(h: str) -> str:
 
 # ============================================================================================
 # Function to extract fanzine information from a fanac.org fanzine index.html page
-def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
 
     Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
 
