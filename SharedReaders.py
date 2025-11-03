@@ -6,7 +6,7 @@ from contextlib import suppress
 import requests
 import time
 
-from bs4 import NavigableString, Tag
+#from bs4 import NavigableString, Tag
 import urllib.parse
 
 from Log import Log, LogError
@@ -53,73 +53,73 @@ class TextAndHref:
             return f"TextAndHref('{self.Text}')"
         return f"TextAndHref(Text='{self.Text}', Url='{self.Url}')"
 
-#=========================================================================================
-# Read a fanzine's page of any format
-def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: Tag, editor: str, defaultcountry: str, fanzineType: str="", alphabetizeIndividually: bool=False) -> list[FanzineIssueInfo]:
-
-    # OK, we probably have the issue table.  Now decode it.
-    # The first row is the column headers
-    # Subsequent rows are fanzine issue rows
-    Log(directoryUrl+"\n")
-
-    # Create a composition of all columns. The header column may have newline elements, so compress them out.
-    # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
-    table.contents=[t for t in table.contents if not isinstance(t, NavigableString)]
-    if len(table.contents[0].text) == 0:
-        LogError("***FanacOrgReaders: No table column headers found. Skipped")
-    columnHeaders=re.split(r"\\n|\n", table.contents[0].text.strip())
-    columnHeaders=[x for x in columnHeaders if x != ""]
-    columnHeaders: list[str]=[CanonicizeColumnHeaders(c) for c in columnHeaders]
-
-    # The format will be a list of rows
-    # Each row will be a list of cells
-    # Each cell will be either a text string (usually a "/n") or a cell containing the table contents.
-    # If a content cell contains a hyperlink, a TextAndHref containing the cell text and the hyperlink
-    # If it's plain text, a TextAndHref with an empty href
-    tableRows: list[list[list[TextAndHref]]]=[[]]
-    for row in table.contents[1:]:  # Skip the first row
-        if type(row) is not Tag:
-            Log(f"This should be a tag, but isn't. Skipped: {row}")
-            continue
-        tr=row.contents
-
-        newRow: list[list[TextAndHref]]=[]
-        for cell in tr:
-            if not isinstance(cell, NavigableString):    # Half the rows are newlines which we might as well ignore now
-                newRow.append(GetTextAndHrefFromTag(cell))
-        tableRows.append(newRow)
-
-#TODO: Do we need to skip entries which point to a directory: E.g., Axe in Irish_Fandom?
-    # Now we process the table rows, extracting the information for each fanzine issue.
-    fiiList: list[FanzineIssueInfo]=[]
-    for iRow, tableRow in enumerate(tableRows):
-        # Skip the column headers row and null rows
-        if len(tableRow) == 0 or (len(tableRow) == 1 and tableRow[0]=="\n"):
-            continue
-        Log(f"   {tableRow=}")
-
-        # The first element of the table sometimes comes in with embedded non-breaking spaces which must be turned to real spaces.
-        # (They were apparently put there deliberately some time in the past.)
-        if len(tableRow[0]) > 0 and tableRow[0].Text != "":  # Some empty rows have no entry in col 1, not even an empty string
-            tableRow[0][0]=TextAndHref(RemoveFunnyWhitespace(tableRow[0][0].Text), tableRow[0][0].Url)
-
-        fi=DecodeTableRow(columnHeaders, tableRow, iRow, defaultcountry, editor, fanzineType, alphabetizeIndividually, directoryUrl)
-        if fi is None:
-            continue
-
-        Log(f"   {fi=}")
-
-        # Append it and log it.
-        if fi is not None:
-            urlT=""
-            if fi.PageFilename == "":
-                urlT="*No PageName*"
-            Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
-            fiiList.append(fi)
-        else:
-            assert False  #LogError(f"{fanzineName}      ***Can't handle {dirUrl}")
-
-    return fiiList
+# #=========================================================================================
+# # Read a fanzine's page of any format
+# def ExtractFanzineIndexTableInfoOld(directoryUrl: str, fanzineName: str, table: Tag, editor: str, defaultcountry: str, fanzineType: str="", alphabetizeIndividually: bool=False) -> list[FanzineIssueInfo]:
+#
+#     # OK, we probably have the issue table.  Now decode it.
+#     # The first row is the column headers
+#     # Subsequent rows are fanzine issue rows
+#     Log(directoryUrl+"\n")
+#
+#     # Create a composition of all columns. The header column may have newline elements, so compress them out.
+#     # Then compress out sizes in the actual column header, make them into a list, and then join the list separated by spaces
+#     table.contents=[t for t in table.contents if not isinstance(t, NavigableString)]
+#     if len(table.contents[0].text) == 0:
+#         LogError("***FanacOrgReaders: No table column headers found. Skipped")
+#     columnHeaders=re.split(r"\\n|\n", table.contents[0].text.strip())
+#     columnHeaders=[x for x in columnHeaders if x != ""]
+#     columnHeaders: list[str]=[CanonicizeColumnHeaders(c) for c in columnHeaders]
+#
+#     # The format will be a list of rows
+#     # Each row will be a list of cells
+#     # Each cell will be either a text string (usually a "/n") or a cell containing the table contents.
+#     # If a content cell contains a hyperlink, a TextAndHref containing the cell text and the hyperlink
+#     # If it's plain text, a TextAndHref with an empty href
+#     tableRows: list[list[list[TextAndHref]]]=[[]]
+#     for row in table.contents[1:]:  # Skip the first row
+#         if type(row) is not Tag:
+#             Log(f"This should be a tag, but isn't. Skipped: {row}")
+#             continue
+#         tr=row.contents
+#
+#         newRow: list[list[TextAndHref]]=[]
+#         for cell in tr:
+#             if not isinstance(cell, NavigableString):    # Half the rows are newlines which we might as well ignore now
+#                 newRow.append(GetTextAndHrefFromTag(cell))
+#         tableRows.append(newRow)
+#
+# #TODO: Do we need to skip entries which point to a directory: E.g., Axe in Irish_Fandom?
+#     # Now we process the table rows, extracting the information for each fanzine issue.
+#     fiiList: list[FanzineIssueInfo]=[]
+#     for iRow, tableRow in enumerate(tableRows):
+#         # Skip the column headers row and null rows
+#         if len(tableRow) == 0 or (len(tableRow) == 1 and tableRow[0]=="\n"):
+#             continue
+#         Log(f"   {tableRow=}")
+#
+#         # The first element of the table sometimes comes in with embedded non-breaking spaces which must be turned to real spaces.
+#         # (They were apparently put there deliberately some time in the past.)
+#         if len(tableRow[0]) > 0 and tableRow[0].Text != "":  # Some empty rows have no entry in col 1, not even an empty string
+#             tableRow[0][0]=TextAndHref(RemoveFunnyWhitespace(tableRow[0][0].Text), tableRow[0][0].Url)
+#
+#         fi=DecodeTableRow(columnHeaders, tableRow, iRow, defaultcountry, editor, fanzineType, alphabetizeIndividually, directoryUrl)
+#         if fi is None:
+#             continue
+#
+#         Log(f"   {fi=}")
+#
+#         # Append it and log it.
+#         if fi is not None:
+#             urlT=""
+#             if fi.PageFilename == "":
+#                 urlT="*No PageName*"
+#             Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
+#             fiiList.append(fi)
+#         else:
+#             assert False  #LogError(f"{fanzineName}      ***Can't handle {dirUrl}")
+#
+#     return fiiList
 
 
 def DecodeTableRow(columnHeaders: list[str], tableRow: list[TextAndHref], iRow: int, defaultcountry: str, defaultEditor: str, fanzineType: str, alphabetizeIndividually: bool, directoryUrl: str) -> FanzineIssueInfo|None:
@@ -180,32 +180,32 @@ def DecodeTableRow(columnHeaders: list[str], tableRow: list[TextAndHref], iRow: 
     return fi
 
 
-#=====================================================================================
-# Function to pull an href and the accompanying text from a Tag
-# The structure is "<a href='URL'>LINKTEXT</a>
-# We want to extract the URL and LINKTEXT
-def GetTextAndHrefFromTag(cell: Tag) -> list[TextAndHref]:
-    out=[]
-    for thing in cell:
-        if isinstance(thing, Tag):
-            try:
-                href=thing.attrs.get("href", "")
-            except:
-                try:
-                    href=cell.attrs.get("href")
-                    if href is None:
-                        href=""
-                except:
-                    return [TextAndHref("Failed href in GetHrefAndTextFromTag()", "")]
-
-            tag=thing.string
-            if tag is None:
-                tag=""
-            out.append(TextAndHref(tag, href))
-        else:
-            out.append(TextAndHref(str(thing), ""))
-
-    return out
+# #=====================================================================================
+# # Function to pull an href and the accompanying text from a Tag
+# # The structure is "<a href='URL'>LINKTEXT</a>
+# # We want to extract the URL and LINKTEXT
+# def GetTextAndHrefFromTag(cell: Tag) -> list[TextAndHref]:
+#     out=[]
+#     for thing in cell:
+#         if isinstance(thing, Tag):
+#             try:
+#                 href=thing.attrs.get("href", "")
+#             except:
+#                 try:
+#                     href=cell.attrs.get("href")
+#                     if href is None:
+#                         href=""
+#                 except:
+#                     return [TextAndHref("Failed href in GetHrefAndTextFromTag()", "")]
+#
+#             tag=thing.string
+#             if tag is None:
+#                 tag=""
+#             out.append(TextAndHref(tag, href))
+#         else:
+#             out.append(TextAndHref(str(thing), ""))
+#
+#     return out
 
 
 
@@ -356,38 +356,38 @@ def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) ->
 
     return issue     # No hyperlink found
 
-# ============================================================================================
-# Scan the row and locate the issue cell, title and href and return them as a tuple
-def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) -> TextAndHref:
-    if len(row) < len(columnHeaders):
-        Log(f"ExtractIssueNameAndHref: Row has {len(row)} columns while we expected {len(columnHeaders)} columns. Row skipped.")
-        return TextAndHref()
-
-    # Find the column containing the issue name.  There are several possibilities.
-    issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
-    if issue.IsEmpty():
-        issue=GetCellValueByColHeader(columnHeaders, row, "Title")
-    if issue.IsEmpty():
-        issue=GetCellValueByColHeader(columnHeaders, row, "Text")
-    if issue.IsEmpty():
-       return TextAndHref("<not found>", "")
-
-    # If we already have found a URL, we're done.
-    if issue.Url != "":
-        return issue
-
-    # We now know the there is no URL.  If there's no text, either, return an empty TextAndHref
-    if issue.Text == "":
-        return TextAndHref()
-
-    # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
-    # If we don't find a hyperlink in the title, scan the other cells of the row for the first col containing a hyperlink
-    # We return the name from the issue cell and the hyperlink from the other cell
-    for i in range(0, len(columnHeaders)):
-        if len(row) > 0 and row[i].Url != "":
-            return TextAndHref(issue.Text, row[i].Url)
-
-    return issue     # No hyperlink found
+# # ============================================================================================
+# # Scan the row and locate the issue cell, title and href and return them as a tuple
+# def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) -> TextAndHref:
+#     if len(row) < len(columnHeaders):
+#         Log(f"ExtractIssueNameAndHref: Row has {len(row)} columns while we expected {len(columnHeaders)} columns. Row skipped.")
+#         return TextAndHref()
+#
+#     # Find the column containing the issue name.  There are several possibilities.
+#     issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
+#     if issue.IsEmpty():
+#         issue=GetCellValueByColHeader(columnHeaders, row, "Title")
+#     if issue.IsEmpty():
+#         issue=GetCellValueByColHeader(columnHeaders, row, "Text")
+#     if issue.IsEmpty():
+#        return TextAndHref("<not found>", "")
+#
+#     # If we already have found a URL, we're done.
+#     if issue.Url != "":
+#         return issue
+#
+#     # We now know the there is no URL.  If there's no text, either, return an empty TextAndHref
+#     if issue.Text == "":
+#         return TextAndHref()
+#
+#     # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
+#     # If we don't find a hyperlink in the title, scan the other cells of the row for the first col containing a hyperlink
+#     # We return the name from the issue cell and the hyperlink from the other cell
+#     for i in range(0, len(columnHeaders)):
+#         if len(row) > 0 and row[i].Url != "":
+#             return TextAndHref(issue.Text, row[i].Url)
+#
+#     return issue     # No hyperlink found
 
 
 #============================================================================================
@@ -533,8 +533,10 @@ def FetchFileFromServer(directoryUrl: str) -> str|None:
                     return None
     Log("...loaded", noNewLine=True)
 
-    # This kludge is to deal with an ellipses character in "Afterworlds - An Eclectic Bill Bowers Appreciation… and Fanthology…" which for some reason are mishandled
-    txt=h.text.replace("â¦", "...")
+    # # This kludge is to deal with an ellipses character in "Afterworlds - An Eclectic Bill Bowers Appreciation… and Fanthology…" which for some reason are mishandled
+    # txt=h.text.replace("â¦", "...")
+    # if txt != h.text:
+    #     assert False
 
     h.encoding='UTF-8'
     x=h.text

@@ -1,6 +1,6 @@
 import os
 import re
-from difflib import SequenceMatcher
+#from difflib import SequenceMatcher
 
 from SharedReaders import TextAndHref, FetchFileFromServer, DecodeTableRow
 
@@ -263,12 +263,12 @@ def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html
     items=[x for x in items if len(x) > 0]  # Remove empty entries
     #items=[x for x in items if len(x) == 1 or (len(x) > 1 and not (x[0] == "<" and x[-1] == ">"))]     # Remove entries entirely contained in <>
     items=[x for x in items if x.lower() != "<br>"]
-    if len(items) == 4:
-        t1=items[0]
-        # Because of the sloppiness of fanac.org, sometimes the fanzine name is picked up again here.
-        # We ignore the first token if it is too similar to the fanzine name
-        if SequenceMatcher(None, t1, fanzineName).ratio() > 0.7:
-            t1=t1[1:]
+    # if len(items) == 4:
+    #     t1=items[0]
+    #     # Because of the sloppiness of fanac.org, sometimes the fanzine name is picked up again here.
+    #     # We ignore the first token if it is too similar to the fanzine name
+    #     if SequenceMatcher(None, t1, fanzineName).ratio() > 0.7:
+    #         t1=t1[1:]
 
     # The usual order of the top stuff is
         # Series name
