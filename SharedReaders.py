@@ -111,35 +111,6 @@ def DecodeTableRow(columnHeaders: list[str], tableRow: list[TextAndHref], iRow: 
     return fi
 
 
-# #=====================================================================================
-# # Function to pull an href and the accompanying text from a Tag
-# # The structure is "<a href='URL'>LINKTEXT</a>
-# # We want to extract the URL and LINKTEXT
-# def GetTextAndHrefFromTag(cell: Tag) -> list[TextAndHref]:
-#     out=[]
-#     for thing in cell:
-#         if isinstance(thing, Tag):
-#             try:
-#                 href=thing.attrs.get("href", "")
-#             except:
-#                 try:
-#                     href=cell.attrs.get("href")
-#                     if href is None:
-#                         href=""
-#                 except:
-#                     return [TextAndHref("Failed href in GetHrefAndTextFromTag()", "")]
-#
-#             tag=thing.string
-#             if tag is None:
-#                 tag=""
-#             out.append(TextAndHref(tag, href))
-#         else:
-#             out.append(TextAndHref(str(thing), ""))
-#
-#     return out
-
-
-
 #=============================================================================================
 # Extract a date from a table row.  Note that this will usually involved merging data from multiple columns.
 # We return a FanzineDate
