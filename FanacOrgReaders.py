@@ -32,6 +32,8 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
 
     # Read in a list to be not skipped (implies all other directors are to be skipped.)
     unskippers=ReadList(os.path.join(rootDir, "control-unskippers.txt"))
+    if len(unskippers) > 0:
+        skippers=[]     # The unskippers list trumps the skippers list
 
     # Read the starter -- if present, we scan through classic fanzines until we find this one.
     starter=ReadList(os.path.join(rootDir, "control-startat.txt"))
