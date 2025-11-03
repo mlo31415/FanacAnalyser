@@ -140,14 +140,6 @@ def ReadFanacFanzineIndexPage(rootDir: str, fanzineName: str, directoryUrl: str)
 
     Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
 
-    # # Fanzines with only a single page rather than an index.
-    # # Note that these are directory names
-    # global singletons   # Not actually used anywhere else, but, for performance sake, should be read once and retained
-    # try:
-    #     singletons
-    # except NameError:
-    #     singletons=ReadList(os.path.join(rootDir, "control-singletons.txt"))
-
     # It looks like this is a single level directory.
     html=FetchFileFromServer(directoryUrl)
     if html is None:
