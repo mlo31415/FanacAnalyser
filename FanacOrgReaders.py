@@ -152,7 +152,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
 
     if version == "":
-        return ReadFanacFanzineIndexPageOldNoSoup(fanzineName, directoryUrl, html)
+        return ReadFanacFanzineIndexPageOld(fanzineName, directoryUrl, html)
     else:
         return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html)
 
@@ -215,7 +215,7 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str)
     return fiiList
 
 
-def ReadFanacFanzineIndexPageOldNoSoup(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
     # By elimination, this must be an ordinary page, so read it.
     # Locate the Index Table on this page.
 
