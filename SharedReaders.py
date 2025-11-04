@@ -259,39 +259,6 @@ def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) ->
 
     return issue     # No hyperlink found
 
-# # ============================================================================================
-# # Scan the row and locate the issue cell, title and href and return them as a tuple
-# def ExtractIssueNameAndHref(columnHeaders: list[str], row: list[TextAndHref]) -> TextAndHref:
-#     if len(row) < len(columnHeaders):
-#         Log(f"ExtractIssueNameAndHref: Row has {len(row)} columns while we expected {len(columnHeaders)} columns. Row skipped.")
-#         return TextAndHref()
-#
-#     # Find the column containing the issue name.  There are several possibilities.
-#     issue=GetCellValueByColHeader(columnHeaders, row, "Issue")
-#     if issue.IsEmpty():
-#         issue=GetCellValueByColHeader(columnHeaders, row, "Title")
-#     if issue.IsEmpty():
-#         issue=GetCellValueByColHeader(columnHeaders, row, "Text")
-#     if issue.IsEmpty():
-#        return TextAndHref("<not found>", "")
-#
-#     # If we already have found a URL, we're done.
-#     if issue.Url != "":
-#         return issue
-#
-#     # We now know the there is no URL.  If there's no text, either, return an empty TextAndHref
-#     if issue.Text == "":
-#         return TextAndHref()
-#
-#     # Sometimes the title of the fanzine is in one column and the hyperlink to the issue in another.
-#     # If we don't find a hyperlink in the title, scan the other cells of the row for the first col containing a hyperlink
-#     # We return the name from the issue cell and the hyperlink from the other cell
-#     for i in range(0, len(columnHeaders)):
-#         if len(row) > 0 and row[i].Url != "":
-#             return TextAndHref(issue.Text, row[i].Url)
-#
-#     return issue     # No hyperlink found
-
 
 #============================================================================================
 # Find the cell containing the mailings data
