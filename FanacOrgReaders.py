@@ -398,12 +398,14 @@ def ExtractFanzineIndexTableInfoOld(directoryUrl: str, html: str, editor: str, d
         # First, locate the FIP main table.
         m=re.search(r'<TABLE BORDER="1" STYLE="border-collapse:collapse" CELLPADDING="[0-9]+">', html, flags=re.IGNORECASE|re.DOTALL)  #This seems to be used in all old pages
         if m is None:
+            LogError(rf"Failed to find r'<TABLE BORDER=\"1\" STYLE=\"border-collapse:collapse\" CELLPADDING=\"[0-9]+\">'")
             assert False
         m.end()
         loc=m.end()
 
         locend=html[loc:].find('</TABLE>')
         if locend == -1:
+            LogError("Failed to find '</TABLE>' in html")
             assert False
 
         headerTable=html[loc:loc+locend]
@@ -475,6 +477,7 @@ def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextA
         tabletext=tabletext.replace(r"\n", " ").strip()
         m=re.match(rf"<{rowdelim}>(.*?)</{rowdelim}>", tabletext, re.IGNORECASE | re.DOTALL)
         if m is None:
+            LogError(rf"Failed to find <{rowdelim}>(.*?)</{rowdelim}> in tabletext")
             assert False
             #return tabletext, row
         rowstext=m.group(1).strip()
