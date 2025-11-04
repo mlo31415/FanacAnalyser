@@ -122,8 +122,6 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     return fanacIssueInfo
 
 
-
-
 # ============================================================================================
 def ExtractHeaderCountry(h: str) -> str:
     temp=FindBracketedText(h, "fanac-type")
@@ -492,7 +490,7 @@ def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextA
         row.append(TextAndHref(m.group(2).strip()))
         end=m.end()
 
-        # Look for a colspan= in the 1st column
+        # Look for a colspan="##" in the 1st column
         m=re.match(r".*?colspan=['\"]([0-9]+)['\"]", m.group(1), re.IGNORECASE)
         if m is not None:   # We have a colspan.  Add empty columns following.
             csVal=int(m.group(1).strip())
