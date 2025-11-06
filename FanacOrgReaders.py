@@ -58,7 +58,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
 
         if len(unskippers) > 0:
             if dirname not in unskippers and (dirname[-1] == "/" and dirname[:-1] not in unskippers):   # Handle dirnames ending in "/"
-                continue     # If and only if there are unskippers present, skip directories not in unskippers
+                continue     # If and only if there are unskippers present, skip any directory NOT in unskippers
 
         LogSetHeader("'"+dirname+"'      '"+title+"'")
 
@@ -497,7 +497,7 @@ def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextA
             ncols=int(csVal)-1
             for i in range(ncols):
                 row.append(TextAndHref())
-            # Insert the colspn information in the 2nd column
+            # Insert the colspan information into the 2nd column
             row[1]=TextAndHref(f'colspan="{csVal}"', "")
         rowstext=rowstext[end:].strip()
 
