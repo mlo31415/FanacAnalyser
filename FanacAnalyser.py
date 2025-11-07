@@ -366,8 +366,6 @@ def main():
     report="Alphabetical_Listing_of_Fanzines.html" #qwert
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report '{report}'", timestamp=True)
-        for fz in fanacIssueList:
-            fz.Editor=html.escape(fz.Editor)
         WriteHTMLTable(os.path.join(reportFilePath, report),
                        fanacIssueList,
                        fGroupURL=lambda fz: fz.Series.URL,
