@@ -163,6 +163,9 @@ def ExtractEditor(columnHeaders: list[str], row: list[TextAndHref]) -> str:
     if editorText is None:
         return ""
 
+    # In some cases "//" is used in place of "/"
+    editorText=re.sub("/+", "/", editorText)
+
     return editorText
 
 #============================================================================================

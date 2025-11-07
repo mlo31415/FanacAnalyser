@@ -323,7 +323,7 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, html: str)
     #   <h2>
     #   editor, [editor, ...]
     #   or maybe editor
-    #   But sometimes a "/" will be used and sometimes the editors will appear on separate lines
+    #   But sometimes a "/" (or even a "//") will be used and sometimes the editors will appear on separate lines
 
     if h2index is not None:
         seriesName=", ".join(items[:h2index])
@@ -348,7 +348,8 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, html: str)
             editors=", ".join(items[1:])
 
     # Make sure the editors and "," separated and not "/" or "//" separated
-    editors=editors.replace("//", ",").replace("/", ",")
+    editors=re.sub("/+", ",", editors)
+    #editors=editors.replace("//", ",").replace("/", ",")
 
     country=ExtractHeaderCountry(html)
     if country == "":
