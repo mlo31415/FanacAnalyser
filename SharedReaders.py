@@ -5,13 +5,14 @@ import os
 from contextlib import suppress
 import requests
 import time
+import html
 
 import urllib.parse
 
 from Log import Log, LogError
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineIssueSpec, FanzineDate, FanzineSerial
 
-from HelpersPackage import CanonicizeColumnHeaders, FindHrefInString #, RemoveFunnyWhitespace
+from HelpersPackage import CanonicizeColumnHeaders, FindHrefInString, HtmlToUnicode2
 from HelpersPackage import Int0, InterpretNumber, InterpretInteger
 
 
@@ -410,5 +411,6 @@ def FetchFileFromServer(directoryUrl: str) -> str|None:
 
     h.encoding='UTF-8'
     x=h.text
-    y=x.replace("&uuml;", "ü")
-    return y
+    x=HtmlToUnicode2(x)
+
+    return str(x)

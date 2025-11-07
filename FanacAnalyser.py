@@ -18,7 +18,7 @@ from SharedReaders import FetchFileFromServer
 from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
-from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles
+from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles, UnicodeToHtml2
 from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
 from HelpersPackage import UnscrambleListOfNames, Pluralize
 from FanacFanzinesHelpers import ReadClassicFanzinesTable
@@ -366,6 +366,8 @@ def main():
     report="Alphabetical_Listing_of_Fanzines.html" #qwert
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report '{report}'", timestamp=True)
+        for fz in fanacIssueList:
+            fz.Editor=html.escape(fz.Editor)
         WriteHTMLTable(os.path.join(reportFilePath, report),
                        fanacIssueList,
                        fGroupURL=lambda fz: fz.Series.URL,
@@ -802,162 +804,195 @@ def WriteHTMLTable(
         return
 
 
-    # The file being created.
-    with open(filename, "w+") as f:
-        #--------------------------
-        #....... Header .......
-        # HTML needs to include a header.
-        # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
-        basicHeadertext=ReadFile("control-Header (basic).html")
-        if not basicHeadertext:
-            LogError(f"WriteTable: critical parameter basicHeadertext is None in call to generate {filename}")
-            return
+    #--------------------------
+    #....... Header .......
+    # HTML needs to include a header.
+    # It will be a combination of the contents of "control-Header (basic).html" with headerInfoFilename
+    basicHeadertext=ReadFile("control-Header (basic).html")
+    if not basicHeadertext:
+        LogError(f"WriteTable: critical parameter basicHeadertext is None in call to generate {filename}")
+        return
 
-        # Read the specialized control.html file for this type of report
-        specialText=ReadFile(headerFilename)
-        if specialText:
-            specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
-            title=specialText[0]
-            del specialText[0]
+    # Read the specialized control.html file for this type of report
+    specialText=ReadFile(headerFilename)
+    if specialText:
+        specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
+        title=specialText[0]
+        del specialText[0]
 
-            # Do the substitutions
-            for i in range(0, len(basicHeadertext)):
-                if basicHeadertext[i].strip() == "<title>title</title>":
-                    basicHeadertext[i]=f"<title>{title}</title>"
-                if basicHeadertext[i].strip() == "<h1>title</h1>":
-                    basicHeadertext[i]=f"<h1>{title}</h1>"
-            basicHeadertext.extend(specialText)
+        # Do the substitutions
+        for i in range(0, len(basicHeadertext)):
+            if basicHeadertext[i].strip() == "<title>title</title>":
+                basicHeadertext[i]=f"<title>{title}</title>"
+            if basicHeadertext[i].strip() == "<h1>title</h1>":
+                basicHeadertext[i]=f"<h1>{title}</h1>"
+        basicHeadertext.extend(specialText)
 
-        f.writelines(basicHeadertext)
+    # Initialize the output variable which will eventually be written to the file
+    output="\n".join(basicHeadertext)
 
-        # Externally supplied summary count text
-        if topCountText:
-            topCountText=topCountText.replace("\n", "<p>")
-            topCountText=f"<p>{topCountText}</p>\n"
-            f.write(topCountText)
+    # Externally supplied summary count text
+    if topCountText:
+        topCountText=topCountText.replace("\n", "<p>")
+        topCountText=f"<p>{topCountText}</p>\n"
+        output+=topCountText
 
-        #--------------------------
-        # -- Jump buttons --
-        # If we have an HTML header, we need to create a set of jump buttons.
-        # If it's alpha, the buttons are by 1st letter; if date it's by decade
-        # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
+    #--------------------------
+    # -- Jump buttons --
+    # If we have an HTML header, we need to create a set of jump buttons.
+    # If it's alpha, the buttons are by 1st letter; if date it's by decade
+    # First, we determine the potential button names.  There are two choices: Letters of the alphabet or decades
 
-        headers=set()
-        for fz in fanacIssueList:
-            if fSelector is None or fSelector(fz):
-                if fButtonText is not None:
-                    if fButtonText(fz) is not None:
-                        headers.add(fButtonText(fz))
+    headers=set()
+    for fz in fanacIssueList:
+        if fSelector is None or fSelector(fz):
+            if fButtonText is not None:
+                if fButtonText(fz) is not None:
+                    headers.add(fButtonText(fz))
 
-        headerlist=list(headers)
-        headerlist.sort(key=lambda elem: elem.lower())
-        buttonlist=""
-        for item in headerlist:
-            if buttonlist:
-                buttonlist=buttonlist+" &mdash; "
-            buttonlist+=FormatLink("#"+ item, item)
 
-        # Write out the button bar
-        f.write(buttonlist+"<p><p>\n")
+    headerlist=list(headers)
+    headerlist.sort(key=lambda elem: elem.lower())
+    buttonlist=""
+    for item in headerlist:
+        if buttonlist:
+            buttonlist=buttonlist+" &mdash; "
+        buttonlist+=FormatLink("#"+ item, item)
 
-        #--------------------------
-        #....... Main table .......
-        # Start the table if this is HTML
-        # The structure is
-        #   <div class="row border">        # This starts a new bordered box (a fanzine, a month)
-        #       <div class=col_md_2> (1st col: box title) </div>
-        #       <div class=col_md_10> (2nd col, a list of fanzine issues)
-        #           <a>issue</a> <br>
-        #           <a>issue</a> <br>
-        #           <a>issue</a> <br>
-        #       </div>
-        #   </div>
+    # Write out the button bar
+    output+=f"{buttonlist}<p><p>\n"
 
-        f.write('<div>\n')  # Begin the main table
+    #--------------------------
+    #....... Main table .......
+    # Start the table if this is HTML
+    # The structure is
+    #   <div class="row border">        # This starts a new bordered box (a fanzine, a month)
+    #       <div class=col_md_2> (1st col: box title) </div>
+    #       <div class=col_md_10> (2nd col, a list of fanzine issues)
+    #           <a>issue</a> <br>
+    #           <a>issue</a> <br>
+    #           <a>issue</a> <br>
+    #       </div>
+    #   </div>
 
-        lastRowHeaderSelect: str=""
-        lastRowBodySelect: str=""
-        lastButtonLinkString: str=""
+    output+='<div>\n'  # Begin the main table
 
-        # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
-        for i in range(len(fanacIssueList)):
-            fz=fanacIssueList[i]
+    lastRowHeaderSelect: str=""
+    lastRowBodySelect: str=""
+    lastButtonLinkString: str=""
 
-            # Do we skip this fanzine completely?
-            if fSelector is not None and not fSelector(fz):
-                continue
-            if fBodyURL is not None and fBodyURL(fz) is None:        #TODO: Why do we skip when fBodyURL(fz) is None ??
-                continue
+    # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
+    for i in range(len(fanacIssueList)):
+        fz=fanacIssueList[i]
 
-            # Start a new main row
-            # Deal with Column 1
+        # Do we skip this fanzine completely?
+        if fSelector is not None and not fSelector(fz):
+            continue
+        if fBodyURL is not None and fBodyURL(fz) is None:        #TODO: Why do we skip when fBodyURL(fz) is None ??
+            continue
 
-            # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
-            # Note that they have defaults, so they do not need to be checked for None
-            if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
-                if lastRowHeaderSelect != "":  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
-                    f.write('    </div></div>\n')
+        # Start a new main row
+        # Deal with Column 1
 
-                if includeRowHeaderCounts:
-                    # Count the issues in this block.
-                    fc=CountSublist(fCompare=fCompareRowHeaderText, fRowSelect=fRowHeaderSelect, fSelector=fSelector, fanacIssueList=fanacIssueList[i:], CountTitles=True)
+        # We start a new main row when fCompareRowHeaderText() thinks that fRowHeaderSelect() has changed
+        # Note that they have defaults, so they do not need to be checked for None
+        if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
+            if lastRowHeaderSelect != "":  # If this is not the first sub-box, we must end the previous sub-box by ending its col 2
+                output+='    </div></div>\n'
 
-                # Since this is a new main row, we write the row header in col 1
-                # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
+            if includeRowHeaderCounts:
+                # Count the issues in this block.
+                fc=CountSublist(fCompare=fCompareRowHeaderText, fRowSelect=fRowHeaderSelect, fSelector=fSelector, fanacIssueList=fanacIssueList[i:], CountTitles=True)
 
-                # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
-                buttonLinkString: str=""
-                if fButtonText is not None and fButtonText(fz) is not None:
+            # Since this is a new main row, we write the row header in col 1
+            # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
+
+            # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
+            buttonLinkString: str=""
+            if fButtonText is not None:
+                if fButtonText(fz) is not None:
                     buttonLinkString=fButtonText(fz)
-                if buttonLinkString != lastButtonLinkString:
-                    f.write('<a name="'+UnicodeToHtml(buttonLinkString)+'"></a>')
-                    lastButtonLinkString=buttonLinkString
+            if buttonLinkString != lastButtonLinkString:
+                output+=f'<a name="{buttonLinkString}"></a>'
+                lastButtonLinkString=buttonLinkString
 
-                f.write('<div class="row border">\n')  # Start a new sub-box
-                # Write the 1st column header for a bunch of 2nd column fz's
-                # We sometimes have a very long single word in a fanzine name which does not wrap, but which collides with the second column.
-                # Detect it and, if necessary, add a wrap to the HTML
-                wrapper=""
-                if max([len(x) for x in fGroupText(fz).split(" ")]) > 20:
-                    wrapper=" text-break"
-                f.write(f'  <div class="col-md-3{wrapper}">')
-                if fGroupURL is not None:
-                    if inAlphaOrder:
-                        f.write(FormatLink(fGroupURL(fz), UnicodeToHtml(fGroupText(fz))))
-                    else:
-                        f.write(UnicodeToHtml(fGroupText(fz)))
-                    if fGroupAnnot is not None:
-                        f.write(fGroupAnnot(fz))
+            output+='<div class="row border">\n'  # Start a new sub-box
+            # Write the 1st column header for a bunch of 2nd column fz's
+            # We sometimes have a very long single word in a fanzine name which does not wrap, but which collides with the second column.
+            # Detect it and, if necessary, add a wrap to the HTML
+            wrapper=""
+            if max([len(x) for x in fGroupText(fz).split(" ")]) > 20:
+                wrapper=" text-break"
+            output+=f'  <div class="col-md-3{wrapper}">'
+            if fGroupURL is not None:
+                if inAlphaOrder:
+                    output+=FormatLink(fGroupURL(fz), fGroupText(fz))
                 else:
-                    f.write(UnicodeToHtml(fGroupText(fz)))
+                    output+=fGroupText(fz)
+                if fGroupAnnot is not None:
+                    output+=fGroupAnnot(fz)
+            else:
+                output+=fGroupText(fz)
 
-                if includeRowHeaderCounts:
-                    if includeRowTitleCount:
-                        f.write(f"<br><small>{fc}</small>")
-                    else:
-                        f.write(f"<br><small>{fc}</small>")
+            if includeRowHeaderCounts:
+                if includeRowTitleCount:        #TODO:  What's this??
+                    output+=f"<br><small>{fc}</small>"
+                else:
+                    output+=f"<br><small>{fc}</small>"
 
-                f.write('</div>\n')
-                f.write('    <div class=col-md-9>\n') # Start col 2
+            output+='</div>\n'
+            output+='    <div class=col-md-9>\n' # Start col 2
 
-            #Log(f"WriteHTMLTable({filename} about to check hideSubsequentDuplicateBodyRows ")
-            # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
-            # These are treated as two separate cases
-            # Deal with Column 2
-            if showDuplicateBodyRows:
-                # The hyperlink goes in column 2, in this case a link to the specific fanzine
-                # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
-                # The former are easy, but the latter need to be processed
+        # We sometimes print only the 1st row of column 2 of a block, skipping the rest.
+        # These are treated as two separate cases
+        # Deal with Column 2
+        if showDuplicateBodyRows:
+            # The hyperlink goes in column 2, in this case a link to the specific fanzine
+            # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+            # The former are easy, but the latter need to be processed
+            bodytext=fRowText(fz)
+            if fBodyURL is not None:
+                # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
+                splitext=bodytext.split("|", 2)
+                if len(splitext) == 2:
+                    bodytext=splitext[0]
+                link=fBodyURL(fz)
+                output+='        '+FormatLink(link, bodytext)
+
+            fc=None
+
+            annot=""
+            if fRowAnnot is not None:
+                annot=fRowAnnot(fz)
+                if annot is not None:
+                    annot=annot.strip()
+            if fc is not None:
+                if annot != "":
+                    annot+="&nbsp;&nbsp;&nbsp;&nbsp;"
+                annot+=str(fc)
+            if annot != "":
+                output+=Smallify(f"&nbsp;&nbsp;&nbsp;({annot})")
+
+            output+='<br>\n'
+        else:
+            # We're NOT showing duplicate body rows
+            # The hyperlink goes in column 2 and is a hyperlink to the *series* since there is only one row for the whole series
+            # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
+            # The former are easy, but the latter need to be processed
+            if not fCompareRowBodyText(lastRowBodySelect, fRowBodyGroupBy(fz)):
                 bodytext=fRowText(fz)
                 if fBodyURL is not None:
+
+                    link=fBodyURL(fz)
+                    if fz.Series.AlphabetizeIndividually:
+                        link=fz.URL
                     # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
                     splitext=bodytext.split("|", 2)
                     if len(splitext) == 2:
                         bodytext=splitext[0]
-                    link=fBodyURL(fz)
-                    f.write('        '+FormatLink(link, bodytext))
+                    output+='        '+FormatLink(link, bodytext)
 
-                fc=None
+                fc=CountSublist(fCompare=fCompareRowBodyText, fRowSelect=fRowBodyGroupBy, fanacIssueList=fanacIssueList[i:])
 
                 annot=""
                 if fRowAnnot is not None:
@@ -966,57 +1001,26 @@ def WriteHTMLTable(
                         annot=annot.strip()
                 if fc is not None:
                     if annot != "":
-                        annot+="&nbsp;&nbsp;&nbsp;&nbsp;"
+                        annot+="&nbsp;&nbsp;&nbsp;"
                     annot+=str(fc)
                 if annot != "":
-                    f.write(Smallify(f"&nbsp;&nbsp;&nbsp;({annot})"))
+                    output+=Smallify(f"&nbsp;&nbsp;&nbsp;({annot})")
 
-                f.write('<br>\n')
-            else:
-                # We're NOT showing duplicate body rows
-                # The hyperlink goes in column 2 and is a hyperlink to the *series* since there is only one row for the whole series
-                # There are two kinds of hyperlink: Those with just a filename (xyz.html) and those with a full URL (http://xxx.vvv.zzz.html)
-                # The former are easy, but the latter need to be processed
-                if not fCompareRowBodyText(lastRowBodySelect, fRowBodyGroupBy(fz)):
-                    bodytext=fRowText(fz)
-                    if fBodyURL is not None:
+                output+='<br>\n'
+                lastRowBodySelect=fRowBodyGroupBy(fz)
 
-                        link=fBodyURL(fz)
-                        if fz.Series.AlphabetizeIndividually:
-                            link=fz.URL
-                        # if there is a pipe character in the string, we only link the part before the pipe and delete the pipe
-                        splitext=bodytext.split("|", 2)
-                        if len(splitext) == 2:
-                            bodytext=splitext[0]
-                        f.write('        '+FormatLink(link, bodytext))
+        if fRowHeaderSelect is not None:
+            lastRowHeaderSelect=fRowHeaderSelect(fz)
 
-                    fc=CountSublist(fCompare=fCompareRowBodyText, fRowSelect=fRowBodyGroupBy, fanacIssueList=fanacIssueList[i:])
+    #....... Cleanup .......
+    output+='</div>\n</div>\n'
+    output+="\n".join(ReadFile("control-Default.Footer"))
+    Log(f"WriteHTMLTable({filename} completed")
 
-                    annot=""
-                    if fRowAnnot is not None:
-                        # Log(f"WriteHTMLTable({filename} nAlphaOrder and fRowAnnot is not None")
-                        annot=fRowAnnot(fz)
-                        if annot is not None:
-                            annot=annot.strip()
-                    if fc is not None:
-                        if annot != "":
-                            annot+="&nbsp;&nbsp;&nbsp;"
-                        annot+=str(fc)
-                    if annot != "":
-                        f.write(Smallify(f"&nbsp;&nbsp;&nbsp;({annot})"))
-
-                    f.write('<br>\n')
-                    lastRowBodySelect=fRowBodyGroupBy(fz)
-
-            if fRowHeaderSelect is not None:
-                lastRowHeaderSelect=fRowHeaderSelect(fz)
-        #Log(f"WriteHTMLTable({filename} main loop complete")
-
-        #....... Cleanup .......
-        f.write('</div>\n</div>\n')
-        f.writelines(ReadFile("control-Default.Footer"))
-        Log(f"WriteHTMLTable({filename} completed")
-
+    # The file being created.
+    output=UnicodeToHtml2(output)
+    with open(filename, "w+") as f:
+        f.write(output)
 
 
 def CountSublist(fCompare: Callable[[str, str], bool], fRowSelect: Callable[[FanzineIssueInfo], str], fSelector: Callable[[FanzineIssueInfo], str]|None=None, fanacIssueList: list[FanzineIssueInfo]|None=None, CountTitles: bool=False) -> FanzineCounts:

@@ -10,7 +10,7 @@ from Settings import Settings
 
 from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText, ParseFirstStringBracketedText, ExtractHTMLUsingFanacStartEndCommentPair
-from HelpersPackage import ExtractBetweenHTMLComments, RemoveHyperlink
+from HelpersPackage import ExtractBetweenHTMLComments, RemoveHyperlink, HtmlToUnicode2
 from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import ExtractInvisibleTextInsideFanacComment
 from HelpersPackage import ParmDict
@@ -146,7 +146,6 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         return []
 
     # Get the FIP version
-    #html=html.replace(r"ü", "&Uuml;")
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
 
     if version == "":
