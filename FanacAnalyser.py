@@ -452,16 +452,6 @@ def main():
     # Remove those editors we have skipped in control-BogusEditors.txt
     fanacIssueListByEditor=[fz for fz in fanacIssueListByEditor if fz.Editor.strip() not in bogusEditors ]
 
-    report="Alphabetical Listing of Fanzines by Editor.txt"
-    if len(reportsToRun) == 0 or report in reportsToRun:
-        Log(f"Begin Report '{report}'", timestamp=True)
-        WriteTxtTable(os.path.join(reportFilePath, report),
-                      fanacIssueListByEditor,
-                      fRowText=lambda fz: fz.IssueName,
-                      fGroupText=lambda fz: fz.Editor,
-                      topCountText=topcounttext+"\n"+timestamp+"\n")
-        Log(f"Report: {report} complete.", timestamp=True)
-
     report="Alphabetical_Listing_of_Fanzines_by_Editor.html"
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report '{report}'", timestamp=True)
