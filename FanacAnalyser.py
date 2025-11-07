@@ -226,7 +226,7 @@ def main():
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
                        #
-                       headerFilename='control-Header (Fanzine, chronological).html')
+                       reportFilename='control-Header (Fanzine, chronological).html')
     report="Chronological Listing of Fanzines.txt"
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report '{report}'", timestamp=True)
@@ -247,7 +247,7 @@ def main():
                        fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
                        fGroupText=lambda fz: "fGroupText fake lambda",
                        topCountText=timestamp,
-                       headerFilename="control-Header (basic).html")
+                       reportFilename="control-Header (basic).html")
 
         Log(f"Report: {report} complete.", timestamp=True)
 
@@ -311,7 +311,7 @@ def main():
                        fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
                        fRowAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                        topCountText=newscountText+"\n"+timestamp+"\n",
-                       headerFilename="control-Header (Newszine).html")
+                       reportFilename="control-Header (Newszine).html")
         Log(f"Report: {report} complete.", timestamp=True)
 
     report="Chronological Listing of Newszines.txt"
@@ -378,7 +378,7 @@ def main():
                        fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
                        fRowAnnot=lambda fz: AnnotateDate(fz),
                        topCountText=topcounttext+"\n"+timestamp+"\n",
-                       headerFilename="control-Header (Fanzine, alphabetical).html",
+                       reportFilename="control-Header (Fanzine, alphabetical).html",
                        inAlphaOrder=True)
 
         Log(f"Report: {report} complete.", timestamp=True)
@@ -412,7 +412,7 @@ def main():
                        showDuplicateBodyRows=False,
                        #
                        topCountText=timestamp,
-                       headerFilename="control-Header (Fanzine, by country).html",
+                       reportFilename="control-Header (Fanzine, by country).html",
                        inAlphaOrder=True)
 
         Log(f"Report: {report} complete.", timestamp=True)
@@ -468,7 +468,7 @@ def main():
                        fRowAnnot=lambda fz: Pluralize(fz.Pagecount, 'page', Spacechar="&nbsp;"),
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
-                       headerFilename="control-Header (Fanzine, by editor).html",
+                       reportFilename="control-Header (Fanzine, by editor).html",
                        inAlphaOrder=True)
         Log(f"Report: {report} complete.", timestamp=True)
 
@@ -490,7 +490,7 @@ def main():
                        showDuplicateBodyRows=False,
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
-                       headerFilename="control-Header (Fanzine, by editor).html",
+                       reportFilename="control-Header (Fanzine, by editor).html",
                        inAlphaOrder=True)
         Log(f"Report: {report} complete.", timestamp=True)
 
@@ -513,7 +513,7 @@ def main():
                        fRowAnnot=lambda fz: f"{fz.FIS.FD};&nbsp;&nbsp; {Pluralize(fz.Pagecount, 'page', Spacechar='&nbsp;')}",
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
-                       headerFilename="control-Header (Fanzine, by editor).html",
+                       reportFilename="control-Header (Fanzine, by editor).html",
                        inAlphaOrder=True)
         Log(f"Report: {report} complete.", timestamp=True)
 
@@ -767,7 +767,7 @@ def WriteHTMLTable(
                 fRowBodyGroupBy: Callable[[FanzineIssueInfo], str]|None = None,   # If present, generates the text to compare body rows so that duplicates can be skipped
                 #
                 topCountText: str = "",
-                headerFilename: str = "",
+                reportFilename: str = "",
                 inAlphaOrder: bool = False,
                 showDuplicateBodyRows: bool=True,
 
@@ -804,7 +804,7 @@ def WriteHTMLTable(
         return
 
     # Read the specialized control.html file for this type of report
-    specialText=ReadFile(headerFilename)
+    specialText=ReadFile(reportFilename)
     if specialText:
         specialText=[s for s in specialText if len(s) > 0 and s[0] !="#"]   # Ignore comments
         title=specialText[0]
