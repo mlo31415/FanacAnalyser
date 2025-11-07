@@ -460,7 +460,7 @@ def main():
                        fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                        #
                        fGroupText=lambda fz: fz.Editor,
-                       fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
+                       fCompareRowHeaderText=lambda s1, s2: FlattenPersonsNameForSorting(s1) == FlattenPersonsNameForSorting(s2),
                        includeRowHeaderCounts=True,
                        includeRowTitleCount=True,
                        #
@@ -481,7 +481,7 @@ def main():
                        fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                        #
                        fGroupText=lambda fz: fz.Editor,
-                       fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
+                       fCompareRowHeaderText=lambda s1, s2: FlattenPersonsNameForSorting(s1) == FlattenPersonsNameForSorting(s2),
                        includeRowHeaderCounts=True,
                        includeRowTitleCount=True,
                        #
@@ -506,7 +506,7 @@ def main():
                        fButtonText=lambda fz: FlattenPersonsNameForSorting(fz.Editor)[0].upper(),
                        #
                        fGroupText=lambda fz: fz.Editor,
-                       fCompareRowHeaderText=lambda s1, s2: CompareIgnorePunctAndCase(FlattenPersonsNameForSorting(s1), FlattenPersonsNameForSorting(s2)),
+                       fCompareRowHeaderText=lambda s1, s2: FlattenPersonsNameForSorting(s1) == FlattenPersonsNameForSorting(s2),
                        includeRowHeaderCounts=True,
                        #
                        fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
