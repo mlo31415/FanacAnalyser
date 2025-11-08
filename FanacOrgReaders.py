@@ -404,7 +404,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
     if useNewTableStructure:
         headerTable=ExtractHTMLUsingFanacStartEndCommentPair(html, "table-headers")
         # At this point, we should just have <TH>xxxxx</TH> column headers
-        _, row=ReadTableRow(headerTable, "TR", "TH")
+        _, row=ReadTableRow(headerTable, "TH")
         bodyTable=ExtractHTMLUsingFanacStartEndCommentPair(html, "table-rows")
     else:
         # First, locate the FIP main table.
@@ -421,7 +421,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
             assert False
 
         headerTable=html[loc:loc+locend]
-        bodyTable, row=ReadTableRow(headerTable, "TR", "TH")
+        bodyTable, row=ReadTableRow(headerTable, "TH")
 
     columnHeaders: list[str]=[CanonicizeColumnHeaders(c.Text) for c in row] # Canonicize and return to being just a str list
 
@@ -433,7 +433,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
     # Now loop through the body getting the rows
     rows: list[list[TextAndHref]]=[]
     while len(bodyTable) > 0:
-        bodyTable, row=ReadTableRow(bodyTable, "TR", "TD")
+        bodyTable, row=ReadTableRow(bodyTable, "TD")
         if len(row) == 0:
             break
         for i, cell in enumerate(row):    # Turn '<BR>' into empty string
@@ -480,17 +480,17 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
     return fiiList
 
 
-# We paramaterize the row and column delimiters <TR>, <TH>, <TD> so we can use this for both the header row and the body rows
-def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextAndHref]]:
+# We paramaterize the column delimiters <TH> and <TD> so we can use this for both the header row and the body rows
+def ReadTableRow(tablein: str, coldelim: str) -> tuple[str, list[TextAndHref]]:
 
     tabletext=tablein.strip()
     rowstext=""
     if len(tabletext) > 0:
         # Look for the stuff bounded by <TR>...</TR> which will be the rows html. (By this point we have already dealt with the column header html.)
         tabletext=tabletext.replace(r"\n", " ").strip()
-        m=re.match(rf"<{rowdelim}>(.*?)</{rowdelim}>", tabletext, re.IGNORECASE | re.DOTALL)
+        m=re.match(rf"<<TR>>(.*?)</<TR>>", tabletext, re.IGNORECASE | re.DOTALL)
         if m is None:
-            LogError(rf"Failed to find <{rowdelim}>(.*?)</{rowdelim}> in tabletext")
+            LogError(rf"*****Failed to find <<TR>>(.*?)</<TR>> in tabletext")
             assert False
             #return tabletext, row
         rowstext=m.group(1).strip()
