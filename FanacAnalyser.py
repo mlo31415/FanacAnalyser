@@ -109,7 +109,8 @@ def main():
         return
 
     # Sort the list of all fanzines issues by fanzine series name
-    fanacIssueList.sort(key=lambda elem: RemoveArticles(unidecode(elem.SeriesName.casefold())))  # Sorts in place on fanzine name
+    fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine name
+    #fanacIssueList.sort(key=lambda elem: RemoveArticles(unidecode(elem.SeriesName.casefold())))  # Sorts in place on fanzine name
 
     def NoNone(s: str) -> str:
         if s is None:
@@ -221,7 +222,7 @@ def main():
                        fGroupText=lambda fz: fz.FIS.MonthYear,
                        includeRowHeaderCounts=True,
                        #
-                       fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
+                       fRowText=lambda fz: fz.IssueName,
                        fRowAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
@@ -244,7 +245,7 @@ def main():
         undatedList=[f for f in fanacIssueList if f.FIS.IsEmpty()]
         WriteHTMLTable(os.path.join(reportFilePath, report),
                        undatedList,
-                       fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
+                       fRowText=lambda fz: fz.IssueName,
                        fGroupText=lambda fz: "fGroupText fake lambda",
                        topCountText=timestamp,
                        reportFilename="control-Header (basic).html")
@@ -308,7 +309,7 @@ def main():
                        fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
                        fGroupText=lambda fz: fz.FIS.MonthYear,
                        fButtonText=lambda fz: ChronButtonText(fz),
-                       fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
+                       fRowText=lambda fz: fz.IssueName,
                        fRowAnnot=lambda fz: f"ed. {fz.Editor}&nbsp;&nbsp;&nbsp;{Pluralize(fz.Pagecount, 'page')}",
                        topCountText=newscountText+"\n"+timestamp+"\n",
                        reportFilename="control-Header (Newszine).html")
@@ -373,7 +374,7 @@ def main():
                        fGroupText=lambda fz: fz.SeriesName,
                        fGroupAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
                        fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
-                       fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
+                       fRowText=lambda fz: fz.IssueName,
                        fRowAnnot=lambda fz: AnnotateDate(fz),
                        topCountText=topcounttext+"\n"+timestamp+"\n",
                        reportFilename="control-Header (Fanzine, alphabetical).html",
@@ -405,7 +406,7 @@ def main():
                        fGroupText=lambda elem: CapIt(elem.Locale.CountryName),
                        includeRowHeaderCounts=True,
                        #
-                       fRowText=lambda elem: UnicodeToHtml(elem.Series.SeriesName),
+                       fRowText=lambda elem: elem.Series.SeriesName,
                        fRowBodyGroupBy=bodyRowGroupBy,
                        showDuplicateBodyRows=False,
                        #
@@ -462,7 +463,7 @@ def main():
                        includeRowHeaderCounts=True,
                        includeRowTitleCount=True,
                        #
-                       fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
+                       fRowText=lambda fz: fz.IssueName,
                        fRowAnnot=lambda fz: Pluralize(fz.Pagecount, 'page', Spacechar="&nbsp;"),
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
@@ -483,7 +484,7 @@ def main():
                        includeRowHeaderCounts=True,
                        includeRowTitleCount=True,
                        #
-                       fRowBodyGroupBy=lambda fz: UnicodeToHtml(fz.Series.SeriesName.strip()+":"+fz.Editor.strip()),
+                       fRowBodyGroupBy=lambda fz: f"{fz.Series.SeriesName.strip()}:{fz.Editor.strip()}",
                        fRowText=lambda fz: fz.SeriesName,
                        showDuplicateBodyRows=False,
                        #
@@ -507,7 +508,7 @@ def main():
                        fCompareRowHeaderText=lambda s1, s2: FlattenPersonsNameForSorting(s1) == FlattenPersonsNameForSorting(s2),
                        includeRowHeaderCounts=True,
                        #
-                       fRowText=lambda fz: UnicodeToHtml(fz.IssueName),
+                       fRowText=lambda fz: fz.IssueName,
                        fRowAnnot=lambda fz: f"{fz.FIS.FD};&nbsp;&nbsp; {Pluralize(fz.Pagecount, 'page', Spacechar='&nbsp;')}",
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
