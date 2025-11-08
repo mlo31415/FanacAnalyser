@@ -5,7 +5,6 @@ import os
 from contextlib import suppress
 import requests
 import time
-import html
 
 import urllib.parse
 
@@ -409,11 +408,6 @@ def FetchFileFromServer(directoryUrl: str) -> str|None:
                     LogError(f"\n***FetchFileFromServer failed four times. Load attempt aborted: {directoryUrl}")
                     return None
     Log("...loaded", noNewLine=True)
-
-    # # This kludge is to deal with an ellipses character in "Afterworlds - An Eclectic Bill Bowers Appreciation… and Fanthology…" which for some reason are mishandled
-    # txt=h.text.replace("â¦", "...")
-    # if txt != h.text:
-    #     assert False
 
     h.encoding='UTF-8'
     x=h.text
