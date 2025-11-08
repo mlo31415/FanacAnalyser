@@ -1,5 +1,6 @@
 import os
 import re
+import time
 
 from SharedReaders import TextAndHref, FetchFileFromServer, DecodeTableRow
 
@@ -10,7 +11,7 @@ from Settings import Settings
 
 from Log import Log, LogSetHeader, LogError
 from HelpersPackage import ReadList, FindBracketedText, ParseFirstStringBracketedText, ExtractHTMLUsingFanacStartEndCommentPair
-from HelpersPackage import ExtractBetweenHTMLComments, RemoveHyperlink, HtmlToUnicode2
+from HelpersPackage import ExtractBetweenHTMLComments, RemoveHyperlink
 from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import ExtractInvisibleTextInsideFanacComment
 from HelpersPackage import ParmDict
@@ -140,10 +141,25 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
 
     # It looks like this is a single level directory.
-    html=FetchFileFromServer(directoryUrl)
-    if html is None:
-        LogError(f"ReadFanacFanzineIndexPage: Failed to fetch {directoryUrl}. Not processed.")
-        return []
+    count=1
+    msg=""
+    html=""
+    while count < 3:
+        html=FetchFileFromServer(directoryUrl)
+        if html is None:
+            LogError(f"*****ReadFanacFanzineIndexPage: Failed to fetch {directoryUrl}. Not processed.")
+            return []
+        msg="520: Web server is returning an unknown error"
+        if msg not in html:
+            msg=""
+            break
+        count+=1
+        time.sleep(1)
+
+    if msg != "":
+       LogError(f"\n****AReadFanacFanzineIndexPage: ttempt to load {directoryUrl} returned '{msg}'")
+       return []
+
 
     # Get the FIP version
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
