@@ -365,7 +365,6 @@ def ReadFanacFanzineIndexPageOld(fanzineName: str, directoryUrl: str, html: str)
 
     # Make sure the editors and "," separated and not "/" or "//" separated
     editors=re.sub("/+", ",", editors)
-    #editors=editors.replace("//", ",").replace("/", ",")
 
     country=ExtractHeaderCountry(html)
     if country == "":
