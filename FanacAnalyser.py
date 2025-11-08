@@ -110,7 +110,6 @@ def main():
 
     # Sort the list of all fanzines issues by fanzine series name
     fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine name
-    #fanacIssueList.sort(key=lambda elem: RemoveArticles(unidecode(elem.SeriesName.casefold())))  # Sorts in place on fanzine name
 
     def NoNone(s: str) -> str:
         if s is None:
