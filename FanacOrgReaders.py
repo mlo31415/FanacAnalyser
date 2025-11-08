@@ -488,9 +488,9 @@ def ReadTableRow(tablein: str, coldelim: str) -> tuple[str, list[TextAndHref]]:
     if len(tabletext) > 0:
         # Look for the stuff bounded by <TR>...</TR> which will be the rows html. (By this point we have already dealt with the column header html.)
         tabletext=tabletext.replace(r"\n", " ").strip()
-        m=re.match(rf"<<TR>>(.*?)</<TR>>", tabletext, re.IGNORECASE | re.DOTALL)
+        m=re.match(rf"<TR>(.*?)</TR>", tabletext, re.IGNORECASE | re.DOTALL)
         if m is None:
-            LogError(rf"*****Failed to find <<TR>>(.*?)</<TR>> in tabletext")
+            LogError(rf"*****Failed to find <TR>(.*?)</TR> in tabletext")
             assert False
             #return tabletext, row
         rowstext=m.group(1).strip()
