@@ -160,7 +160,6 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
        LogError(f"\n****AReadFanacFanzineIndexPage: ttempt to load {directoryUrl} returned '{msg}'")
        return []
 
-
     # Get the FIP version
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
 
@@ -481,6 +480,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
     return fiiList
 
 
+# We paramaterize the row and column delimiters <TR>, <TH>, <TD> so we can use this for both the header row and the body rows
 def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextAndHref]]:
 
     tabletext=tablein.strip()
@@ -496,7 +496,7 @@ def ReadTableRow(tablein: str, rowdelim, coldelim: str) -> tuple[str, list[TextA
         rowstext=m.group(1).strip()
         tabletext=tabletext[m.end():].strip()
 
-    # Extract the rows from the rows html
+    # Extract each row from the row's html
     row: list[TextAndHref] = []
     while len(rowstext) > 0:
         m=re.match(rf"<{coldelim} *([^>]*?)>(.*?)</{coldelim}>", rowstext, re.IGNORECASE)
