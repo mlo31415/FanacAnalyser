@@ -483,8 +483,8 @@ def main():
                        includeRowHeaderCounts=True,
                        includeRowTitleCount=True,
                        #
-                       fRowText=lambda fz: UnicodeToHtml(fz.SeriesName),
                        fRowBodyGroupBy=lambda fz: UnicodeToHtml(fz.Series.SeriesName.strip()+":"+fz.Editor.strip()),
+                       fRowText=lambda fz: fz.SeriesName,
                        showDuplicateBodyRows=False,
                        #
                        topCountText=topcounttext+"\n"+timestamp+"\n",
