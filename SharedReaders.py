@@ -54,6 +54,7 @@ class TextAndHref:
         return f"TextAndHref(Text='{self.Text}', Url='{self.Url}')"
 
 
+#=================================================
 def DecodeTableRow(columnHeaders: list[str], tableRow: list[TextAndHref], iRow: int, defaultcountry: str, defaultEditor: str, fanzineType: str, alphabetizeIndividually: bool, directoryUrl: str) -> FanzineIssueInfo|None:
     # We need to extract the name, url, year, and vol/issue info for each fanzine
     # We have to treat the Text column specially, since it contains the critical href we need.
@@ -137,6 +138,7 @@ def ExtractDate(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineDate
     Log("   ***Date conversion failed: no usable date columns data found")
     return FanzineDate()
 
+
 #=============================================================================================
 # Extract a serial number (vol, num, whole_num) from a table row
 # We return a FanzineSerial object
@@ -168,6 +170,7 @@ def ExtractEditor(columnHeaders: list[str], row: list[TextAndHref]) -> str:
 
     return editorText
 
+
 #============================================================================================
 # Find the cell containing the page count and return its value
 def ExtractPageCount(columnHeaders: list[str], row: list[TextAndHref]) -> int:
@@ -193,7 +196,6 @@ def ExtractRowCountry(columnHeaders: list[str], row: list[TextAndHref], defaultc
         return defaultcountry
 
     return country.strip()
-
 
 
 #=============================================================================================
@@ -229,6 +231,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
                     return TextAndHref()
 
     return TextAndHref()
+
 
 # ============================================================================================
 # Scan the row and locate the issue cell, title and href and return them as a tuple
