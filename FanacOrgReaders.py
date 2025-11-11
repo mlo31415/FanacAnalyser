@@ -164,9 +164,10 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
 
     if version == "":
+        # Old style
         return ReadFanacFanzineIndexPageOld(fanzineName, directoryUrl, html)
-    else:
-        return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html)
+
+    return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html)
 
 
 def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
