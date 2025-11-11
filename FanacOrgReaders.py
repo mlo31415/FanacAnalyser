@@ -149,7 +149,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         if html is None:
             LogError(f"*****ReadFanacFanzineIndexPage: Failed to fetch {directoryUrl}. Not processed.")
             return []
-        msg="520: Web server is returning an unknown error"
+        msg="520: Web server is returning an unknown error"     # This is a message returned when Cloudflare blocked the page. Try again.
         if msg not in html:
             msg=""
             break
