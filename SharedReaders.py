@@ -134,7 +134,7 @@ def ExtractDate(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineDate
         fd=FanzineDate(YearText=yearText, MonthText=monthText, Day=dayText, DateText=dateText)
         return fd
 
-    Log("   ***Date conversion failed: no usable date columns data found")
+    LogError("   ***Date conversion failed: no usable date columns data found")
     return FanzineDate()
 
 
