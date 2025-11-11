@@ -174,6 +174,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html)
 
 
+#-------------------------------------------------------------
 def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
     if html is None:
         return []
