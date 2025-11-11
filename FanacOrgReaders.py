@@ -157,7 +157,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         time.sleep(1)
 
     if msg != "":
-       LogError(f"\n****AReadFanacFanzineIndexPage: ttempt to load {directoryUrl} returned '{msg}'")
+       LogError(f"\n****AReadFanacFanzineIndexPage: attempt to load {directoryUrl} returned '{msg}'")
        return []
 
     # Get the FIP version
