@@ -223,6 +223,7 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
                                 if sp[0] != "<":
                                     sp="<"+sp
                                 tahs.append(TextAndHref(sp))
+                            LogError("GetCellValueByColHeader: unable to handle multiple APAs in Mailings column")
                             assert False    # Do we need to handle this case?
                             return tahs
                     return TextAndHref(row[i])  # Note that this handles both pure text and TextAndHref cell values returning a TextAndHref value
