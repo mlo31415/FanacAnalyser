@@ -62,7 +62,7 @@ def DecodeTableRow(columnHeaders: list[str], tableRow: list[TextAndHref], iRow: 
     fis=FanzineIssueSpec(FD=date, FS=ser)
     title=ExtractIssueNameAndHref(columnHeaders, tableRow)
     if "fanac.org/fanzines/" in title.Url.lower() and title.Url[-1] == "/":
-        return  # This is an independent fanzine index page referred to in this FIP. It will be dealt with on its own and can be skipped for now.
+        return None      # This is an independent fanzine index page referred to in this FIP. It will be dealt with on its own and can be skipped for now.
     pages=ExtractPageCount(columnHeaders, tableRow)
     mailings=ExtractMailings(columnHeaders, tableRow)
     country=ExtractRowCountry(columnHeaders, tableRow, defaultcountry)
