@@ -7,7 +7,6 @@ import re
 import math
 import html
 import datetime
-from unidecode import unidecode
 import csv
 import jsonpickle
 from collections import defaultdict
@@ -18,7 +17,7 @@ from SharedReaders import FetchFileFromServer
 from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
 from Log import Log, LogOpen, LogClose, LogFailureAndRaiseIfMissing, LogError
-from HelpersPackage import ReadList, FormatLink, UnicodeToHtml, RemoveArticles, UnicodeToHtml2
+from HelpersPackage import ReadList, FormatLink, RemoveArticles, UnicodeToHtml2
 from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
 from HelpersPackage import UnscrambleListOfNames, Pluralize
 from FanacFanzinesHelpers import ReadClassicFanzinesTable
