@@ -160,6 +160,10 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
        LogError(f"\n****ReadFanacFanzineIndexPage: attempt to load {directoryUrl} returned '{msg}'")
        return []
 
+    if html is None or len(html) == 0:
+        LogError(f"\n****ReadFanacFanzineIndexPage: Unable to read {fanzineName}'s html  from  {directoryUrl}")
+        return []
+
     # Get the FIP version
     version=ExtractInvisibleTextInsideFanacComment(html, "fanzine index page V")       #<!-- fanac-fanzine index page V2-->
 
