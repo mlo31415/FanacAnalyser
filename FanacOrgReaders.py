@@ -465,17 +465,13 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
         if fi is None:
             continue
 
-        Log(f"   {fi=}")
-
         # Append it and log it.
-        if fi is not None:
-            urlT=""
-            if fi.PageFilename == "":
-                urlT="*No PageName*"
-            Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
-            fiiList.append(fi)
-        else:
-            assert False #LogError(f"{fanzineName}      ***Can't handle {dirUrl}")
+        Log(f"   {fi=}")
+        urlT=""
+        if fi.PageFilename == "":
+            urlT="*No PageName*"
+        Log(f"Row {iRow}  '{fi.IssueName}'  [{fi.FIS}]  {urlT}")
+        fiiList.append(fi)
 
     return fiiList
 
