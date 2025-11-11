@@ -147,7 +147,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
     while count < 3:
         html=FetchFileFromServer(directoryUrl)
         if html is None:
-            LogError(f"*****ReadFanacFanzineIndexPage: Failed to fetch {directoryUrl}. Not processed.")
+            LogError(f"\n****ReadFanacFanzineIndexPage: Failed to fetch {directoryUrl}. Not processed.")
             return []
         msg="520: Web server is returning an unknown error"     # This is a message returned when Cloudflare blocked the page. Try again.
         if msg not in html:
@@ -157,7 +157,7 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
         time.sleep(1)
 
     if msg != "":
-       LogError(f"\n****AReadFanacFanzineIndexPage: attempt to load {directoryUrl} returned '{msg}'")
+       LogError(f"\n****ReadFanacFanzineIndexPage: attempt to load {directoryUrl} returned '{msg}'")
        return []
 
     # Get the FIP version
