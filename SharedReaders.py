@@ -19,25 +19,44 @@ class TextAndHref:
     # It accepts three initialization calls:
     #   TextAnHref(str)  -->   Attempt to turn it into text+href; if this fails it's just text
     #   TextAndHref(TextAndHref)  -- >  just make a copy
-    #   TextAndHref(text, href)  -->  just assemble the arguments into a TextAndHref(
+    #   TextAndHref(text, href)  -->  just assemble the arguments into a TextAndHref
+    #   When only a text is supplied, and it contains more than one http link, we strip the HTML leaving just the text
     def __init__(self, text: str|Self="", href: str|None=None):
         self.Url: str=""
         self.Text: str=""
 
-        if href is None:
-            if isinstance(text, TextAndHref):
-                self.Url=text.Url
-                self.Text=text.Text.strip()
-                return
-
-            _, self.Url, self.Text, _=FindHrefInString(text)
-            if self.Url == "" and self.Text == "":  # Did FindHrefInString() failed to make sense of the input?
-                self.Text=text.strip()
+        # If an href is supplied, then just use it and whatever's in the text to populate the new TextAndHref
+        if href is not None:
+            # Both arguments were supplied
+            self.Text=text.strip()
+            self.Url=href
             return
 
-        # Both arguments were supplied
+        # OK. No href is supplied, so try to interpret the contents of the text.
+        # If we are supplied with a TextAndHref, just make a copy of it
+        if isinstance(text, TextAndHref):
+            self.Url=text.Url
+            self.Text=text.Text.strip()
+            return
+
+        # Do we have more than one link in the cell? (This probably only happens in the Mailing column with links to two or more apas.
+        if text.count("href") > 1:
+            # Strip the HTML
+            text=re.sub(r"<a .*?>", "", text, re.IGNORECASE | re.DOTALL)
+            text=re.sub(r"</a>", "", text, re.IGNORECASE | re.DOTALL)
+            self.Text=text.strip()
+            return
+
+        # No, if it's a single link. Convert it to a TextAndHref
+        _, self.Url, self.Text, _=FindHrefInString(text)
+        if self.Url != "" and self.Text != "":  # Did FindHrefInString find a link?
+            return
+
+        # Just plain text, I guess
         self.Text=text.strip()
-        self.Url=href
+        return
+
+
 
     def IsEmpty(self) -> bool:
         return self.Text == "" and self.Url == ""
