@@ -618,7 +618,6 @@ def main():
             else:
                 print(f"  {decade:3}0s   {counts}", file=f)
 
-
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Generate lists of mailings
@@ -636,7 +635,6 @@ def main():
             if len(issue.Mailings) > 0:
                 for mailing in issue.Mailings:
                     filewriter.writerow([issue.IssueName, issue.Series, issue.SeriesName, issue.DisplayName, issue.DirURL, issue.PageFilename, issue.FIS, issue.Locale, issue.Pagecount, issue.Editor, issue.Taglist, mailing])
-
 
     Log("FanacAnalyzer has Completed.")
 
