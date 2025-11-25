@@ -1,3 +1,4 @@
 # Name a directory to be started at when processsing an alphabetized scan of the classic fanzines index page
 # As always, a leading # ends the line
-Fanart
+#2020s_One_Shots
+#Wordy_Gurdy
