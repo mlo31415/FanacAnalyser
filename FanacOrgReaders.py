@@ -445,7 +445,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
         for i, cell in enumerate(row):    # Turn '<BR>' into empty string
             if cell.Text.lower() == "<br>":
                 row[i].Text=""
-        if mailingCol is not None and mailingCol <len(row):
+        if mailingCol is not None and mailingCol < len(row):
             if row[mailingCol].Text != "":
                 row[mailingCol].Url=""    # Get rid of any hyperlinks
 
