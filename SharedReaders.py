@@ -420,13 +420,18 @@ def FetchFileFromServer(directoryUrl: str) -> str|None:
                 time.sleep(2.0)
                 h=requests.get(directoryUrl, timeout=4, headers={'Cache-Control': 'no-cache'})
             except:
-                try:  # Do third retry
-                    LogError(f"\n***FetchFileFromServer failed again. Retrying after 5.0 sec: {directoryUrl}")
-                    time.sleep(5.0)
-                    h=requests.get(directoryUrl, timeout=8, headers={'Cache-Control': 'no-cache'})
+                try:  # Do a second second retry
+                    LogError(f"\n***FetchFileFromServer failed again. Retrying after 2.0 sec: {directoryUrl}")
+                    time.sleep(2.0)
+                    h=requests.get(directoryUrl, timeout=4, headers={'Cache-Control': 'no-cache'})
                 except:
-                    LogError(f"\n***FetchFileFromServer failed four times. Load attempt aborted: {directoryUrl}")
-                    return None
+                    try:  # Do third retry
+                        LogError(f"\n***FetchFileFromServer failed again. Retrying after 5.0 sec: {directoryUrl}")
+                        time.sleep(5.0)
+                        h=requests.get(directoryUrl, timeout=8, headers={'Cache-Control': 'no-cache'})
+                    except:
+                        LogError(f"\n***FetchFileFromServer failed five times. Load attempt aborted: {directoryUrl}")
+                        return None
     Log("...loaded", noNewLine=True)
 
     h.encoding='UTF-8'
