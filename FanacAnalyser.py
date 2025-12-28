@@ -127,12 +127,12 @@ def main():
         # Sort the year into date order
         years[year].sort(key=lambda x: x[1])
         # Write the year's report
-        with open(os.path.join(os.path.join(reportFilePath, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+") as f:
+        with open(os.path.join(os.path.join(reportFilePath, "Reports by year"), f"{year} fanac.org Fanzines.txt"), "w+", encoding="utf-8") as f:
             for sel in years[year]:
                 try:
                     f.write(f"{sel[0]} || {NoNone(str(sel[1]))} || {sel[2]} || {sel[3]}\n")
-                except UnicodeEncodeError:
-                    LogError(f"UnicodeEncodeError in: {sel}")
+                except UnicodeEncodeError as e:
+                    LogError(f"UnicodeEncodeError {e} in: {sel}")
                     LogError("   ...skipped")
 
 
