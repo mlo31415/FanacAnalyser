@@ -624,7 +624,7 @@ def main():
     # Files are created in reports/APAs
     mailingsCSVFile=Settings().Get("mailings csv file", "mailings.csv")
 
-    with open(os.path.join(rootDir, mailingsCSVFile), 'w', newline="") as csvfile:
+    with open(os.path.join(rootDir, mailingsCSVFile), 'w', newline="", encoding="utf-8") as csvfile:
         filewriter=csv.writer(csvfile, delimiter=',', quotechar='"', escapechar=r'£', quoting=csv.QUOTE_MINIMAL)
 
         columnheaders=["IssueName", "Series", "SeriesName", "DisplayName", "DirURL", "PageName", "FIS", "Locale", "PageCount", "Editor", "TagList", "Mailings"]
