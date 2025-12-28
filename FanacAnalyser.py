@@ -197,7 +197,7 @@ def main():
     # List sorted alphabetically, and by date within that
     Log("Begin generating reports", timestamp=True)
     fanacIssueList.sort(key=lambda elem: FlattenTextForSorting(elem.IssueName))  # Sorts in place on fanzine's name with leading articles suppressed
-    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
+    fanacIssueList.sort(key=lambda elem: elem.FIS.FormatYearMonthDayForSorting())
 
     timestamp="Indexed as of "+strftime("%Y-%m-%d %H:%M:%S", localtime())+" EST"
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
