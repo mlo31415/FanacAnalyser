@@ -183,6 +183,7 @@ def main():
 
     # Produce a report on the non-PDFed fanzines
     Log("Generate report on non-PDFed fanzines", timestamp=True)
+    fanacIssueList.sort(key=lambda elem: elem.DirURL)
     with open(os.path.join(reportFilePath, "Fanzines which are not PDFs.txt"), "w") as f:
         for fzi in fanacIssueList:
             if not ".pdf" in fzi.URL.lower():
