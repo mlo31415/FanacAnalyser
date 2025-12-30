@@ -1,6 +1,8 @@
 import os
 import re
 import time
+import tkinter as tk
+from tkinter import messagebox
 
 from SharedReaders import TextAndHref, FetchFileFromServer, DecodeTableRow
 
@@ -10,7 +12,7 @@ from Locale import Locale
 from Settings import Settings
 
 from Log import Log, LogSetHeader, LogError
-from HelpersPackage import ReadList, FindBracketedText, ParseFirstStringBracketedText, ExtractHTMLUsingFanacStartEndCommentPair
+from HelpersPackage import ReadList, FindBracketedText, ParseFirstStringBracketedText, ExtractHTMLUsingFanacStartEndCommentPair, MessageBox
 from HelpersPackage import ExtractBetweenHTMLComments, RemoveHyperlink
 from HelpersPackage import CanonicizeColumnHeaders
 from HelpersPackage import ExtractInvisibleTextInsideFanacComment
@@ -26,6 +28,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     Log("----Begin reading index.html files on fanac.org")
 
     fanacIssueInfo: list[FanzineIssueInfo]=[]
+    issuesNotSuccessfullyRead: list[tuple[str, str]]=[]
 
     # We read in a list of directories to be skipped.
     skippers=ReadList(os.path.join(rootDir, "control-skippers.txt"))
@@ -90,7 +93,31 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             LogError(f"...Skipped because not a fanac.org url: {url}")
             continue
 
-        fanacIssueInfo.extend(ReadFanacFanzineIndexPage(title, url))
+        stuff=ReadFanacFanzineIndexPage(title, url)
+        if stuff is not None and len(stuff) > 0:
+            fanacIssueInfo.extend(stuff)
+        else:
+            issuesNotSuccessfullyRead.append((title, url))
+
+    # Now that we've completed the scan, do a retry on all that failed to load the first time
+    failedASecondTime: list[str]=[]
+    if len(issuesNotSuccessfullyRead) > 0:
+        for title, url in issuesNotSuccessfullyRead:
+            stuff=ReadFanacFanzineIndexPage(title, url)
+            if stuff is not None and len(stuff) > 0:
+                fanacIssueInfo.extend(stuff)
+            else:
+                failedASecondTime.append(title)
+        if len(failedASecondTime) > 0:
+            msg=f"The following {len(failedASecondTime)} fanzines failed to download after a tedious number of retries:\n"
+            msg=msg+", ".join(failedASecondTime)
+            msg=msg+"\nThis is probably due to Sirian infiltration of the website."
+            msg=msg+f"\n\nContinue with the {len(fanacIssueInfo)} items that did download?"
+            root=tk.Tk()
+            root.withdraw()
+            response=messagebox.askokcancel("Alien activity detected!", msg)
+            if not response:
+                return []
 
     # TODO Drop external links which duplicate Fanac.org  (What exactly does this mean??)
 
