@@ -147,14 +147,15 @@ def ExtractDate(columnHeaders: list[str], row: list[TextAndHref]) -> FanzineDate
     yearText=GetCellValueByColHeader(columnHeaders, row, "Year").Text
     monthText=GetCellValueByColHeader(columnHeaders, row, "Month").Text
     dayText=GetCellValueByColHeader(columnHeaders, row, "Day").Text
-    dateText=GetCellValueByColHeader(columnHeaders, row, "Date").Text
 
-    if yearText is not None and yearText != "":
+    if yearText != "":  # Without a year, the month and day become meaningless
         fd=FanzineDate(YearText=yearText, MonthText=monthText, Day=dayText, DateText=dateText)
         return fd
 
-    LogError("   ***Date conversion failed: no usable date columns data found")
-    return FanzineDate()
+    # We want to log bad data, but not completely missing data.
+    if len(dateText) != 0 or len(yearText) != 0 or len(monthText) != 0 or len(dayText) != 0:
+        LogError(f"   ***Date conversion failed: uninterpretable date columns data found in entry {row[0]}")
+    return FanzineDate()        # REturn an empty FanzineDate structure
 
 
 #=============================================================================================
@@ -219,7 +220,7 @@ def ExtractRowCountry(columnHeaders: list[str], row: list[TextAndHref], defaultc
 #=============================================================================================
 # Given a list of alternative possible column headers and a list of row cell values, return the first cell matching one of the headers
 # If cellname is a list of names, try them all and return the first that hits
-def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnamealternatives: Union[str, list[str]]) -> TextAndHref | None:
+def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnamealternatives: Union[str, list[str]]) -> TextAndHref:
 
     # Make sure cell names can be a list or a singleton. Make sure it is a list we can iterate over
     cellnamealternativeslist=cellnamealternatives if type(cellnamealternatives) is list else [cellnamealternatives]
