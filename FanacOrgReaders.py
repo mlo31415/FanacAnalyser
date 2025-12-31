@@ -525,7 +525,11 @@ def ReadTableRow(tablein: str, coldelim: str) -> tuple[str, list[TextAndHref]]:
         rowstext=m.group(1).strip()
         tabletext=tabletext[m.end():].strip()
 
-    # Extract each row from the row's html
+    # If a rwo contains "colspan=", it can be skipped as it's a title or something.  Not a fanzine, anyway.
+    if "colspan=" in rowstext.lower():
+        return tabletext, []
+
+        # Extract each row from the row's html
     row: list[TextAndHref] = []
     while len(rowstext) > 0:
         m=re.match(rf"<{coldelim} *([^>]*?)>(.*?)</{coldelim}>", rowstext, re.IGNORECASE)
