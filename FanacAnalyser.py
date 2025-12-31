@@ -227,6 +227,8 @@ def main():
                        topCountText=topcounttext+"\n"+timestamp+"\n",
                        #
                        reportFilename='control-Header (Fanzine, chronological).html')
+        Log(f"Complete: {report}", timestamp=True)
+
     report="Chronological Listing of Fanzines.txt"
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report: '{report}'", timestamp=True)
