@@ -115,7 +115,8 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             msg=msg+f"\n\nContinue with the {len(fanacIssueInfo)} items that did download?"
             root=tk.Tk()
             root.withdraw()
-            response=messagebox.askokcancel("Alien activity detected!", msg)
+            root.attributes("-topmost", True)    # Without this, the modal dialog can open behind the IDE and look exactly like a hang
+            response=messagebox.askokcancel("Alien activity detected!", msg, parent=root)
             if not response:
                 return []
 
@@ -466,9 +467,12 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
     # Now loop through the body getting the rows
     rows: list[list[TextAndHref]]=[]
     while len(bodyTable) > 0:
+        lenBefore=len(bodyTable)
         bodyTable, row=ReadTableRow(bodyTable, "TD")
-        if len(row) == 0:
+        if len(bodyTable) == lenBefore:     # ReadTableRow() consumed nothing, so no further progress is possible
             break
+        if len(row) == 0:   # An empty row is one ReadTableRow() chose to skip (e.g., a colspan'ed "Series 1" divider). Skip it, but keep reading the table.
+            continue
         for i, cell in enumerate(row):    # Turn '<BR>' into empty string
             if cell.Text.lower() == "<br>":
                 row[i].Text=""
