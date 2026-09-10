@@ -1,3 +1,39 @@
+# PyCharm
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv*/
+venv/
+
+# PyInstaller output.  Build.bat runs pyinstaller against FanacAnalyser.py, so the .spec is regenerated too.
+build/
+dist/
+*.spec
+
+# Shared modules symlinked in from their own repos by the mklinks*.bat scripts.
+# The code lives in HelpersPackage, FanzineIssueSpecPackage, Locale and Settings -- these are just local links to it.
+FanacFanzinesHelpers.py
+FanzineDateTime.py
+FanzineIssueSpecPackage.py
+HelpersPackage.py
+Locale.py
+Log.py
+PDFHelpers.py
+Settings.py
+
+# Generated reports, including dated snapshots ("Reports 2025-11-07 1029", "Reports (saved)")
+Reports*/
+
+# Run logs
+Log.txt
+Log Errors.txt
+Log - *.txt
+
+# Cache of the downloaded fanzine list (see the "Use Saved Fanzine List" parameter)
+Saved Fanzine List.json
+
 # A local remnant, kept because its format and notes may be useful again.
 # ReadList() treats a missing file exactly like an all-commented one, so nothing depends on it being present.
 control-skippers.txt
