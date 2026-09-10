@@ -653,8 +653,10 @@ def SortFanacIssueListByTitle(fanacIssueListByTitle):
         return f"{x.Position:0>5}"
 
     fanacIssueListByTitle.sort(key=MessySort)
-    fanacIssueListByTitle.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName+" "+elem.SeriesEditor,
-                                                                      RemoveLeadingArticles=True))  # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
+    # Sorts in place on fanzine's Series name+Series title (added to disambiguate similarly-named fanzines
+    # The leading articles must come off the series name *before* the editor is appended: RemoveArticles() has a special case which preserves
+    # a name that is nothing but an article, and appending the editor first hides that name from it, leaving the editor as the whole sort key.
+    fanacIssueListByTitle.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName, RemoveLeadingArticles=True)+" "+FlattenTextForSorting(elem.SeriesEditor))
 
 
 # End of main()
