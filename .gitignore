@@ -34,6 +34,16 @@ Log - *.txt
 # Cache of the downloaded fanzine list (see the "Use Saved Fanzine List" parameter)
 Saved Fanzine List.json
 
+# Local machine configuration (Root Directory and Report Directory are paths on this machine)
+Parameters.txt
+
+# Local data
+People Canonical Names.txt
+
+# The scripts which create the symlinks above.  (The character class covers mkLinksSettings.bat's capital L,
+# which core.ignorecase hides on Windows but would not on a case-sensitive filesystem.)
+mk[lL]inks*.bat
+
 # A local remnant, kept because its format and notes may be useful again.
 # ReadList() treats a missing file exactly like an all-commented one, so nothing depends on it being present.
 control-skippers.txt
