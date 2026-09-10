@@ -6,4 +6,4 @@
 # NOLAzine                        # BeautifulSoup found no index table in index.html
 # Cosmag                          # Another weired one-off format
 
-Fantasy_Newsletter      # Has the date range 1999-January
+#Fantasy_Newsletter      # Has the date range 1999-January
