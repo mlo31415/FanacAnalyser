@@ -1105,7 +1105,8 @@ def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: 
 # -------------------------------------------------------------------------
 # Compute the button text and URL for an alphabetic fanzine issue -- used in calls to WriteTable
 def AlphaButtonText(fz: FanzineIssueInfo) -> str:
-    c=FlattenTextForSorting(fz.SeriesName)[0]
+    # Note that this must use the same flattening as the sort in SortFanacIssueListByTitle(), or the jump anchors will land in the wrong place
+    c=FlattenTextForSorting(fz.SeriesName, RemoveLeadingArticles=True)[0]
     if c == " " or c.isdigit():
         return "*"
     return c.upper()
