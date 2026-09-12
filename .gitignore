@@ -11,6 +11,8 @@ venv/
 build/
 dist/
 *.spec
+# ...including the copy staged in the repo root for handing out
+*.exe
 
 # Shared modules symlinked in from their own repos by the mklinks*.bat scripts.
 # The code lives in HelpersPackage, FanzineIssueSpecPackage, Locale and Settings -- these are just local links to it.
