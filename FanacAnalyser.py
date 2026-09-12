@@ -691,6 +691,9 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
 def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
     contents=FetchFileFromServer(url)
+    if contents is None:    # The fetch failed and has already logged why.  Don't hand None to the parser.
+        LogError(f"***ExtractTitlesFromClassicFanzinePage: Could not load {url}. No fanzines will be found.")
+        return []
     # Extract a table of the html for all the rows in the Classic Fanzines table
     rows=ReadClassicFanzinesTable(contents)
     if rows is None:

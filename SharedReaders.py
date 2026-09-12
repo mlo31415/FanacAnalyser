@@ -410,28 +410,28 @@ def FetchFileFromServer(directoryUrl: str) -> str|None:
     Log(f"    opening {directoryUrl}", noNewLine=True)
     try:
         h=requests.get(directoryUrl, timeout=1, headers={'Cache-Control': 'no-cache'})
-    except:
-        LogError(f"\n***FetchFileFromServer failed. Retrying after 1.0 sec: {directoryUrl}")
+    except Exception as e:
+        LogError(f"\n***FetchFileFromServer failed ({type(e).__name__}: {e}). Retrying after 1.0 sec: {directoryUrl}")
         time.sleep(0.5)
         try:    # Do first retry
             h=requests.get(directoryUrl, timeout=2, headers={'Cache-Control': 'no-cache'})
-        except:
+        except Exception as e:
             try:  # Do second retry
-                LogError(f"\n***FetchFileFromServer failed again. Retrying after 2.0 sec: {directoryUrl}")
+                LogError(f"\n***FetchFileFromServer failed again ({type(e).__name__}: {e}). Retrying after 2.0 sec: {directoryUrl}")
                 time.sleep(2.0)
                 h=requests.get(directoryUrl, timeout=4, headers={'Cache-Control': 'no-cache'})
-            except:
+            except Exception as e:
                 try:  # Do a second second retry
-                    LogError(f"\n***FetchFileFromServer failed again. Retrying after 2.0 sec: {directoryUrl}")
+                    LogError(f"\n***FetchFileFromServer failed again ({type(e).__name__}: {e}). Retrying after 2.0 sec: {directoryUrl}")
                     time.sleep(2.0)
                     h=requests.get(directoryUrl, timeout=4, headers={'Cache-Control': 'no-cache'})
-                except:
+                except Exception as e:
                     try:  # Do third retry
-                        LogError(f"\n***FetchFileFromServer failed again. Retrying after 5.0 sec: {directoryUrl}")
+                        LogError(f"\n***FetchFileFromServer failed again ({type(e).__name__}: {e}). Retrying after 5.0 sec: {directoryUrl}")
                         time.sleep(5.0)
                         h=requests.get(directoryUrl, timeout=8, headers={'Cache-Control': 'no-cache'})
-                    except:
-                        LogError(f"\n***FetchFileFromServer failed five times. Load attempt aborted: {directoryUrl}")
+                    except Exception as e:
+                        LogError(f"\n***FetchFileFromServer failed five times ({type(e).__name__}: {e}). Load attempt aborted: {directoryUrl}")
                         return None
     Log("...loaded", noNewLine=True)
 
