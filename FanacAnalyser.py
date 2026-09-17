@@ -21,6 +21,7 @@ from HelpersPackage import ReadList, FormatLink, RemoveArticles, UnicodeToHtml2
 from HelpersPackage import RemoveAllHTMLTags2, FlattenPersonsNameForSorting, FlattenTextForSorting
 from HelpersPackage import UnscrambleListOfNames, Pluralize
 from FanacFanzinesHelpers import ReadClassicFanzinesTable
+from MailingsReport import GenerateMailingsReports
 
 
 def main():
@@ -638,6 +639,16 @@ def main():
             if len(issue.Mailings) > 0:
                 for mailing in issue.Mailings:
                     filewriter.writerow([issue.IssueName, issue.Series, issue.SeriesName, issue.DisplayName, issue.DirURL, issue.PageFilename, issue.FIS, issue.Locale, issue.Pagecount, issue.Editor, issue.Taglist, mailing])
+
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # The APA mailing pages.  (This was the separate FanacMailings program until 2026-09-17.)
+    # It is a whole family of pages rather than a single file, so it lives in its own module and gets its own subdirectory.
+    report="APA mailings"
+    if len(reportsToRun) == 0 or report in reportsToRun:
+        Log(f"Begin Report: '{report}'", timestamp=True)
+        GenerateMailingsReports(fanacIssueList, rootDir, os.path.join(reportFilePath, "APAs"))
+        Log(f"Complete: {report}", timestamp=True)
 
     Log("FanacAnalyzer has Completed.")
 
