@@ -32,16 +32,24 @@ from Log import LogError, Log
 
 
 # =============================================================================
+# The full path of the parameters file the settings were loaded from, for use in error messages.
+# Settings().Dictpath is a property which is "" until a settings file has been loaded, so it is always safe to read.
+def SettingsFileName() -> str:
+    return Settings().Dictpath or "the parameters file"
+
+
+# =============================================================================
 # Generate all of the APA mailing pages.
 # fanacIssueList is the complete list of issues FanacAnalyser has already read.
 # rootDir is where the templates, the bumpf files and the xlsx live; apaReportsDir is where the pages are written.
 def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str, apaReportsDir: str) -> None:
 
     # **************************************************************************
-    # Get the list of known apas
-    knownApas=Settings().Get("Known APAs")
-    if len(knownApas) == 0:
-        LogError("Parameters.txt does not contain a value for 'Known APAs' (the list of APAs we care about here)")
+    # Get the list of known apas.  Settings().Get() returns None -- not "" -- when the setting is missing altogether.
+    knownApas=Settings().Get("Known APAs", "")
+    if not knownApas:
+        LogError(f"***The APA mailings report was skipped: no 'Known APAs' setting (the list of APAs to report on)"
+                 f" was found in {SettingsFileName()}")
         return
     knownApas=[x.replace('"', '').strip() for x in knownApas.split(",")]
 
@@ -54,8 +62,13 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
     mailingsInfoTablefromJoe: dict[str, dict[str, MailingInfoFromJoe]]={}
         # 1st level key is APA name
         # 2nd level key is mailing name
+    # Check for the spreadsheet once rather than once per APA, so a missing one is reported once and not two dozen times
+    xlsxPath=os.path.abspath(os.path.join(rootDir, "APA Mailings.xlsx"))
+    if not os.path.exists(xlsxPath):
+        LogError(f"***APA mailings: {xlsxPath} (Joe's table of mailing dates and Official Editors) was not found."
+                 f"  The mailing pages will be generated without dates or OEs.")
     for apaName in knownApas:
-        table=ReadXLSX(rootDir, apaName)
+        table=ReadXLSX(xlsxPath, apaName) if os.path.exists(xlsxPath) else None
         if table is None:
             table={}
         mailingsInfoTablefromJoe[apaName]=table
@@ -135,15 +148,18 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
 
     # Read one of the three template files.  They live alongside the other control files in rootDir.
     def ReadTemplate(settingName: str, description: str) -> str|None:
-        fname=Settings().Get(settingName)
-        if len(fname) == 0:
-            LogError(f"Parameters.txt does not contain a value for {settingName} ({description})")
+        fname=Settings().Get(settingName, "")
+        if not fname:
+            LogError(f"***The APA mailings report was skipped: no '{settingName}' setting (naming the {description})"
+                     f" was found in {SettingsFileName()}")
             return None
+        path=os.path.abspath(os.path.join(rootDir, fname))
         try:
-            with open(os.path.join(rootDir, fname), "r", encoding="utf-8") as file:
+            with open(path, "r", encoding="utf-8") as file:
                 return "".join(file.readlines())
         except FileNotFoundError:
-            LogError(f"Could not open the {description}: '{fname}'")
+            LogError(f"***The APA mailings report was skipped: the {description} was not found."
+                     f"  '{settingName}' in {SettingsFileName()} names '{fname}', so I looked for {path}")
             return None
 
     templateMailing=ReadTemplate("Template-Mailing", "template file for an individual mailing page")
@@ -391,17 +407,14 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
 
 
 # Read the APA Mailings.xlsx file supplied by Joe to get OE, date, etc., information for each mailing.
-def ReadXLSX(rootDir: str, apaName: str) -> dict[str, MailingInfoFromJoe] | None:
-    xlsxname=os.path.join(rootDir, "APA Mailings.xlsx")
-    # Skip missing xlsx files
-    if not os.path.exists(xlsxname):
-        LogError(f"Can't find {xlsxname}")
-        return None
+# The caller has already checked that xlsxname exists.
+def ReadXLSX(xlsxname: str, apaName: str) -> dict[str, MailingInfoFromJoe] | None:
     # Read the apa mailings file
     try:
         wb=openpyxl.load_workbook(filename=xlsxname)
-    except FileNotFoundError:
-        LogError(f"Could not open xlsx file {xlsxname}")
+    except Exception as e:
+        LogError(f"***APA mailings: could not read {xlsxname} ({type(e).__name__}: {e})."
+                 f"  The mailing pages will be generated without dates or OEs.")
         return None
 
 

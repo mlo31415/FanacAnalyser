@@ -71,6 +71,9 @@ def main():
                     n1=line[:loc-1].strip()
                     n2=line[loc+3:].strip()
                     peopleCanonicalNames[n1]=n2
+    else:
+        LogError(f"***{os.path.abspath(filepathname)} was not found."
+                 f"  It is created by FancyAnalyzer and has to be copied here.  Editors' names will not be canonicalized.")
 
     # If the parameter "Use Saved Fanzine List" does not exist or
     #   if it does exist, but no saved fanzine list.json exists, we read a new list of fanzines
