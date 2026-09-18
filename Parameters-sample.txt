@@ -1,0 +1,51 @@
+# ======================================================================================================================
+# SAMPLE parameters file for FanacAnalyser.
+#
+# The live file is "Parameters.txt", which sits in the same directory as the executable and is deliberately NOT in git
+# (it holds paths particular to one machine).  This sample IS in git, so that the set of settings and their meanings
+# survive a fresh clone.  To use it, copy it to Parameters.txt and adjust.
+#
+# Lines beginning with "#" are ignored, as is anything from a " #" to the end of a line.
+# Settings are name=value.  Names are matched case-insensitively.
+# A setting which is absent takes the default noted below -- it is not an error unless marked "required".
+# ======================================================================================================================
+
+
+# Templates and control files are found in Root Directory, which is a path relative to the executable's directory.
+# (It can be just a "." in which case it's the same directory as the executable.)
+# A directory named on the command line is overridden by this setting.       [default: the command line, else "."]
+Root Directory=.
+
+# The root on fanac.org to analyze.  Normally left blank, which is the same as setting it to "fanzines".   [default: ""]
+Website URL=fanac.org/fanzines
+
+# Reports are written to Report Directory, taken to be a subdirectory of Root Directory.      [default: "Reports"]
+Report Directory=Reports
+
+# Where the list of every issue carrying an APA mailing is written.  Nothing reads it any more -- the APA mailings
+# report below now works directly from memory -- but it is a useful artifact.      [default: "mailings.csv"]
+mailings csv file=Reports/mailings.csv
+
+# If this is present and non-empty, reload "Saved Fanzine List.json" instead of re-reading all ~2000 index pages from
+# fanac.org, and write that file after a real read.  Uncomment it to make repeated runs fast while working on a report.
+# Remember that the saved list goes stale.                                          [default: absent, i.e. read the website]
+#Use Saved Fanzine List=True
+
+
+# ----------------------------------------------------------------------------------------------------
+# The APA mailings report.  (This was the separate FanacMailings program until 2026-09-17.)
+# Its pages are written to an APAs subdirectory of Report Directory; the three templates, the <apa>-bumpf.txt files
+# and "APA Mailings.xlsx" are all looked for in Root Directory.
+#
+# The three templates are REQUIRED: if a setting or its file is missing, the APA report is skipped (with a message
+# in the error log naming what was missing) and the rest of the run finishes normally.
+#
+# "APA Mailings.xlsx" -- Joe's table of mailing dates and Official Editors -- is optional.  Without it the mailing
+# pages are still generated, but with no date and no OE.  It is not in git either; it is data, not configuration.
+Template-Mailing=Template - Mailing.html
+Template-APA=Template - APA.html
+Template-allAPAs=Template - All APAs.html
+
+# The APAs to report on.  An issue is placed in a mailing when its Mailing column starts with one of these names
+# followed by a space and the mailing number, so the spelling here has to match what the index pages use.  REQUIRED.
+Known APAs="APA", "ANZAPA", "APA:NESFA", "APA45", "APA-F", "APA-L", "APA-V", "EOD", "FAPA", "FHAPA", "FIDO", "FLAP", "FWD", "IPSO", "KAPA", "N'APA", "OMPA", "SAPS", "SFPA", "Shadow FAPA", "Shadow SFPA", "TAPS", "VAPA", "WOOF"
