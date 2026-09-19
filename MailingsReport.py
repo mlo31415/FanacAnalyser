@@ -39,6 +39,14 @@ def CompressAPAName(name: str) -> str:
 
 
 # =============================================================================
+# The APA's name is also its directory name and part of the link to it, but Windows forbids \ / : * ? " < > | in a
+# file name and "APA:NESFA" contains one.  Those characters become "-"; every other APA name is returned unchanged.
+# The name itself is still displayed as it is spelled in the setting -- this is only for paths and hrefs.
+def APADirName(name: str) -> str:
+    return re.sub(r'[\\/:*?"<>|]', "-", name)
+
+
+# =============================================================================
 # The full path of the parameters file the settings were loaded from, for use in error messages.
 # Settings().Dictpath is a property which is "" until a settings file has been loaded, so it is always safe to read.
 def SettingsFileName() -> str:
@@ -208,8 +216,8 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
     for apa in allAPAs:
 
         # Make sure that a directory exists for this APA's html files
-        if not os.path.exists(os.path.join(apaReportsDir, apa.Name)):
-            os.mkdir(os.path.join(apaReportsDir, apa.Name))
+        if not os.path.exists(os.path.join(apaReportsDir, APADirName(apa.Name))):
+            os.mkdir(os.path.join(apaReportsDir, APADirName(apa.Name)))
 
         apa.sort()
         for mailing in apa:
@@ -323,7 +331,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
             mailingPage=f"{start} {mailing.Count}  {end}"
 
             # Write the mailing file
-            fn=os.path.join(apaReportsDir, apa.Name, mailing.Number)+".html"
+            fn=os.path.join(apaReportsDir, APADirName(apa.Name), mailing.Number)+".html"
             with open(fn, "w", encoding="utf-8") as file:
                 mailingPage=mailingPage.split("\n")
                 file.writelines(mailingPage)
@@ -339,7 +347,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
         newAPAPage=start+mid+end
 
         # Add random descriptive information if a file <apa>-bumpf.txt exists.  (E.g., SAPS-bumpf.txt)
-        fname=os.path.join(rootDir, apa.Name+"-bumpf.txt")
+        fname=os.path.join(rootDir, APADirName(apa.Name)+"-bumpf.txt")
         if os.path.exists(fname):
             with open(fname, "r", encoding="utf-8") as file:
                 bumpf=file.read()
@@ -389,7 +397,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
             return
 
         # Write out the APA list of all mailings
-        with open(os.path.join(apaReportsDir, apa.Name, "index.html"), "w", encoding="utf-8") as file:
+        with open(os.path.join(apaReportsDir, APADirName(apa.Name), "index.html"), "w", encoding="utf-8") as file:
             file.writelines(newAPAPage)
 
     ##################################################################
@@ -409,7 +417,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
 
     allAPAs.sort()
     for apa in allAPAs:
-        listText+=(f"\n<tr><td>&nbsp;&nbsp;&nbsp;{FormatLink(apa.Name+'/index.html', apa.Name)}</td>\n"
+        listText+=(f"\n<tr><td>&nbsp;&nbsp;&nbsp;{FormatLink(APADirName(apa.Name)+'/index.html', apa.Name)}</td>\n"
                           f"<td style='text-align: right'>{apa.Count.Mailings}&nbsp;&nbsp;&nbsp;</td>\n"
                           f"<td style='text-align: right'>{apa.Count.Issues}&nbsp;&nbsp;&nbsp;</td>\n"
                           f"<td style='text-align: right'>{FormatCount(apa.Count.Pages)}&nbsp;&nbsp;&nbsp;</td>\n"
