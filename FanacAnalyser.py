@@ -28,7 +28,7 @@ def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
     Log("Started")
 
-    Settings().Load("parameters.txt", MustExist=True)
+    Settings().Load("Parameters.txt", MustExist=True)
 
     # Read the command line argument, if any, which will override rootDir
     rootDir="."
@@ -281,9 +281,9 @@ def main():
         for nnz in nonNewszines:
             f.write(nnz+"\n")
 
-    listOfNewszines=sorted(list(newszinesSet))
+    listOfNewszines=sorted(list(newszinesSet))      # Sorted, for the report written below
     for fz in fanacIssueList:
-        if fz.SeriesName.casefold() in listOfNewszines:
+        if fz.SeriesName.casefold() in newszinesSet:    # The set, not the sorted list: this runs once per issue over thousands of series
             fz.FanzineType="newszine"
 
     # Count the number of issue and pages of all fanzines and of just newszines
@@ -353,7 +353,7 @@ def main():
                       topCountText=topcounttext+"\n"+timestamp+"\n")
         Log(f"Complete: {report}", timestamp=True)
 
-    report="Alphabetical_Listing_of_Fanzines.html" #qwert
+    report="Alphabetical_Listing_of_Fanzines.html"
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report: '{report}'", timestamp=True)
         WriteHTMLTable(os.path.join(reportFilePath, report),
@@ -573,8 +573,6 @@ def main():
                       topCountText=timestamp,
                       fSelector=lambda fz: fz.Pagecount > 250)
 
-        Log("Reports complete.", timestamp=True)
-
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     # Compute counts of issues and series by decade.
@@ -680,8 +678,8 @@ def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
     directories=ReadList("control-topleveldirectories.txt")
     if len(directories) == 0:
         directories=["https://www.fanac.org/fanzines/Classic_Fanzines.html"]
-    for dir in directories:
-        fanacFanzineDirectoriesList.extend(ExtractTitlesFromClassicFanzinePage(dir))
+    for directory in directories:
+        fanacFanzineDirectoriesList.extend(ExtractTitlesFromClassicFanzinePage(directory))
 
     Log("----Done reading Classic table")
     return fanacFanzineDirectoriesList
