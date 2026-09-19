@@ -408,7 +408,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
 
 # Read the APA Mailings.xlsx file supplied by Joe to get OE, date, etc., information for each mailing.
 # The caller has already checked that xlsxname exists.
-def ReadXLSX(xlsxname: str, apaName: str) -> dict[str, MailingInfoFromJoe] | None:
+def ReadXLSX(xlsxname: str, apaName: str) -> dict[str, MailingInfoFromJoe]|None:
     # Read the apa mailings file
     try:
         wb=openpyxl.load_workbook(filename=xlsxname)
@@ -612,7 +612,7 @@ class EntireAPA:
         self.List.append(new)
         return new
 
-    def nextIndex(self, index: str) -> str | None:
+    def nextIndex(self, index: str) -> str|None:
         for (i, x) in enumerate(self.List):
             if x.Number == index:
                 if i+1 >= len(self.List):
