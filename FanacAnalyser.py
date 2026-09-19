@@ -256,7 +256,7 @@ def main():
                        # WriteHTMLTable requires an fGroupText, and whatever it returns is printed as the heading.
                        fGroupText=lambda fz: "Undated",
                        topCountText=timestamp,
-                       reportFilename="control-Header (basic).html")
+                       reportFilename="control-Header (Undated).html")
 
         Log(f"Complete: {report}", timestamp=True)
 

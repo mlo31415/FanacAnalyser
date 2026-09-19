@@ -358,7 +358,8 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
                     newAPAPage=start+mid+end
             Log(f"Bumpf added to {apa.Name} page")
         else:
-            Log(f" No {apa.Name}-bumpf.txt file found, so no bumpf added to {apa.Name} page.")
+            # Name the file the way it must actually be spelled on disk: "APA:NESFA-bumpf.txt" is not a filename Windows will accept
+            Log(f" No {APADirName(apa.Name)}-bumpf.txt file found, so no bumpf added to {apa.Name} page.")
 
         newAPAPage=AddBoilerplate(newAPAPage, f"{apa.Name} Mailings", f"{apa.Name} mailings")
 
