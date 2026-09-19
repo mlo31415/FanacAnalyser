@@ -341,25 +341,6 @@ def main():
     topcounttext=f"{countsGlobal.Issuecount:,} issues consisting of {countsGlobal.Pagecount:,} pages."
 
     # Generate lists by title
-    # For this pair of reports, we need to create a modified fanacIssueList, duplicating entries for all issues with multiple titles
-    fanacIssueListByTitle: list[FanzineIssueInfo]=[]
-    for fz in fanacIssueList:
-        # We expand this FanzineIssueInfo into one for each title.
-        # We store the original title list in the _Temp member used for such kludgey purposes
-        names=[x.strip() for x in fz.SeriesName.split(";")]
-        if len(names) > 1:
-            for name in names:
-                fz2=fz.DeepCopy()       # We do this so that the diddling we do to create multiple entries for the same fanzine does not impact fanacIssueList
-                fz2.Temp=fz.SeriesName
-                sn2=fz2.Series.Deepcopy()
-                sn2.SeriesName=name.strip()
-                fz2.Series=sn2
-                fanacIssueListByTitle.append(fz2)
-        else:
-            if len(fz.SeriesName) > 0:  # In a by-title listing, missing titles are uninteresting
-                fanacIssueListByTitle.append(fz)
-
-    SortFanacIssueListByTitle(fanacIssueListByTitle)
     SortFanacIssueListByTitle(fanacIssueList)
 
     report="Alphabetical Listing of Fanzines.txt"
@@ -1191,20 +1172,6 @@ def ChronButtonText(fz: FanzineIssueInfo) -> str:
 
 
 # .........................................................
-# Compare two strings ignoring punctuation and case -- used in calls to WriteTable
-def CompareIgnorePunctAndCase(s1: str, s2: str) -> bool:
-    return re.sub("[.,]", "", s1).casefold() == re.sub("[.,]", "", s2).casefold()
-
-
-# .........................................................
-# Truncate a string on the first digits found -- used in calls to WriteTable
-def TruncOnDigit(s: str) -> str:
-    m=re.match("([^0-9]*?)[0-9]", s)
-    if m is not None:
-        return m.groups()[0]
-    return s
-
-
 #######################################
 #######################################
 # Run main()
