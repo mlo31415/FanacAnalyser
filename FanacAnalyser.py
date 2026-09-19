@@ -80,7 +80,8 @@ def main():
     useSavedList=len(Settings().Get("Use Saved Fanzine List", "")) > 0
     if useSavedList:
         Log(f"{useSavedList=}")
-    savedListExists=os.path.exists("Saved Fanzine List.json")
+    savedListPathname=os.path.join(rootDir, "Saved Fanzine List.json")  # Like the control files, it belongs in Root Directory
+    savedListExists=os.path.exists(savedListPathname)
     if savedListExists:
         Log(f"{savedListExists=}")
 
@@ -88,17 +89,17 @@ def main():
     # This could because we're not making use of the saved list, or we want to use it, but it does not exist.
     if useSavedList and savedListExists:
         Log("Loading the saved fanzine list", timestamp=True)
-        with open("Saved Fanzine List.json", "r", encoding="utf-8") as f:
+        with open(savedListPathname, "r", encoding="utf-8") as f:
             fanacIssueList=jsonpickle.decode(f.read())
             Log("Loading complete", timestamp=True)
     else:
         # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
-        fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, ReadAllFanacFanzineMainPages())
+        fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, ReadAllFanacFanzineMainPages(rootDir))
         Log("Load of Fanzine list from website complete", timestamp=True)
         if useSavedList:
             # We need to save the fanzine list
             Log("Saving the fanzine list", timestamp=True)
-            with open("Saved Fanzine List.json", "w+", encoding="utf-8") as f:
+            with open(savedListPathname, "w+", encoding="utf-8") as f:
                 dump=jsonpickle.encode(fanacIssueList, indent=2)
                 f.write(dump)
                 Log("Saving complete", timestamp=True)
@@ -670,12 +671,12 @@ def SortFanacIssueListByTitle(fanacIssueListByTitle):
 #       The name on page is the display named used in the fanzine series tables (e.g., "Classic Fanzines")
 #       The name of directory is the name of the directory pointed to
 
-def ReadAllFanacFanzineMainPages() -> list[tuple[str, str]]:
+def ReadAllFanacFanzineMainPages(rootDir: str) -> list[tuple[str, str]]:
     Log("----Begin reading Classic table")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
-    directories=ReadList("control-topleveldirectories.txt")
+    directories=ReadList(os.path.join(rootDir, "control-topleveldirectories.txt"))
     if len(directories) == 0:
         directories=["https://www.fanac.org/fanzines/Classic_Fanzines.html"]
     for directory in directories:
