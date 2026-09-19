@@ -305,10 +305,13 @@ def main():
             if fzi.FanzineType.lower() == "newszine":
                 f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
 
+    # Both of the newszine reports are headed with the newszine counts, not the counts for all fanzines,
+    # so this is computed out here where either of them can reach it whichever ones are selected to run.
+    newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
+
     report="Chronological_Listing_of_Newszines.html"
     if len(reportsToRun) == 0 or report in reportsToRun:
         Log(f"Begin Report: '{report}'", timestamp=True)
-        newscountText=f"{newsCount.Issuecount:,} issues consisting of {newsCount.Pagecount:,} pages."
         WriteHTMLTable(os.path.join(reportFilePath, report),
                        fanacIssueList,
                        fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
@@ -328,7 +331,7 @@ def main():
                       fSelector=lambda fz: fz.FanzineType.lower() == "newszine",
                       fRowText=lambda fz: fz.IssueName,
                       fGroupText=lambda fz: fz.FIS.MonthYear,
-                      topCountText=topcounttext+"\n"+timestamp+"\n")
+                      topCountText=newscountText+"\n"+timestamp+"\n")
 
         Log(f"Complete: {report}", timestamp=True)
 
@@ -448,7 +451,9 @@ def main():
     # Sort the Alphabetic lists by Editor
     fanacIssueListByEditor.sort(key=lambda elem: elem.FIS.FormatYearMonthForSorting())
     fanacIssueListByEditor.sort(key=lambda elem: FlattenTextForSorting(elem.SeriesName.strip()))  # Sorts in place on fanzine's name with leading articles suppressed
-    for fz in fanacIssueList:
+    # Note that this must walk fanacIssueListByEditor and not fanacIssueList: an issue with several editors was
+    # expanded into one DeepCopy per editor just above, and those copies exist only in fanacIssueListByEditor.
+    for fz in fanacIssueListByEditor:
         if fz.Editor.endswith(" et al"):    # Some editors are listed like "Damon Knight et al" For the By Editor reports, we don't want the et al to appear.
             fz.Editor=fz.Editor.removesuffix(" et al")
     fanacIssueListByEditor.sort(key=lambda elem: FlattenPersonsNameForSorting(elem.Editor.strip()))  # Sorts by editor
@@ -564,7 +569,7 @@ def main():
     #     Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
 
     with open(os.path.join(reportFilePath, "Statistics.txt"), "w+", encoding="utf-8") as f:
-        print(timestamp)
+        print(timestamp, file=f)
         print(f"All fanzines: Titles: {fzCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}", file=f)
         print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
         print(f"All PDF fanzines: Issues: {countsGlobal.Pdfcount:,}   Pages: {countsGlobal.Pdfpagecount:,}", file=f)
