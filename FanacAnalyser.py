@@ -734,13 +734,18 @@ def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
             continue
         dirname=m.groups()[0]
         dirname=html.unescape(dirname)
-        if dirname[0] == '"' and dirname[-1] == '"':
+        # startswith()/endswith() rather than dirname[0]/dirname[-1] because an empty href would make those raise IndexError
+        if dirname.startswith('"') and dirname.endswith('"'):
             dirname=dirname[1:-1]
         name=m.groups()[1]
         name=html.unescape(name)
         #name=name.replace("&gt;", ">").replace("&lt;", "<").replace("&amp;", "&").replace("&quot;", "'")
-        if name[0] == "'" and name [-1] == "'":
+        if name.startswith("'") and name.endswith("'"):
             name=name[1:-1]
+        if dirname == "":   # A nameless directory means nothing to us, and would make the skippers tests in ReadFanacFanzineIssues() raise IndexError
+            LogError(f"***ExtractTitlesFromClassicFanzinePage: {url} has a row whose link has an empty directory name."
+                     f"  It is skipped, so the fanzine '{name}' will be missing from every report.")
+            continue
         AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
 
     return fanacFanzineDirectoriesList
