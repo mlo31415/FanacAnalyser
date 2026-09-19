@@ -61,16 +61,18 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
     knownApas=[x.replace('"', '').strip() for x in knownApas.split(",")]
 
     # APA names are matched with spaces, punctuation and case ignored, so that a page writing "ShadowFAPA 12" or
-    # "Shadow-FAPA 12" is recognized as the "Shadow FAPA" of the setting.  Two entries in the setting which compress
-    # to the same thing could not be told apart that way, so those are excluded and have to be matched exactly.
+    # "Shadow-FAPA 12" is recognized as the "Shadow FAPA" of the setting -- those are spellings of one APA, not two.
+    # Two entries of the setting which compress to the same thing are therefore almost certainly one APA listed twice.
+    # We cannot tell which was meant, so neither is matched loosely and the duplicate is reported for removal.
     apasByCompressedName: dict[str, str]={}
     ambiguous: set[str]=set()
     for apaName in knownApas:
         key=CompressAPAName(apaName)
         if key in apasByCompressedName and apasByCompressedName[key] != apaName:
             LogError(f"***APA mailings: the Known APAs setting in {SettingsFileName()} lists both"
-                     f" '{apasByCompressedName[key]}' and '{apaName}', which are the same once spaces, punctuation and case"
-                     f" are ignored.  Neither can be matched loosely, so a mailing must spell one of them exactly to count.")
+                     f" '{apasByCompressedName[key]}' and '{apaName}'.  Those are the same once spaces, punctuation and case"
+                     f" are ignored, so they are two spellings of one APA and one of them should be deleted from the setting."
+                     f"  Until then neither is matched loosely, and a mailing has to spell one of them exactly to be counted.")
             ambiguous.add(key)
         apasByCompressedName[key]=apaName
     for key in ambiguous:
