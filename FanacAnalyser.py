@@ -88,7 +88,7 @@ def main():
     # This could because we're not making use of the saved list, or we want to use it, but it does not exist.
     if useSavedList and savedListExists:
         Log("Loading the saved fanzine list", timestamp=True)
-        with open("Saved Fanzine List.json", "r") as f:
+        with open("Saved Fanzine List.json", "r", encoding="utf-8") as f:
             fanacIssueList=jsonpickle.decode(f.read())
             Log("Loading complete", timestamp=True)
     else:
@@ -98,7 +98,7 @@ def main():
         if useSavedList:
             # We need to save the fanzine list
             Log("Saving the fanzine list", timestamp=True)
-            with open("Saved Fanzine List.json", "w+") as f:
+            with open("Saved Fanzine List.json", "w+", encoding="utf-8") as f:
                 dump=jsonpickle.encode(fanacIssueList, indent=2)
                 f.write(dump)
                 Log("Saving complete", timestamp=True)
@@ -155,7 +155,7 @@ def main():
 
     # Re-run the previous producing a counts diagnostic file
     Log("Count again with a counts diagnostics file", timestamp=True)
-    with open(os.path.join(reportFilePath, "Counts diagnostics.txt"), "w") as f:
+    with open(os.path.join(reportFilePath, "Counts diagnostics.txt"), "w", encoding="utf-8") as f:
         countsSeries=FanzineCounts()
         lines: list[str]=[]  # We want to print everything about this series once we have completed going through the series
         oldseries=fanacIssueList[0].SeriesName
@@ -188,7 +188,7 @@ def main():
     # Produce a report on the non-PDFed fanzines
     Log("Generate report on non-PDFed fanzines", timestamp=True)
     fanacIssueList.sort(key=lambda elem: elem.DirURL)
-    with open(os.path.join(reportFilePath, "Fanzines which are not PDFs.txt"), "w") as f:
+    with open(os.path.join(reportFilePath, "Fanzines which are not PDFs.txt"), "w", encoding="utf-8") as f:
         for fzi in fanacIssueList:
             if not ".pdf" in fzi.URL.lower():
                 print(f"{fzi.DirURL}/{fzi.IssueName}", file=f)
@@ -208,7 +208,7 @@ def main():
 
     # List of dated issues
     Log("Begin Report: 'Fanzines in date order.txt'", timestamp=True)
-    with open(os.path.join(reportFilePath, "Fanzines in date order.txt"), "w") as f:
+    with open(os.path.join(reportFilePath, "Fanzines in date order.txt"), "w", encoding="utf-8") as f:
         for fzi in fanacIssueList:
             f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
 
@@ -266,7 +266,7 @@ def main():
 
     # Add in the newszines discovered in the <h2> blocks
     newszinesFromH2Set=set([fii.SeriesName.casefold() for fii in fanacIssueList if "newszine" in fii.Taglist or fii.FanzineType.lower() == "newszine"])
-    with open(os.path.join(reportFilePath, "Items identified as newszines one way or another.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Items identified as newszines one way or another.txt"), "w+", encoding="utf-8") as f:
         newszinesFromH2List=sorted(list(newszinesFromH2Set))
         for nz in newszinesFromH2List:
             f.write(nz+"\n")
@@ -276,7 +276,7 @@ def main():
     # Make up a lists of newszines and non-newszines
     allzinesSet=set([fx.SeriesName.casefold() for fx in fanacIssueList])
 
-    with open(os.path.join(reportFilePath, "Items identified as non-newszines.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Items identified as non-newszines.txt"), "w+", encoding="utf-8") as f:
         nonNewszines=sorted(list(allzinesSet.difference(newszinesSet)))
         for nnz in nonNewszines:
             f.write(nnz+"\n")
@@ -295,12 +295,12 @@ def main():
                 newsCount.Pdfcount+=1
 
     newszines=[x+"\n" for x in listOfNewszines]
-    with open(os.path.join(reportFilePath, "Items identified as newszines (Should I drop this).txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Items identified as newszines (Should I drop this).txt"), "w+", encoding="utf-8") as f:
         f.writelines(newszines)
 
 
     # List of dated issues
-    with open(os.path.join(reportFilePath, "Newszines in date order.txt"), "w") as f:
+    with open(os.path.join(reportFilePath, "Newszines in date order.txt"), "w", encoding="utf-8") as f:
         for fzi in fanacIssueList:
             if fzi.FanzineType.lower() == "newszine":
                 f.write(f"{fzi.FIS.DateStr} -- {fzi} {fzi.Pagecount}pp   {fzi.FanzineType}   {fzi.Series.Keywords}\n")
@@ -563,7 +563,7 @@ def main():
     # for selectedYear in selectedYears:
     #     Log(f"{selectedYear[0]} Fanzines: {selectedYear[1]}")
 
-    with open(os.path.join(reportFilePath, "Statistics.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Statistics.txt"), "w+", encoding="utf-8") as f:
         print(timestamp)
         print(f"All fanzines: Titles: {fzCount:,}  Issues: {countsGlobal.Issuecount:,}  Pages: {countsGlobal.Pagecount:,}  PDFs: {countsGlobal.Pdfcount:,}", file=f)
         print(f"Newszines:  Titles: {nzCount:,}  Issues: {newsCount.Issuecount:,}  Pages: {newsCount.Pagecount:,}  PDFs: {newsCount.Pdfcount:,}", file=f)
@@ -613,7 +613,7 @@ def main():
         seriesDecadeCount[decade].add(issue.SeriesName)
 
     # Print the report
-    with open(os.path.join(reportFilePath, "Decade counts.txt"), "w+") as f:
+    with open(os.path.join(reportFilePath, "Decade counts.txt"), "w+", encoding="utf-8") as f:
         f.write(str(datetime.date.today())+"\n")
         f.write("Counts of fanzines and fanzine series by decade\n\n")
         f.write(" Decade  Series  Issues\n")
@@ -741,7 +741,7 @@ def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
 
 def ReadFile(filename: str) -> list[str]:
     try:
-        with open(filename, "r") as f2:
+        with open(filename, "r", encoding="utf-8") as f2:
             return f2.readlines()
     except:
         # If the expected control header is unavailable, bail out, otherwise return an empty list.
@@ -1025,7 +1025,7 @@ def WriteHTMLTable(
 
     # The file being created.
     output=UnicodeToHtml2(output)
-    with open(filename, "w+") as f:
+    with open(filename, "w+", encoding="utf-8") as f:
         f.write(output)
 
 
@@ -1066,7 +1066,7 @@ def WriteTxtTable(filename: str,
     if fRowHeaderSelect is None:  # The default is for the header selection rule to be the same as the header; but sometimes this is not the case
         fRowHeaderSelect=fGroupText     # Note that this may also be None
 
-    with open(filename, "w+") as f:
+    with open(filename, "w+", encoding="utf-8") as f:
 
         #....... Header .......
         if topCountText:

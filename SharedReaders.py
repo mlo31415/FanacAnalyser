@@ -435,8 +435,16 @@ def FetchFileFromServer(directoryUrl: str) -> str|None:
                         return None
     Log("...loaded", noNewLine=True)
 
-    h.encoding='UTF-8'
-    x=h.text
+    # fanac.org sends "Content-Type: text/html" with no charset, so requests would fall back to ISO-8859-1 and
+    # mangle every accent.  The pages are UTF-8, so decode as that -- but do not simply force it: an older page
+    # which is still ISO-8859-1 would then turn each of its accented characters into U+FFFD silently, losing the
+    # character for good.  Fall back instead, and say so, so that the page can be fixed at the source.
+    try:
+        x=h.content.decode("utf-8")
+    except UnicodeDecodeError:
+        x=h.content.decode("cp1252", errors="replace")
+        LogError(f"\n***FetchFileFromServer: {directoryUrl} is not valid UTF-8.  Read as cp1252 instead;"
+                 f" any character that is neither will have been lost.  The page should be re-saved as UTF-8.")
     x=HtmlToUnicode2(x)
 
     return str(x)
