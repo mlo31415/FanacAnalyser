@@ -453,7 +453,6 @@ def main():
                        fGroupText=lambda fz: fz.Editor,
                        fCompareRowHeaderText=lambda s1, s2: FlattenPersonsNameForSorting(s1) == FlattenPersonsNameForSorting(s2),
                        includeRowHeaderCounts=True,
-                       includeRowTitleCount=True,
                        #
                        fRowText=lambda fz: fz.IssueName,
                        fRowAnnot=lambda fz: Pluralize(fz.Pagecount, 'page', Spacechar="&nbsp;"),
@@ -474,7 +473,6 @@ def main():
                        fGroupText=lambda fz: fz.Editor,
                        fCompareRowHeaderText=lambda s1, s2: FlattenPersonsNameForSorting(s1) == FlattenPersonsNameForSorting(s2),
                        includeRowHeaderCounts=True,
-                       includeRowTitleCount=True,
                        #
                        fRowBodyGroupBy=lambda fz: f"{fz.Series.SeriesName.strip()}:{fz.Editor.strip()}",
                        fRowText=lambda fz: fz.SeriesName,
@@ -769,7 +767,6 @@ def WriteHTMLTable(
                 fRowHeaderSelect: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply an individual items text to be used to decide its header
                 fCompareRowHeaderText: Callable[[str, str], bool]|None = None,  # If present, is used to determine two header texts to see if they are different.
                 includeRowHeaderCounts: bool = True,  # Include counts in header block!
-                includeRowTitleCount: bool=False,    # (Only if includeRowHeaderCounts is True) also include count of series.
                 #
                 fRowText: Callable[[FanzineIssueInfo], str]|None = None,  # Required: Function to supply the row's body text
                 fRowAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the rows
@@ -888,7 +885,11 @@ def WriteHTMLTable(
         # Do we skip this fanzine completely?
         if fSelector is not None and not fSelector(fz):
             continue
-        if fBodyURL is not None and fBodyURL(fz) is None:        #TODO: Why do we skip when fBodyURL(fz) is None ??
+        # No caller's fBodyURL currently returns None -- the default returns FanzineIssueInfo.URL, which is always a
+        # string (it yields "<no url>" when there is no filename), and the two which supply their own return a
+        # Series.DirURL, never None over the whole of fanac.org.  The guard stays because fBodyURL is supplied by the
+        # caller: one which could return None would otherwise put href="None" into the report.
+        if fBodyURL is not None and fBodyURL(fz) is None:
             continue
 
         # Start a new main row
@@ -935,10 +936,7 @@ def WriteHTMLTable(
                 output+=fGroupText(fz)
 
             if includeRowHeaderCounts:
-                if includeRowTitleCount:        #TODO:  What's this??
-                    output+=f"<br><small>{fc}</small>"
-                else:
-                    output+=f"<br><small>{fc}</small>"
+                output+=f"<br><small>{fc}</small>"
 
             output+='</div>\n'
             output+='    <div class=col-md-9>\n' # Start col 2
