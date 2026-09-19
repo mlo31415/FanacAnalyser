@@ -722,7 +722,10 @@ def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
     fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
     for row in rows[1:]:
         cols=re.split(r"</td>(?:|\n|\\n)*<td[^>]*>", row, flags=re.IGNORECASE|re.DOTALL)
-        assert len(cols) > 1
+        if len(cols) < 2:   # A row which doesn't split into cells has no link for us to find.  Skip it rather than ending the run.
+            LogError(f"***ExtractTitlesFromClassicFanzinePage: {url} contains a row of {len(cols)} cell(s) where at least two are needed."
+                     f"  Whatever fanzine it names will be missing from every report.  The row is: {row.strip()[:200]}")
+            continue
         href=cols[1]
         href=re.sub(r"</?strong>", "", href, flags=re.IGNORECASE|re.MULTILINE)      # Remove b<strong> and </strong> as they're not informative
         m=re.match(r".*?<a href=(.*?)>(.*?)</a>", href, flags=re.IGNORECASE|re.DOTALL)
@@ -1139,7 +1142,9 @@ def AlphaButtonText(fz: FanzineIssueInfo) -> str:
 # Compute a properly formatted date annotation -- used in calls to WriteTable
 def AnnotateDate(fz: FanzineIssueInfo) -> str:
     if type(fz) is not FanzineIssueInfo:
-        assert False
+        LogError(f"***AnnotateDate was handed a {type(fz).__name__} instead of a FanzineIssueInfo ({fz})."
+                 f"  That row's date annotation will be left blank.")
+        return ""
     if fz.FIS is None:
         return ""
     if fz.FIS.FD.IsEmpty():

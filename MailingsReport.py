@@ -499,7 +499,8 @@ class Counts:
                 self.Issues=1
             self.Pages+=val
             return
-        assert False
+        LogError(f"***Counts.Add() was given a {type(val).__name__} ({val}).  Only a Counts or an int can be added,"
+                 f" so this one is ignored and the APA mailing totals will be low by whatever it represented.")
 
 
 ######################################################################

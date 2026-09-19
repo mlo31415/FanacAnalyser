@@ -438,24 +438,27 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
     if useNewTableStructure:
         headerTable=ExtractHTMLUsingFanacStartEndCommentPair(html, "table-headers")
         # At this point, we should just have <TH>xxxxx</TH> column headers
-        _, row=ReadTableRow(headerTable, "TH")
+        _, row=ReadTableRow(headerTable, "TH", directoryUrl)
         bodyTable=ExtractHTMLUsingFanacStartEndCommentPair(html, "table-rows")
     else:
         # First, locate the FIP main table.
         m=re.search(r'<TABLE BORDER="1" STYLE="border-collapse:collapse" CELLPADDING="[0-9]+">', html, flags=re.IGNORECASE|re.DOTALL)  #This seems to be used in all old pages
         if m is None:
-            LogError(rf"Failed to find r'<TABLE BORDER=\"1\" STYLE=\"border-collapse:collapse\" CELLPADDING=\"[0-9]+\">'")
-            assert False
+            LogError(f"***ExtractFanzineIndexTableInfo: {directoryUrl} is an old-style page, but it has no"
+                     f" '<TABLE BORDER=\"1\" STYLE=\"border-collapse:collapse\" CELLPADDING=\"nn\">' main table."
+                     f"  None of its issues can be read, so the whole fanzine will be missing from the reports.")
+            return []
         m.end()
         loc=m.end()
 
         locend=html[loc:].find('</TABLE>')
         if locend == -1:
-            LogError("Failed to find '</TABLE>' in html")
-            assert False
+            LogError(f"***ExtractFanzineIndexTableInfo: {directoryUrl} has a main table with no closing '</TABLE>'."
+                     f"  None of its issues can be read, so the whole fanzine will be missing from the reports.")
+            return []
 
         headerTable=html[loc:loc+locend]
-        bodyTable, row=ReadTableRow(headerTable, "TH")
+        bodyTable, row=ReadTableRow(headerTable, "TH", directoryUrl)
 
     columnHeaders: list[str]=[CanonicizeColumnHeaders(c.Text) for c in row] # Canonicize and return to being just a str list
 
@@ -468,7 +471,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
     rows: list[list[TextAndHref]]=[]
     while len(bodyTable) > 0:
         lenBefore=len(bodyTable)
-        bodyTable, row=ReadTableRow(bodyTable, "TD")
+        bodyTable, row=ReadTableRow(bodyTable, "TD", directoryUrl)
         if len(bodyTable) == lenBefore:     # ReadTableRow() consumed nothing, so no further progress is possible
             break
         if len(row) == 0:   # An empty row is one ReadTableRow() chose to skip (e.g., a colspan'ed "Series 1" divider). Skip it, but keep reading the table.
@@ -514,7 +517,7 @@ def ExtractFanzineIndexTableInfo(directoryUrl: str, html: str, editor: str, defa
 
 
 # We paramaterize the column delimiters <TH> and <TD> so we can use this for both the header row and the body rows
-def ReadTableRow(tablein: str, coldelim: str) -> tuple[str, list[TextAndHref]]:
+def ReadTableRow(tablein: str, coldelim: str, directoryUrl: str) -> tuple[str, list[TextAndHref]]:
 
     tabletext=tablein.strip()
     rowstext=""
@@ -523,9 +526,10 @@ def ReadTableRow(tablein: str, coldelim: str) -> tuple[str, list[TextAndHref]]:
         tabletext=tabletext.replace(r"\n", " ").strip()
         m=re.match(rf"<TR>(.*?)</TR>", tabletext, re.IGNORECASE | re.DOTALL)
         if m is None:
-            LogError(rf"*****Failed to find <TR>(.*?)</TR> in tabletext")
-            assert False
-            #return tabletext, row
+            LogError(f"***ReadTableRow: {directoryUrl} has table text containing no '<TR>...</TR>' row."
+                     f"  The rest of that table cannot be read, so some of its issues will be missing."
+                     f"  The text is: {tabletext[:200]}")
+            return tabletext, []    # Returning tabletext unchanged tells the caller no progress was made
         rowstext=m.group(1).strip()
         tabletext=tabletext[m.end():].strip()
 
