@@ -231,21 +231,10 @@ def GetCellValueByColHeader(columnHeaders: list, row: list[TextAndHref], cellnam
             if CanonicizeColumnHeaders(header) == cellNameSought:
                 # Deal with missing cells -- apparently due to an LST read problem with certain mal-formed LST files
                 try:
-                    if cellNameSought == "Mailings":
-                        # If there's an href in the cell, we need to see if there are mulitple.  Likewise if there are none.
-                        if row[i].Text.lower().count("href=") > 1:
-                            split=re.split(r"> *[,&] *<", row[i].Text, flags=re.IGNORECASE)
-                            tahs=[]
-                            for sp in split:    # re.split trims away some starting and ending <>. Restore them.
-                                sp=sp.strip()
-                                if sp[-1] != ">":
-                                    sp=sp+">"
-                                if sp[0] != "<":
-                                    sp="<"+sp
-                                tahs.append(TextAndHref(sp))
-                            LogError("GetCellValueByColHeader: unable to handle multiple APAs in Mailings column")
-                            assert False    # Do we need to handle this case?
-                            return tahs
+                    # A Mailings cell which names several APAs ("OMPA 28, FAPA 96") needs no special handling here.
+                    # ExtractMailings() splits the cell's text on commas and ampersands, so each mailing becomes its own
+                    # entry and the contribution is listed under every APA it appeared in.  The cell's hyperlinks are
+                    # deliberately dropped: ExtractFanzineIndexTableInfo() clears the Mailing column's Urls before this.
                     return TextAndHref(row[i])  # Note that this handles both pure text and TextAndHref cell values returning a TextAndHref value
                 except:
                     return TextAndHref()
