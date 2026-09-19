@@ -252,7 +252,9 @@ def main():
         WriteHTMLTable(os.path.join(reportFilePath, report),
                        undatedList,
                        fRowText=lambda fz: fz.IssueName,
-                       fGroupText=lambda fz: "fGroupText fake lambda",
+                       # Every issue here is undated, so they all belong to one group and the text is a constant.
+                       # WriteHTMLTable requires an fGroupText, and whatever it returns is printed as the heading.
+                       fGroupText=lambda fz: "Undated",
                        topCountText=timestamp,
                        reportFilename="control-Header (basic).html")
 
