@@ -876,7 +876,7 @@ def WriteHTMLTable(
 
     lastRowHeaderSelect: str=""
     lastRowBodySelect: str=""
-    lastButtonLinkString: str=""
+    buttonLettersSeen: set[str]=set()   # The jump-button letters (or decades) which already have an anchor
 
     # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
     for i in range(len(fanacIssueList)):
@@ -913,9 +913,13 @@ def WriteHTMLTable(
             if fButtonText is not None:
                 if fButtonText(fz) is not None:
                     buttonLinkString=fButtonText(fz)
-            if buttonLinkString != lastButtonLinkString:
+            # Each letter gets its anchor once.  Comparing against the previous row instead would plant a second
+            # anchor of the same name wherever the sort order and the button letter disagree, and a browser jumps to
+            # the first of them -- which is how the "T" button once landed on a fanzine filed among the numbers.
+            # A report with no fButtonText has no jump buttons and so wants no anchors: buttonLinkString stays "".
+            if buttonLinkString != "" and buttonLinkString not in buttonLettersSeen:
                 output+=f'<a name="{buttonLinkString}"></a>'
-                lastButtonLinkString=buttonLinkString
+                buttonLettersSeen.add(buttonLinkString)
 
             output+='<div class="row border">\n'  # Start a new sub-box
             # Write the 1st column header for a bunch of 2nd column fz's
