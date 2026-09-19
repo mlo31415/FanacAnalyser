@@ -27,8 +27,15 @@ import openpyxl
 from FanzineIssueSpecPackage import FanzineDate, FanzineIssueInfo
 from Settings import Settings
 from HelpersPackage import FindAndReplaceBracketedText, ParseFirstStringBracketedText, SortMessyNumber, SortTitle, Pluralize, NormalizePersonsName, Int0, FormatLink
-from HelpersPackage import FindIndexOfStringInList, FormatCount, UnicodeToHtml, MakeFancyLink, SplitOnAnySingleChar
+from HelpersPackage import FindIndexOfStringInList, FormatCount, UnicodeToHtml, MakeFancyLink, SplitOnAnySingleChar, RemoveNonAlphanumericChars
 from Log import LogError, Log
+
+
+# =============================================================================
+# Reduce an APA's name to a form which compares equal regardless of spaces, punctuation or case, so that
+# "Shadow FAPA", "Shadow-FAPA" and "ShadowFAPA" are all recognized as the same APA.
+def CompressAPAName(name: str) -> str:
+    return RemoveNonAlphanumericChars(name.casefold()).replace(" ", "")
 
 
 # =============================================================================
@@ -52,6 +59,22 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
                  f" was found in {SettingsFileName()}")
         return
     knownApas=[x.replace('"', '').strip() for x in knownApas.split(",")]
+
+    # APA names are matched with spaces, punctuation and case ignored, so that a page writing "ShadowFAPA 12" or
+    # "Shadow-FAPA 12" is recognized as the "Shadow FAPA" of the setting.  Two entries in the setting which compress
+    # to the same thing could not be told apart that way, so those are excluded and have to be matched exactly.
+    apasByCompressedName: dict[str, str]={}
+    ambiguous: set[str]=set()
+    for apaName in knownApas:
+        key=CompressAPAName(apaName)
+        if key in apasByCompressedName and apasByCompressedName[key] != apaName:
+            LogError(f"***APA mailings: the Known APAs setting in {SettingsFileName()} lists both"
+                     f" '{apasByCompressedName[key]}' and '{apaName}', which are the same once spaces, punctuation and case"
+                     f" are ignored.  Neither can be matched loosely, so a mailing must spell one of them exactly to count.")
+            ambiguous.add(key)
+        apasByCompressedName[key]=apaName
+    for key in ambiguous:
+        del apasByCompressedName[key]
 
     # **************************************************************************
     # for each known apa, read Joe's APA mailings data if it exists
@@ -86,11 +109,17 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
         for entry in fanzine.Mailings:
             # A single entry may name more than one mailing: 'FAPA 20 & VAPA 23'
             for mailing in [x.strip() for x in SplitOnAnySingleChar("&,", entry)]:
-                for apaName in knownApas:
-                    m=re.match(rf"{apaName}\s(.*)$", mailing)
-                    if m is not None:
-                        mailingNumber=m.groups()[0]
-                        allAPAs[apaName][mailingNumber].append(fanzine)
+                # A mailing is "<apa name> <number>".  The name itself may contain a space ("Shadow FAPA 6") and so may
+                # the number ("FAPA 110 postmailing"), so try the longest name which matches: otherwise "Shadow FAPA 6"
+                # would be read as the APA "Shadow", and "FAPA 110 postmailing" as a mailing of some APA "FAPA 110".
+                tokens=mailing.split()
+                for n in range(len(tokens)-1, 0, -1):
+                    name=" ".join(tokens[:n])
+                    apaName=apasByCompressedName.get(CompressAPAName(name))
+                    if apaName is None and name in knownApas:   # An ambiguous name has to be spelled exactly
+                        apaName=name
+                    if apaName is not None:
+                        allAPAs[apaName][" ".join(tokens[n:])].append(fanzine)
                         break
 
     if numIssues < 100:
