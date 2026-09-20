@@ -19,12 +19,14 @@ Root Directory=.
 # The root on fanac.org to analyze.  Normally left blank, which is the same as setting it to "fanzines".   [default: ""]
 Website URL=fanac.org/fanzines
 
-# Reports are written to Report Directory, taken to be a subdirectory of Root Directory.      [default: "Reports"]
-Report Directory=Reports
+# Reports are written to Report Directory, taken to be a subdirectory of Root Directory.
+# The name carries the program's own name because several of these site-maintenance programs are often
+# run from one directory.                                        [default: "FanacAnalyzer - Reports"]
+Report Directory=FanacAnalyzer - Reports
 
 # Where the list of every issue carrying an APA mailing is written.  Nothing reads it any more -- the APA mailings
 # report below now works directly from memory -- but it is a useful artifact.      [default: "mailings.csv"]
-mailings csv file=Reports/mailings.csv
+mailings csv file=FanacAnalyzer - Reports/mailings.csv
 
 # If this is present and non-empty, reload "Saved Fanzine List.json" instead of re-reading all ~2000 index pages from
 # fanac.org, and write that file after a real read.  Uncomment it to make repeated runs fast while working on a report.

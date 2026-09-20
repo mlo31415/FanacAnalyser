@@ -25,7 +25,9 @@ Log.py
 PDFHelpers.py
 Settings.py
 
-# Generated reports, including dated snapshots ("Reports 2025-11-07 1029", "Reports (saved)")
+# Generated reports, including dated snapshots ("FanacAnalyzer - Reports 2025-11-07 1029", "Reports (saved)").
+# The first pattern is the current name; the second catches directories from before the rename.
+FanacAnalyzer - Reports*/
 Reports*/
 
 # Run logs

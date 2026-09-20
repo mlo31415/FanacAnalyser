@@ -42,7 +42,7 @@ def main():
     Log("Root directory '"+rootDir+"' set")
 
     # Create a Reports directory if needed.
-    reportDir=Settings().Get("Report Directory", "Reports")
+    reportDir=Settings().Get("Report Directory", "FanacAnalyzer - Reports")
     reportFilePath=str(os.path.join(rootDir, reportDir))
     if not os.path.isdir(reportFilePath):
         try:
