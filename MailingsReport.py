@@ -128,6 +128,8 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
     # Allmailings is keyed by the apa's name.  The value is an EntireAPA object
     allAPAs: AllAPAs=AllAPAs()
     numIssues=0
+    unknownApas: dict[str, list[str]]={}   # Compressed apparent APA name -> the mailing designations seen for it
+    numberlessMailings: list[str]=[]       # Mailing designations which name no mailing number at all
     for fanzine in fanacIssueList:
         # Select only issues which have an entry in the mailings column
         if len(fanzine.Mailings) == 0:
@@ -148,6 +150,32 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
                     if apaName is not None:
                         allAPAs[apaName][" ".join(tokens[n:])].append(fanzine)
                         break
+                else:
+                    # No spelling of any known APA matched, so this issue is silently absent from the APA reports.
+                    if len(tokens) < 2:
+                        numberlessMailings.append(mailing)   # "APA-45" with no number: a different fault, reported below
+                    else:
+                        # The mailing number is normally the last token, which makes the rest of it the APA's name as
+                        # this page spells it.  Key on the compressed name so that Turbo-APA, TurboAPA and Turboapa
+                        # are reported as one unknown APA rather than three, the way they will be treated once added.
+                        unknownApas.setdefault(CompressAPAName(" ".join(tokens[:-1])), []).append(mailing)
+
+    if len(unknownApas) > 0:
+        LogError(f"***APA mailings: {Pluralize(len(unknownApas), 'APA')} named in the fanzines' Mailing columns"
+                 f" {'is' if len(unknownApas) == 1 else 'are'} not in the Known APAs setting in {SettingsFileName()},"
+                 f" so those issues are left out of the APA reports.  Add the name to the setting -- or, if it is"
+                 f' another spelling of an APA already listed, add it there as an alternate, e.g. "FWD|FIDO".')
+        for key in sorted(unknownApas):
+            designations=sorted(set(unknownApas[key]))
+            spellings=sorted({" ".join(d.split()[:-1]) for d in unknownApas[key]})
+            LogError(f"   {'/'.join(spellings)}: {Pluralize(len(unknownApas[key]), 'mailing')},"
+                     f" e.g. {', '.join(designations[:3])}")
+
+    if len(numberlessMailings) > 0:
+        # Note that Pluralize() just appends an "s", so the noun here has to be one that pluralizes that way
+        LogError(f"***APA mailings: {Pluralize(len(numberlessMailings), 'Mailing cell')}"
+                 f" {'gives' if len(numberlessMailings) == 1 else 'give'} no mailing number and so cannot be placed"
+                 f" in any mailing: {', '.join(sorted(set(numberlessMailings)))}")
 
     if numIssues < 100:
         LogError(f"There are {numIssues} issues with mailing information -- there should be many hundreds")
