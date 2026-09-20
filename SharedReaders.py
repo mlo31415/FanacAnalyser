@@ -13,6 +13,19 @@ from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineIssueSpec, FanzineD
 
 from HelpersPackage import CanonicizeColumnHeaders, FindHrefInString, HtmlToUnicode2
 from HelpersPackage import Int0, InterpretNumber, InterpretInteger
+from Settings import Settings
+
+
+# =============================================================================
+# The read-only inputs -- control files, report header templates, the APA templates and the <apa>-bumpf.txt files --
+# live together in Input Directory, a subdirectory of Root Directory, so that several of these site-maintenance
+# programs can share one working directory without their control files colliding.
+# A file which is not there is looked for in Root Directory itself, so an older flat layout still works unchanged.
+def InputFilePathname(rootDir: str, filename: str) -> str:
+    pathname=os.path.join(rootDir, Settings().Get("Input Directory", "FanacAnalyzer-Inputs"), filename)
+    if os.path.exists(pathname):
+        return pathname
+    return os.path.join(rootDir, filename)
 
 
 class TextAndHref:

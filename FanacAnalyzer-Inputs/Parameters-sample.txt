@@ -11,10 +11,18 @@
 # ======================================================================================================================
 
 
-# Templates and control files are found in Root Directory, which is a path relative to the executable's directory.
+# Root Directory is a path relative to the executable's directory, and everything else below is relative to it.
 # (It can be just a "." in which case it's the same directory as the executable.)
 # A directory named on the command line is overridden by this setting.       [default: the command line, else "."]
 Root Directory=.
+
+# The read-only inputs -- the control files, the report header/footer templates, the APA templates and the
+# <apa>-bumpf.txt files -- are all looked for in Input Directory, so that several of these site-maintenance
+# programs can share one working directory without their control files colliding.  A file which is not there is
+# looked for in Root Directory itself, so an older flat layout still works.  ("APA Mailings.xlsx" and
+# "People Canonical Names.txt" are NOT inputs in this sense: both are handed over from elsewhere and stay in
+# Root Directory.)                                                      [default: "FanacAnalyzer-Inputs"]
+Input Directory=FanacAnalyzer-Inputs
 
 # The root on fanac.org to analyze.  Normally left blank, which is the same as setting it to "fanzines".   [default: ""]
 Website URL=fanac.org/fanzines

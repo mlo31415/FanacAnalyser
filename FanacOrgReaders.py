@@ -4,7 +4,7 @@ import time
 import tkinter as tk
 from tkinter import messagebox
 
-from SharedReaders import TextAndHref, FetchFileFromServer, DecodeTableRow
+from SharedReaders import TextAndHref, FetchFileFromServer, DecodeTableRow, InputFilePathname
 
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineSeriesInfo
 from FanzineIssueSpecPackage import FanzineCounts
@@ -31,22 +31,22 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     issuesNotSuccessfullyRead: list[tuple[str, str]]=[]
 
     # We read in a list of directories to be skipped.
-    skippers=ReadList(os.path.join(rootDir, "control-skippers.txt"))
+    skippers=ReadList(InputFilePathname(rootDir, "control-skippers.txt"))
 
     # Read in a list to be not skipped (implies all other directors are to be skipped.)
-    unskippers=ReadList(os.path.join(rootDir, "control-unskippers.txt"))
+    unskippers=ReadList(InputFilePathname(rootDir, "control-unskippers.txt"))
     if len(unskippers) > 0:
         skippers=[]     # The unskippers list trumps the skippers list
 
     # Read the starter -- if present, we scan through classic fanzines until we find this one.
-    starter=ReadList(os.path.join(rootDir, "control-startat.txt"))
+    starter=ReadList(InputFilePathname(rootDir, "control-startat.txt"))
     # Remove any trailing slash
     starter=[x.removesuffix("/") for x in starter]
 
     # Some fanzines are listed in our tables, but are offsite and do not even have an index table on fanac.org
     # We also skip these
 
-    offsite=ReadList(os.path.join(rootDir, "control-offsite.txt"))
+    offsite=ReadList(InputFilePathname(rootDir, "control-offsite.txt"))
 
     fanacDirectories.sort(key=lambda tup: tup[1])
     starterFound=False

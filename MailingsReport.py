@@ -29,6 +29,7 @@ from Settings import Settings
 from HelpersPackage import FindAndReplaceBracketedText, ParseFirstStringBracketedText, SortMessyNumber, SortTitle, Pluralize, NormalizePersonsName, Int0, FormatLink
 from HelpersPackage import FindIndexOfStringInList, FormatCount, UnicodeToHtml, MakeFancyLink, SplitOnAnySingleChar, RemoveNonAlphanumericChars
 from Log import LogError, Log
+from SharedReaders import InputFilePathname
 
 
 # =============================================================================
@@ -208,7 +209,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
             LogError(f"***The APA mailings report was skipped: no '{settingName}' setting (naming the {description})"
                      f" was found in {SettingsFileName()}")
             return None
-        path=os.path.abspath(os.path.join(rootDir, fname))
+        path=os.path.abspath(InputFilePathname(rootDir, fname))
         try:
             with open(path, "r", encoding="utf-8") as file:
                 return "".join(file.readlines())
@@ -363,7 +364,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
         newAPAPage=start+mid+end
 
         # Add random descriptive information if a file <apa>-bumpf.txt exists.  (E.g., SAPS-bumpf.txt)
-        fname=os.path.join(rootDir, APADirName(apa.Name)+"-bumpf.txt")
+        fname=InputFilePathname(rootDir, APADirName(apa.Name)+"-bumpf.txt")
         if os.path.exists(fname):
             with open(fname, "r", encoding="utf-8") as file:
                 bumpf=file.read()

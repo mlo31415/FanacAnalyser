@@ -12,7 +12,7 @@ import jsonpickle
 from collections import defaultdict
 
 import FanacOrgReaders
-from SharedReaders import FetchFileFromServer
+from SharedReaders import FetchFileFromServer, InputFilePathname
 
 from Settings import Settings
 from FanzineIssueSpecPackage import FanzineIssueInfo, FanzineCounts, FanzineDate
@@ -56,9 +56,9 @@ def main():
 
     # Get the control list of specific reports to be run
     # If the list contains only comments, all reports will be run
-    reportsToRun=ReadList(os.path.join(rootDir, "control-OnlyThisReport.txt"))
+    reportsToRun=ReadList(InputFilePathname(rootDir, "control-OnlyThisReport.txt"))
 
-    bogusEditors=ReadList(os.path.join(rootDir, "control-BogusEditors.txt"))
+    bogusEditors=ReadList(InputFilePathname(rootDir, "control-BogusEditors.txt"))
 
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
     peopleCanonicalNames={}
@@ -143,7 +143,7 @@ def main():
 
     # Count the number of pages, issues and PDFs
     Log("Perform the general count", timestamp=True)
-    ignorePageCountErrors=ReadList(os.path.join(rootDir, "control-Ignore Page Count Errors.txt"))
+    ignorePageCountErrors=ReadList(InputFilePathname(rootDir, "control-Ignore Page Count Errors.txt"))
     countsGlobal=FanzineCounts()
     for fzi in fanacIssueList:
         if fzi.DirURL != "":
@@ -265,7 +265,7 @@ def main():
     # This takes names from the file control-newszines.txt and adds fanzines tagged as newszines on their series index page
 
     # Read the control-newszines.txt file
-    newszinesSet=set([x.casefold() for x in ReadList(os.path.join(rootDir, "control-newszines.txt"), isFatal=True)])
+    newszinesSet=set([x.casefold() for x in ReadList(InputFilePathname(rootDir, "control-newszines.txt"), isFatal=True)])
 
     # Add in the newszines discovered in the <h2> blocks
     newszinesFromH2Set=set([fii.SeriesName.casefold() for fii in fanacIssueList if "newszine" in fii.Taglist or fii.FanzineType.lower() == "newszine"])
@@ -676,7 +676,7 @@ def ReadAllFanacFanzineMainPages(rootDir: str) -> list[tuple[str, str]]:
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
     fanacFanzineDirectoriesList: list[tuple[str, str]]=[]
-    directories=ReadList(os.path.join(rootDir, "control-topleveldirectories.txt"))
+    directories=ReadList(InputFilePathname(rootDir, "control-topleveldirectories.txt"))
     if len(directories) == 0:
         directories=["https://www.fanac.org/fanzines/Classic_Fanzines.html"]
     for directory in directories:
@@ -733,6 +733,9 @@ def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
 
 
 def ReadFile(filename: str) -> list[str]:
+    # The report header and footer control files live with the other inputs.  This is called from deep inside the
+    # report writers, which have no rootDir to hand, so resolve it against the same setting main() reads.
+    filename=InputFilePathname(Settings().Get("root directory", "."), filename)
     try:
         with open(filename, "r", encoding="utf-8") as f2:
             return f2.readlines()
