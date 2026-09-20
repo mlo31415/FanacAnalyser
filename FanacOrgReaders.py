@@ -20,7 +20,7 @@ from HelpersPackage import ParmDict
 
 
 # ============================================================================================
-def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]], headerNamed: set[str]) -> list[FanzineIssueInfo]:
     # Read index.html files on fanac.org
     # We do this by reading the fanzines/<name>/index.html file and then decoding the table in it.
     # What we get out of this is a list of fanzines with name, URL, and issue info.
@@ -93,7 +93,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
             LogError(f"...Skipped because not a fanac.org url: {url}")
             continue
 
-        stuff=ReadFanacFanzineIndexPage(title, url)
+        stuff=ReadFanacFanzineIndexPage(title, url, headerNamed)
         if stuff is not None and len(stuff) > 0:
             fanacIssueInfo.extend(stuff)
         else:
@@ -103,7 +103,7 @@ def ReadFanacFanzineIssues(rootDir: str, fanacDirectories: list[tuple[str, str]]
     failedASecondTime: list[str]=[]
     if len(issuesNotSuccessfullyRead) > 0:
         for title, url in issuesNotSuccessfullyRead:
-            stuff=ReadFanacFanzineIndexPage(title, url)
+            stuff=ReadFanacFanzineIndexPage(title, url, headerNamed)
             if stuff is not None and len(stuff) > 0:
                 fanacIssueInfo.extend(stuff)
             else:
@@ -164,7 +164,7 @@ def ExtractHeaderCountry(h: str) -> str:
 
 # ============================================================================================
 # Function to extract fanzine information from a fanac.org fanzine index.html page
-def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str, headerNamed: set[str]) -> list[FanzineIssueInfo]:
 
     Log(f"ReadFanacFanzineIndexPage: {fanzineName}  from  {directoryUrl}")
 
@@ -197,13 +197,13 @@ def ReadFanacFanzineIndexPage(fanzineName: str, directoryUrl: str) -> list[Fanzi
 
     if version == "":
         # Old style
-        return ReadFanacFanzineIndexPageOld(fanzineName, directoryUrl, html)
+        return ReadFanacFanzineIndexPageOld(fanzineName, directoryUrl, html)   # An old-format page has no <!--name-->, so it never joins headerNamed
 
-    return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html)
+    return ReadFanacFanzineIndexPageNew(fanzineName, directoryUrl, html, headerNamed)
 
 
 #-------------------------------------------------------------
-def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str) -> list[FanzineIssueInfo]:
+def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str, headerNamed: set[str]) -> list[FanzineIssueInfo]:
     if html is None:
         return []
 
@@ -252,6 +252,10 @@ def ReadFanacFanzineIndexPageNew(fanzineName: str, directoryUrl: str, html: str)
                 fii.Taglist.append("newszine")
     else:
         # This is the normal case with a fanzines series containing multiple issues. Add the tags and the series info pointer
+        # This series is named by the page's own <!--name--> comment rather than inferred from its issue table,
+        # which is what makes it a trustworthy target for an alternate-title cross-reference.
+        if len(seriesName) > 0:
+            headerNamed.add(directoryUrl)
         fsi=FanzineSeriesInfo(SeriesName=seriesName, DirURL=directoryUrl, Issuecount=0, Pagecount=0, Editor=editors, Country=country, Keywords=kwds)
         for fii in fiiList:
             fii.Series=fsi

@@ -1,0 +1,19 @@
+# Names on Classic_Fanzines.html which are never to get an alternate-title cross-reference in the
+# alphabetical report.  ("#" marks a comment and everything from the # to the end of the line is ignored.)
+#
+# Every name here is a Collection page whose index page is not tagged as a collection, so its <!--name-->
+# comment names one item inside it rather than the collection.  Cross-referencing one of these would send a
+# reader after a single arbitrary item:
+#
+#     2010s One Shots                   is headed  Neither Complete Nor Conclusive
+#     Convention operations - One Shots is headed  Electrical Eggs How-To Handbook
+#     KAPA-One_Shots                    is headed  Personnel Turbulence
+#     Star Trek - Related Materials     is headed  Ellison letter for Star Trek
+#
+# The real fix is on the page: tag it as a collection, or give it a <!--name--> naming the collection.
+# A name can come off this list once its page is corrected.
+
+2010s One Shots
+Convention operations - One Shots
+KAPA-One_Shots
+Star Trek - Related Materials

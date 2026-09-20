@@ -9,7 +9,9 @@ import html
 import datetime
 import csv
 import jsonpickle
+import urllib.parse
 from collections import defaultdict
+from difflib import SequenceMatcher
 
 import FanacOrgReaders
 from SharedReaders import FetchFileFromServer, InputFilePathname
@@ -85,6 +87,14 @@ def main():
     if savedListExists:
         Log(f"{savedListExists=}")
 
+    # Every name the Classic page uses for a directory, which is where a fanzine's alternate titles come from.
+    # It is filled only when the website is actually read: a run off the saved list has no Classic page to read,
+    # and so generates no cross-references.
+    classicNames: dict[str, list[str]]={}
+    # The directories whose series name came from the page's own <!--name--> comment rather than being inferred
+    # from its issue table.  Only those are trustworthy enough to be a cross-reference target.
+    headerNamed: set[str]=set()
+
     # First, determine if we need to read the website.
     # This could because we're not making use of the saved list, or we want to use it, but it does not exist.
     if useSavedList and savedListExists:
@@ -94,7 +104,7 @@ def main():
             Log("Loading complete", timestamp=True)
     else:
         # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
-        fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, ReadAllFanacFanzineMainPages(rootDir))
+        fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, ReadAllFanacFanzineMainPages(rootDir, classicNames), headerNamed)
         Log("Load of Fanzine list from website complete", timestamp=True)
         if useSavedList:
             # We need to save the fanzine list
@@ -111,6 +121,10 @@ def main():
     if len(fanacIssueList) == 0:
         Log("Exiting: No fanzines found")
         return
+
+    # A fanzine which changed its name is indexed under one of them only, so work out which other names deserve a
+    # "see <the name it is filed under>" line in the alphabetical report.
+    crossReferences=BuildAlternateTitleCrossReferences(rootDir, fanacIssueList, classicNames, headerNamed)
 
     # Sort the list of all fanzines issues by fanzine series name
     fanacIssueList.sort(key=lambda elem: RemoveArticles(elem.SeriesName.casefold()))  # Sorts in place on fanzine name
@@ -369,6 +383,7 @@ def main():
                        fRowText=lambda fz: fz.IssueName,
                        fRowAnnot=lambda fz: AnnotateDate(fz),
                        topCountText=topcounttext+"\n"+timestamp+"\n",
+                       crossReferences=crossReferences,
                        reportFilename="control-Header (Fanzine, alphabetical).html",
                        inAlphaOrder=True)
 
@@ -671,7 +686,7 @@ def SortFanacIssueListByTitle(fanacIssueListByTitle):
 #       The name on page is the display named used in the fanzine series tables (e.g., "Classic Fanzines")
 #       The name of directory is the name of the directory pointed to
 
-def ReadAllFanacFanzineMainPages(rootDir: str) -> list[tuple[str, str]]:
+def ReadAllFanacFanzineMainPages(rootDir: str, classicNames: dict[str, list[str]]) -> list[tuple[str, str]]:
     Log("----Begin reading Classic table")
     # This is a list of fanzines on Fanac.org
     # Each item is a tuple of (compressed name,  link name,  link url)
@@ -680,7 +695,7 @@ def ReadAllFanacFanzineMainPages(rootDir: str) -> list[tuple[str, str]]:
     if len(directories) == 0:
         directories=["https://www.fanac.org/fanzines/Classic_Fanzines.html"]
     for directory in directories:
-        fanacFanzineDirectoriesList.extend(ExtractTitlesFromClassicFanzinePage(directory))
+        fanacFanzineDirectoriesList.extend(ExtractTitlesFromClassicFanzinePage(directory, classicNames))
 
     Log("----Done reading Classic table")
     return fanacFanzineDirectoriesList
@@ -688,7 +703,7 @@ def ReadAllFanacFanzineMainPages(rootDir: str) -> list[tuple[str, str]]:
 
 # ======================================================================
 # Read one of the main fanzine directory listings and append all the fanzines directories found to the dictionary
-def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
+def ExtractTitlesFromClassicFanzinePage(url: str, classicNames: dict[str, list[str]]) -> list[tuple[str, str]]:
     contents=FetchFileFromServer(url)
     if contents is None:    # The fetch failed and has already logged why.  Don't hand None to the parser.
         LogError(f"***ExtractTitlesFromClassicFanzinePage: Could not load {url}. No fanzines will be found.")
@@ -726,7 +741,7 @@ def ExtractTitlesFromClassicFanzinePage(url: str) -> list[tuple[str, str]]:
             LogError(f"***ExtractTitlesFromClassicFanzinePage: {url} has a row whose link has an empty directory name."
                      f"  It is skipped, so the fanzine '{name}' will be missing from every report.")
             continue
-        AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname)
+        AddFanacDirectory(fanacFanzineDirectoriesList, name, dirname, classicNames)
 
     return fanacFanzineDirectoriesList
 
@@ -782,6 +797,9 @@ def WriteHTMLTable(
                 reportFilename: str = "",
                 inAlphaOrder: bool = False,
                 showDuplicateBodyRows: bool=True,
+                # Alternate titles to merge into the listing as "see <the name it is filed under>" rows.
+                # Each is (sort key, alternate name, canonical name, URL); the list must already be sorted.
+                crossReferences: list[tuple[str, str, str, str]]|None=None,
 
                 debugflag=False)\
                 -> None:
@@ -882,6 +900,22 @@ def WriteHTMLTable(
     lastRowHeaderSelect: str=""
     lastRowBodySelect: str=""
     buttonLettersSeen: set[str]=set()   # The jump-button letters (or decades) which already have an anchor
+    crossRefIndex: int=0                # How far through crossReferences we have got
+
+    def CrossReferenceRows(upTo: str) -> str:
+        # Emit every cross-reference which sorts at or before upTo.  They carry no issues of their own: the left
+        # column is the name the reader looked up, the right column points at the fanzine it is filed under.
+        nonlocal crossRefIndex
+        block=""
+        while crossReferences is not None and crossRefIndex < len(crossReferences) and crossReferences[crossRefIndex][0] <= upTo:
+            _, altName, canonical, dirUrl=crossReferences[crossRefIndex]
+            # Not run through UnicodeToHtml2() here: the whole of output is passed through it once at the end.
+            block+='<div class="row border">\n'
+            block+=f'  <div class="col-md-3">{altName}</div>\n'
+            block+=f'    <div class=col-md-9>see {FormatLink(dirUrl, canonical)}</div>\n'
+            block+='</div>\n'
+            crossRefIndex+=1
+        return block
 
     # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
     for i in range(len(fanacIssueList)):
@@ -912,6 +946,12 @@ def WriteHTMLTable(
 
             # Since this is a new main row, we write the row header in col 1
             # Col 1 will contain just one cell while col2 may -- and usually will -- have multiple.
+
+            # Any alternate titles which sort before this heading go in ahead of it.  This is done before the jump
+            # anchor below so that a letter's anchor stays on a real fanzine rather than landing on a cross-reference.
+            # fGroupText, not fRowHeaderSelect: the latter concatenates the editor onto the name, while the report is
+            # sorted on the name first.  Comparing against the concatenation would misplace cross-references.
+            output+=CrossReferenceRows(FlattenTextForSorting(fGroupText(fz), RemoveLeadingArticles=True).replace(" ", ""))
 
             # Get the button link string, and check if we have a new decade (or 1st letter) and need to create a new jump anchor
             buttonLinkString: str=""
@@ -1020,7 +1060,9 @@ def WriteHTMLTable(
             lastRowHeaderSelect=fRowHeaderSelect(fz)
 
     #....... Cleanup .......
+    # Close the last fanzine's block before flushing, or the leftovers land inside its second column
     output+='</div>\n</div>\n'
+    output+=CrossReferenceRows("￿")   # Any alternate titles which sort after the last fanzine
     output+="\n".join(ReadFile("control-Default.Footer"))
 
     # The file being created.
@@ -1103,12 +1145,79 @@ def WriteTxtTable(filename: str,
 # -------------------------------------------------------------------------
 # We have a name and a dirname from the fanac.org Classic and Modern pages.
 # The dirname *might* be a URL in which case it needs to be handled as a foreign directory reference
-def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: str, dirname: str) -> None:
+# -------------------------------------------------------------------------
+# A fanzine which changed its name is indexed under only one of them, so a reader looking up the other finds nothing.
+# (Someone looking for "Starship" gets no heading: its issues are filed under "Algol".)  Build a list of the alternate
+# names worth a cross-reference in the alphabetical report.
+#
+# classicNames holds every name the Classic page gives a directory; headerNamed holds the directories whose series name
+# came from the page's own <!--name--> comment.
+# Returns (sort key, the alternate name, the name it is filed under, that fanzine's URL), sorted ready to merge
+# into the alphabetical report.
+def BuildAlternateTitleCrossReferences(rootDir: str, fanacIssueList: list[FanzineIssueInfo], classicNames: dict[str, list[str]], headerNamed: set[str]) -> list[tuple[str, str, str, str]]:
+
+    def Flatten(s: str) -> str:
+        return FlattenTextForSorting(s, RemoveLeadingArticles=True).replace(" ", "")
+
+    def Names(s: str) -> set[str]:
+        # A series name may pack several names together: "Aussiecon Flyer, Offspring of Aussiecon Flyer"
+        return {Flatten(x) for x in re.split(r"\s*[,/]\s*", s)+[s] if len(x.strip()) > 0}-{""}
+
+    # What the report actually shows, keyed by directory.  A series which alphabetizes individually is a Collection
+    # page -- One Shots, References -- where each issue is its own heading and an alternate name means nothing.
+    displayed: dict[str, str]={}
+    collections: set[str]=set()
+    everyNameShown: set[str]=set()
+    for fz in fanacIssueList:
+        dirUrl=fz.Series.DirURL.rstrip("/")
+        everyNameShown|=Names(fz.Series.SeriesName)   # Every heading in the report, a Collection's issue headings included
+        if fz.Series.AlphabetizeIndividually:
+            collections.add(dirUrl)
+        else:
+            displayed[dirUrl]=fz.Series.SeriesName
+
+    # A few Collection pages are not tagged as such and so are not in collections above: their <!--name--> names one
+    # item inside them ("2010s One Shots" is headed "Neither Complete Nor Conclusive").  Cross-referencing those would
+    # point a reader at one arbitrary item, so the names are listed in a control file until the pages are corrected.
+    noCrossReference={FlattenTextForSorting(x, RemoveLeadingArticles=True) for x in
+                      ReadList(InputFilePathname(rootDir, "control-NoCrossReference.txt"))}
+
+    crossReferences: list[tuple[str, str, str, str]]=[]
+    for dirname, names in classicNames.items():
+        dirUrl=urllib.parse.urljoin("https://fanac.org/fanzines/", dirname).rstrip("/")
+        if dirUrl in collections or dirUrl not in displayed or dirUrl not in headerNamed:
+            continue
+        canonical=displayed[dirUrl]
+        for name in names:
+            key=Flatten(name)
+            if key == "" or key in Names(canonical) or key in everyNameShown:
+                continue    # It is the name already shown here, or it is a fanzine in its own right elsewhere
+            if FlattenTextForSorting(name, RemoveLeadingArticles=True) in noCrossReference:
+                continue
+            # Names which are near-identical are a misspelling on one side or the other, not an alternate title.
+            # Those belong in the Classic-vs-report comparison for someone to fix on the page, not in this report.
+            if SequenceMatcher(None, key, Flatten(canonical)).ratio() >= 0.85:
+                continue
+            crossReferences.append((key, name, canonical, dirUrl))
+
+    crossReferences.sort()
+    Log(f"BuildAlternateTitleCrossReferences: {len(crossReferences)} alternate titles will be cross-referenced")
+    return crossReferences
+
+
+# -------------------------------------------------------------------------
+def AddFanacDirectory(fanacFanzineDirectoriesList: list[tuple[str, str]], name: str, dirname: str, classicNames: dict[str, list[str]]) -> None:
+
+    # The Classic page routinely lists one directory under several names: SF_Review appears there as Alien Critic,
+    # Psychotic, Richard E. Geis and Science Fiction Review.  Only one of them can be this directory's entry, but the
+    # others are the fanzine's alternate titles, which the alphabetical report cross-references.  So record them all
+    # before the duplicate check throws them away.
+    classicNames.setdefault(dirname, []).append(name)
 
     # We don't want to add duplicates. A duplicate is one which has the same dirname, even if the text pointing to it is different.
     dups=[e2 for e1, e2 in fanacFanzineDirectoriesList if e2 == dirname]
     if dups:
-        LogError(f"   AddFanacDirectory: duplicate directory: {name=}  {dirname=}")
+        Log(f"   AddFanacDirectory: another name for {dirname}: {name}")
         return
 
     if dirname.startswith("http"):
