@@ -159,14 +159,31 @@ def main():
     Log("Perform the general count", timestamp=True)
     ignorePageCountErrors=ReadList(InputFilePathname(rootDir, "control-Ignore Page Count Errors.txt"))
     countsGlobal=FanzineCounts()
+    noPageCount: dict[str, int]={}      # Series name -> how many of its issues give no page count
     for fzi in fanacIssueList:
         if fzi.DirURL != "":
             countsGlobal+=fzi.Pagecount
             if os.path.splitext(fzi.PageFilename)[1].lower() == ".pdf":
                 countsGlobal.Pdfcount+=1
                 countsGlobal.Pdfpagecount+=fzi.Pagecount
-            if fzi.Pagecount == 0 and len(ignorePageCountErrors)> 0 and fzi.SeriesName not in ignorePageCountErrors:
+            # RawPagecount, not Pagecount: the latter reports a minimum of one page, so testing it for 0 never fired
+            # and this check has never once reported anything.
+            # The test used to include len(ignorePageCountErrors) > 0 as well, which made emptying the control file
+            # switch the check off rather than switch every warning on -- the opposite of what a file called "Ignore
+            # Page Count Errors" says.  An empty or missing file now means nothing is ignored.
+            if fzi.RawPagecount == 0 and fzi.SeriesName not in ignorePageCountErrors:
                 Log(f"{fzi.IssueName} has no page count: {fzi}")
+                noPageCount[fzi.SeriesName]=noPageCount.get(fzi.SeriesName, 0)+1
+
+    # The per-issue lines above are buried in the detailed log, so summarize by series.  Each such issue is counted as
+    # one page in the totals above -- Pagecount reports a minimum of one -- so this is also the size of that overcount.
+    if len(noPageCount) > 0:
+        total=sum(noPageCount.values())
+        LogError(f"***{Pluralize(total, 'issue')} in {Pluralize(len(noPageCount), 'fanzine')} give no page count on"
+                 f" their index page, and so are counted as one page each.  Add a fanzine to"
+                 f" control-Ignore Page Count Errors.txt if it is genuinely unpaginated.")
+        for series in sorted(noPageCount, key=lambda s: (-noPageCount[s], s)):
+            LogError(f"   {series}: {Pluralize(noPageCount[series], 'issue')}")
 
     # Re-run the previous producing a counts diagnostic file
     Log("Count again with a counts diagnostics file", timestamp=True)
