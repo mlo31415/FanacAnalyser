@@ -1,9 +1,9 @@
 # ======================================================================================================================
 # SAMPLE parameters file for FanacAnalyser.
 #
-# The live file is "Parameters.txt", which sits in the same directory as the executable and is deliberately NOT in git
+# The live file is "FanacAnalyzer Parameters.txt", which sits in the same directory as the executable and is deliberately NOT in git
 # (it holds paths particular to one machine).  This sample IS in git, so that the set of settings and their meanings
-# survive a fresh clone.  To use it, copy it to Parameters.txt and adjust.
+# survive a fresh clone.  To use it, copy it to "FanacAnalyzer Parameters.txt" beside the executable and adjust.
 #
 # Lines beginning with "#" are ignored, as is anything from a " #" to the end of a line.
 # Settings are name=value.  Names are matched case-insensitively.
@@ -19,10 +19,10 @@ Root Directory=.
 # The read-only inputs -- the control files, the report header/footer templates, the APA templates and the
 # <apa>-bumpf.txt files -- are all looked for in Input Directory, so that several of these site-maintenance
 # programs can share one working directory without their control files colliding.  A file which is not there is
-# looked for in Root Directory itself, so an older flat layout still works.  ("APA Mailings.xlsx" and
-# "People Canonical Names.txt" are NOT inputs in this sense: both are handed over from elsewhere and stay in
-# Root Directory.)                                                      [default: "FanacAnalyzer-Inputs"]
-Input Directory=FanacAnalyzer-Inputs
+# looked for in Root Directory itself, so an older flat layout still works.  ("People Canonical Names.txt" is the
+# exception: FancyAnalyzer produces it, and it is read from Report Directory.)
+#                                                                       [default: "FanacAnalyzer - Inputs"]
+Input Directory=FanacAnalyzer - Inputs
 
 # The root on fanac.org to analyze.  Normally left blank, which is the same as setting it to "fanzines".   [default: ""]
 Website URL=fanac.org/fanzines
@@ -45,7 +45,7 @@ mailings csv file=FanacAnalyzer - Reports/mailings.csv
 # ----------------------------------------------------------------------------------------------------
 # The APA mailings report.  (This was the separate FanacMailings program until 2026-09-17.)
 # Its pages are written to an APAs subdirectory of Report Directory; the three templates, the <apa>-bumpf.txt files
-# and "APA Mailings.xlsx" are all looked for in Root Directory.
+# and "APA Mailings.xlsx" are all looked for in Input Directory.
 #
 # The three templates are REQUIRED: if a setting or its file is missing, the APA report is skipped (with a message
 # in the error log naming what was missing) and the rest of the run finishes normally.

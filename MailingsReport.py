@@ -113,7 +113,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
         # 1st level key is APA name
         # 2nd level key is mailing name
     # Check for the spreadsheet once rather than once per APA, so a missing one is reported once and not two dozen times
-    xlsxPath=os.path.abspath(os.path.join(rootDir, "APA Mailings.xlsx"))
+    xlsxPath=os.path.abspath(InputFilePathname(rootDir, "APA Mailings.xlsx"))
     if not os.path.exists(xlsxPath):
         LogError(f"***APA mailings: {xlsxPath} (Joe's table of mailing dates and Official Editors) was not found."
                  f"  The mailing pages will be generated without dates or OEs.")

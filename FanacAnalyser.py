@@ -28,7 +28,7 @@ def main():
     LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
     Log("Started")
 
-    Settings().Load("Parameters.txt", MustExist=True)
+    Settings().Load("FanacAnalyzer Parameters.txt", MustExist=True)
 
     # Read the command line argument, if any, which will override rootDir
     rootDir="."
@@ -62,7 +62,7 @@ def main():
 
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
     peopleCanonicalNames={}
-    filepathname=os.path.join(rootDir, "People Canonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's directories
+    filepathname=os.path.join(reportFilePath, "People Canonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's report directory
     if os.path.exists(filepathname):
         with open(filepathname, "r" ,encoding='utf8') as f:
             for line in f:

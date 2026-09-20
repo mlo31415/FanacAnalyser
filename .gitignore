@@ -39,7 +39,7 @@ Log - *.txt
 Saved Fanzine List.json
 
 # Local machine configuration (Root Directory and Report Directory are paths on this machine)
-Parameters.txt
+FanacAnalyzer Parameters.txt
 
 # Local data
 People Canonical Names.txt
