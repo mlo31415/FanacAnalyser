@@ -7,7 +7,7 @@ __pycache__/
 .venv*/
 venv/
 
-# PyInstaller output.  Build.bat runs pyinstaller against FanacAnalyser.py, so the .spec is regenerated too.
+# PyInstaller output.  FanacAnalyzer.spec drives the build, and pyinstaller regenerates it.
 build/
 dist/
 *.spec

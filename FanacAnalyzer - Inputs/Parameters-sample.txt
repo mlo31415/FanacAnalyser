@@ -1,5 +1,5 @@
 # ======================================================================================================================
-# SAMPLE parameters file for FanacAnalyser.
+# SAMPLE parameters file for FanacAnalyzer.
 #
 # The live file is "FanacAnalyzer Parameters.txt", which sits in the same directory as the executable and is deliberately NOT in git
 # (it holds paths particular to one machine).  This sample IS in git, so that the set of settings and their meanings
