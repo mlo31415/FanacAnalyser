@@ -169,6 +169,17 @@ def main():
     # Count the number of pages, issues and PDFs
     Log("Perform the general count", timestamp=True)
     ignorePageCountErrors=ReadList(InputFilePathname(rootDir, "control-Ignore Page Count Errors.txt"))
+
+    # An entry may use "*" to stand for any run of characters, so that one line can cover a fanzine which the site
+    # splits into several series: the six MT Voids are named "The MT Void", "MT Void-2000-2009", "MT VOID #1-Pre 1990"
+    # and so on, and "*MT Void*" covers the lot.  Only "*" is special -- everything else matches literally, which
+    # matters because series names contain brackets and question marks ("FANEWS[CARD]").
+    def IgnoredForPageCount(seriesName: str) -> bool:
+        for entry in ignorePageCountErrors:
+            pattern="".join(".*" if piece == "*" else re.escape(piece) for piece in re.split(r"(\*)", entry))
+            if re.fullmatch(pattern, seriesName, re.IGNORECASE):
+                return True
+        return False
     countsGlobal=FanzineCounts()
     noPageCount: dict[str, int]={}      # Series name -> how many of its issues give no page count
     for fzi in fanacIssueList:
@@ -182,7 +193,7 @@ def main():
             # The test used to include len(ignorePageCountErrors) > 0 as well, which made emptying the control file
             # switch the check off rather than switch every warning on -- the opposite of what a file called "Ignore
             # Page Count Errors" says.  An empty or missing file now means nothing is ignored.
-            if fzi.RawPagecount == 0 and fzi.SeriesName not in ignorePageCountErrors:
+            if fzi.RawPagecount == 0 and not IgnoredForPageCount(fzi.SeriesName):
                 Log(f"{fzi.IssueName} has no page count: {fzi}")
                 noPageCount[fzi.SeriesName]=noPageCount.get(fzi.SeriesName, 0)+1
 

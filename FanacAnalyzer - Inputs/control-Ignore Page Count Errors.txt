@@ -1,11 +1,25 @@
-# There are certain fansines -- The MT Void, for example, which are not paginated at all.
-# There is consequently no page count for those issues.
-# This file lists them in order to supporess error messages in certain error reports.
-MT Void, The
-IGOTS
-sfnews      # Stratus SF SIG News
-# Bullsheet
-# Australian Science Fiction Bullsheet, The
-TommyWorld
-Bable_On
+# There are certain fanzines -- The MT Void, for example -- which are not paginated at all.
+# There is consequently no page count for those issues, and one page is the right count for them.
+# This file lists them in order to suppress the error messages which would otherwise be reported.
+#
+# Each line is a fanzine's series name, as the report's headings spell it, and "*" stands for any run of
+# characters.  ("#" marks a comment and everything from the # to the end of the line is ignored.)
+#
+# The wildcard matters where the site splits one fanzine across several series: the six MT Voids are named
+# "The MT Void", "MT Void-2000-2009", "MT VOID #1-Pre 1990", "MT VOID #2 -1990-1997", "MT Void #3 - 1997-1999"
+# and "MT Void - 2010-2020", which one "*MT Void*" covers.
+*MT Void*
+
+# These four are the entries this file has always carried, now spelled the way the series actually are.  Until
+# 2026-09-20 the check they feed had never once run, so none of them had ever suppressed anything.
+IGOTS                   # no series of this name is reported; "It Goes on the Shelf" is the one which is
+sfnews                  # Stratus SF SIG News -- reports nothing either
+TommyWorld              # reports nothing: its issues carry a page count of 1
+Bable_On                # the series is spelled "Babel-On"
+
+# FuturiaFantasia: the series is spelled "Futuria Fantasia"
 FuturiaFantasia
+
+# Left commented, as they have been:
+# Bullsheet
+# Australian Science Fiction Bullsheet, The      # the series is spelled "The Australian Science Fiction Bullsheet"
