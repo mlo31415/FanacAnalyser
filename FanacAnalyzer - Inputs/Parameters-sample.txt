@@ -51,7 +51,8 @@ mailings csv file=FanacAnalyzer - Reports/mailings.csv
 # in the error log naming what was missing) and the rest of the run finishes normally.
 #
 # "APA Mailings.xlsx" -- Joe's table of mailing dates and Official Editors -- is optional.  Without it the mailing
-# pages are still generated, but with no date and no OE.  It is not in git either; it is data, not configuration.
+# pages are still generated, but with no date and no OE.  Joe reissues it from time to time, so replacing it is a
+# normal thing to do; it is in git along with the <apa>-bumpf.txt files so that a fresh clone can build these pages.
 Template-Mailing=Template - Mailing.html
 Template-APA=Template - APA.html
 Template-allAPAs=Template - All APAs.html
