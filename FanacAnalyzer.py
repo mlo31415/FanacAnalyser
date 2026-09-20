@@ -25,7 +25,7 @@ from MailingsReport import GenerateMailingsReports
 
 
 def main():
-    LogOpen("Log - Fanac Analyzer Detailed Analysis Log.txt", "Log - Fanac Analyzer Error Log.txt")
+    LogOpen("Log - FanacAnalyzer - Detailed Analysis Log.txt", "Log - FanacAnalyzer - Error Log.txt")
     Log("Started")
 
     Settings().Load("FanacAnalyzer Parameters.txt", MustExist=True)
