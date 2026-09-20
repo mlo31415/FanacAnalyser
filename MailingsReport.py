@@ -458,9 +458,13 @@ def ReadXLSX(xlsxname: str, apaName: str) -> dict[str, MailingInfoFromJoe]|None:
         return None
 
 
-    if apaName not in wb.sheetnames:
+    # Joe spells some sheet names differently than the Known APAs setting does ("Shadow-FAPA" for "Shadow FAPA"),
+    # so find the sheet the same compressed way mailing names are matched rather than requiring an exact match.
+    sheetsByCompressedName={CompressAPAName(s): s for s in wb.sheetnames}
+    sheetName=sheetsByCompressedName.get(CompressAPAName(apaName))
+    if sheetName is None:
         return None
-    ws=wb[apaName]
+    ws=wb[sheetName]
 
     # Separate out the header row
     mailingsheaders=[x.value for x in ws[1]]
