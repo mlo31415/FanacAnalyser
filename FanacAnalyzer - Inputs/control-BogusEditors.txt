@@ -1,0 +1,5 @@
+# We want to suppress certain editors from appearing in the by_editor reports (e.g., "et al" and "various")
+# Any names not commented out with a '#' will be skipped on by-editor reports
+
+et al
+various

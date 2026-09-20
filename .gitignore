@@ -48,6 +48,9 @@ People Canonical Names.txt
 # which core.ignorecase hides on Windows but would not on a case-sensitive filesystem.)
 mk[lL]inks*.bat
 
-# A local remnant, kept because its format and notes may be useful again.
-# ReadList() treats a missing file exactly like an all-commented one, so nothing depends on it being present.
+# Local run-steering switches, edited to control one particular run rather than shared as configuration.
+# ReadList() treats a missing file exactly like an all-commented one, so nothing depends on any of them
+# being present.  (The patterns have no "/", so they match wherever Input Directory puts them.)
 control-skippers.txt
+control-unskippers.txt
+control-OnlyThisReport.txt
