@@ -66,4 +66,4 @@ Template-allAPAs=Template - All APAs.html
 #     "FWD|FIDO"     a Mailing column saying either "FWD 11" or "FIDO 11" belongs to the APA displayed as "FWD"
 # The first spelling is canonical: it names the APA's directory and is what the reports display.  The same spellings
 # are also used to find the APA's sheet in "APA Mailings.xlsx".
-Known APAs="APA", "ANZAPA", "APA:NESFA", "APA45", "APA-F", "APA-L", "APA-V", "EOD", "FAPA", "FHAPA", "FLAP", "FWD|FIDO", "IPSO", "KAPA", "N'APA", "OMPA", "ROMPA", "SAPS", "SFPA", "Shadow FAPA", "Shadow SFPA", "TAPS", "VAPA", "WOOF"
+Known APAs="APA", "ANZAPA", "APA:NESFA", "APA45", "APA-F", "APA-L", "APA-Q", "APA-V", "CULT", "EOD", "FAPA", "FHAPA", "FLAP", "FWD|FIDO", "IPSO", "KAPA", "Minneapa", "N'APA", "OMPA", "PADS", "ROMPA", "SAPS", "SFPA", "Shadow FAPA", "Shadow SFPA", "Spinoff", "TAPS", "Turbo-APA", "VAPA", "WOOF"
