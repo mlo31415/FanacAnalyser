@@ -629,6 +629,7 @@ def main():
                       fGroupText=lambda fz: fz.SeriesName,
                       topCountText=timestamp,
                       fSelector=lambda fz: fz.Pagecount > 250)
+        Log(f"Complete: {report}", timestamp=True)
 
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
