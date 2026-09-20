@@ -49,5 +49,12 @@ Template-APA=Template - APA.html
 Template-allAPAs=Template - All APAs.html
 
 # The APAs to report on.  An issue is placed in a mailing when its Mailing column starts with one of these names
-# followed by a space and the mailing number, so the spelling here has to match what the index pages use.  REQUIRED.
-Known APAs="APA", "ANZAPA", "APA:NESFA", "APA45", "APA-F", "APA-L", "APA-V", "EOD", "FAPA", "FHAPA", "FIDO", "FLAP", "FWD", "IPSO", "KAPA", "N'APA", "OMPA", "SAPS", "SFPA", "Shadow FAPA", "Shadow SFPA", "TAPS", "VAPA", "WOOF"
+# followed by a space and the mailing number.  REQUIRED.
+#
+# Names are matched with spaces, punctuation and case ignored, so "Shadow FAPA", "Shadow-FAPA" and "ShadowFAPA"
+# are all the same APA and only one of them needs to be listed.  A nickname spelled with different letters is not,
+# so an entry may give alternate spellings after the canonical one, separated by "|":
+#     "FWD|FIDO"     a Mailing column saying either "FWD 11" or "FIDO 11" belongs to the APA displayed as "FWD"
+# The first spelling is canonical: it names the APA's directory and is what the reports display.  The same spellings
+# are also used to find the APA's sheet in "APA Mailings.xlsx".
+Known APAs="APA", "ANZAPA", "APA:NESFA", "APA45", "APA-F", "APA-L", "APA-V", "EOD", "FAPA", "FHAPA", "FLAP", "FWD|FIDO", "IPSO", "KAPA", "N'APA", "OMPA", "ROMPA", "SAPS", "SFPA", "Shadow FAPA", "Shadow SFPA", "TAPS", "VAPA", "WOOF"

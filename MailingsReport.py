@@ -68,21 +68,37 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
         return
     knownApas=[x.replace('"', '').strip() for x in knownApas.split(",")]
 
+    # An entry may list alternate spellings after the canonical one, separated by "|": "FWD|FIDO" means that a mailing
+    # saying either "FWD 11" or "FIDO 11" belongs to the APA displayed as "FWD".  A nickname like FIDO for the Futurian
+    # War Digest cannot be recognized any other way, since compression below only ignores spaces, punctuation and case.
+    # The first spelling is the canonical one: it names the directory and is what every report displays.
+    apaSpellings: dict[str, list[str]]={}   # Canonical APA name -> every spelling of it, canonical first
+    for entry in knownApas:
+        spellings=[s.strip() for s in entry.split("|") if len(s.strip()) > 0]
+        if len(spellings) == 0:     # A stray comma in the setting yields an empty entry
+            continue
+        apaSpellings[spellings[0]]=spellings
+    knownApas=list(apaSpellings.keys())
+
     # APA names are matched with spaces, punctuation and case ignored, so that a page writing "ShadowFAPA 12" or
     # "Shadow-FAPA 12" is recognized as the "Shadow FAPA" of the setting -- those are spellings of one APA, not two.
-    # Two entries of the setting which compress to the same thing are therefore almost certainly one APA listed twice.
-    # We cannot tell which was meant, so neither is matched loosely and the duplicate is reported for removal.
-    apasByCompressedName: dict[str, str]={}
+    # Two spellings belonging to *different* APAs which compress to the same thing are therefore almost certainly one
+    # APA listed twice.  We cannot tell which was meant, so neither is matched loosely and the clash is reported.
+    apasByCompressedName: dict[str, str]={}   # Compressed spelling -> canonical APA name
+    apasByExactName: dict[str, str]={}        # Exact spelling -> canonical APA name, for APAs whose name is ambiguous
     ambiguous: set[str]=set()
-    for apaName in knownApas:
-        key=CompressAPAName(apaName)
-        if key in apasByCompressedName and apasByCompressedName[key] != apaName:
-            LogError(f"***APA mailings: the Known APAs setting in {SettingsFileName()} lists both"
-                     f" '{apasByCompressedName[key]}' and '{apaName}'.  Those are the same once spaces, punctuation and case"
-                     f" are ignored, so they are two spellings of one APA and one of them should be deleted from the setting."
-                     f"  Until then neither is matched loosely, and a mailing has to spell one of them exactly to be counted.")
-            ambiguous.add(key)
-        apasByCompressedName[key]=apaName
+    for apaName, spellings in apaSpellings.items():
+        for spelling in spellings:
+            apasByExactName[spelling]=apaName
+            key=CompressAPAName(spelling)
+            if key in apasByCompressedName and apasByCompressedName[key] != apaName:
+                LogError(f"***APA mailings: in the Known APAs setting in {SettingsFileName()}, the spelling '{spelling}'"
+                         f" of '{apaName}' is the same as a spelling of '{apasByCompressedName[key]}' once spaces,"
+                         f" punctuation and case are ignored.  They cannot both be matched loosely, so one of them should"
+                         f" be changed or deleted.  Until then neither is matched loosely, and a mailing has to spell one"
+                         f" of them exactly to be counted.")
+                ambiguous.add(key)
+            apasByCompressedName[key]=apaName
     for key in ambiguous:
         del apasByCompressedName[key]
 
@@ -101,7 +117,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
         LogError(f"***APA mailings: {xlsxPath} (Joe's table of mailing dates and Official Editors) was not found."
                  f"  The mailing pages will be generated without dates or OEs.")
     for apaName in knownApas:
-        table=ReadXLSX(xlsxPath, apaName) if os.path.exists(xlsxPath) else None
+        table=ReadXLSX(xlsxPath, apaSpellings[apaName]) if os.path.exists(xlsxPath) else None
         if table is None:
             table={}
         mailingsInfoTablefromJoe[apaName]=table
@@ -126,8 +142,8 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
                 for n in range(len(tokens)-1, 0, -1):
                     name=" ".join(tokens[:n])
                     apaName=apasByCompressedName.get(CompressAPAName(name))
-                    if apaName is None and name in knownApas:   # An ambiguous name has to be spelled exactly
-                        apaName=name
+                    if apaName is None:   # An ambiguous name has to be spelled exactly
+                        apaName=apasByExactName.get(name)
                     if apaName is not None:
                         allAPAs[apaName][" ".join(tokens[n:])].append(fanzine)
                         break
@@ -448,7 +464,7 @@ def GenerateMailingsReports(fanacIssueList: list[FanzineIssueInfo], rootDir: str
 
 # Read the APA Mailings.xlsx file supplied by Joe to get OE, date, etc., information for each mailing.
 # The caller has already checked that xlsxname exists.
-def ReadXLSX(xlsxname: str, apaName: str) -> dict[str, MailingInfoFromJoe]|None:
+def ReadXLSX(xlsxname: str, apaSpellings: list[str]) -> dict[str, MailingInfoFromJoe]|None:
     # Read the apa mailings file
     try:
         wb=openpyxl.load_workbook(filename=xlsxname)
@@ -460,8 +476,10 @@ def ReadXLSX(xlsxname: str, apaName: str) -> dict[str, MailingInfoFromJoe]|None:
 
     # Joe spells some sheet names differently than the Known APAs setting does ("Shadow-FAPA" for "Shadow FAPA"),
     # so find the sheet the same compressed way mailing names are matched rather than requiring an exact match.
+    # Any of the APA's spellings may be the one Joe used, so try them in turn, canonical first.
     sheetsByCompressedName={CompressAPAName(s): s for s in wb.sheetnames}
-    sheetName=sheetsByCompressedName.get(CompressAPAName(apaName))
+    sheetName=next((sheetsByCompressedName[CompressAPAName(s)] for s in apaSpellings
+                    if CompressAPAName(s) in sheetsByCompressedName), None)
     if sheetName is None:
         return None
     ws=wb[sheetName]
