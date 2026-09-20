@@ -425,28 +425,6 @@ def main():
                        topCountText=topcounttext+"\n"+timestamp+"\n",
                        crossReferences=crossReferences,
                        reportFilename="control-Header (Fanzine, alphabetical).html",
-                       inAlphaOrder=True)
-
-        Log(f"Complete: {report}", timestamp=True)
-
-    # The same report again, with the rows marked so a browser can skip laying out the ones which are off screen.
-    # It is a million pixels tall, which is why it is slow to render; this is here to be compared with the one above
-    # side by side before deciding whether to make it the only version.  Identical content, identical appearance.
-    report="Alphabetical_Listing_of_Fanzines (fast render).html"
-    if len(reportsToRun) == 0 or report in reportsToRun:
-        Log(f"Begin Report: '{report}'", timestamp=True)
-        WriteHTMLTable(os.path.join(reportFilePath, report),
-                       fanacIssueList,
-                       fGroupURL=lambda fz: fz.Series.URL,
-                       fButtonText=lambda fz: AlphaButtonText(fz),
-                       fGroupText=lambda fz: fz.SeriesName,
-                       fGroupAnnot=lambda fz: f"<br><small>{fz.SeriesEditor}</small>",
-                       fRowHeaderSelect=lambda fz: fz.SeriesName+fz.SeriesEditor,
-                       fRowText=lambda fz: fz.IssueName,
-                       fRowAnnot=lambda fz: AnnotateDate(fz),
-                       topCountText=topcounttext+"\n"+timestamp+"\n",
-                       crossReferences=crossReferences,
-                       reportFilename="control-Header (Fanzine, alphabetical).html",
                        inAlphaOrder=True,
                        skipOffscreenRows=True)
 
@@ -860,10 +838,12 @@ def WriteHTMLTable(
                 reportFilename: str = "",
                 inAlphaOrder: bool = False,
                 showDuplicateBodyRows: bool=True,
-                # Let the browser skip laying out rows which are off screen.  This report is a million pixels tall and
-                # the browser lays all of it out before showing anything; measured on the alphabetical listing, this
-                # took a full relayout from 41.5ms to 0.9ms and a scroll to the middle and back from 121.6ms to 4.7ms.
-                # It changes nothing a reader sees: find-in-page and the jump anchors both still reach skipped rows.
+                # Let the browser skip laying out rows which are off screen.  A report like the alphabetical listing is
+                # a million pixels tall and the browser lays all of it out before showing anything; switching this on
+                # took a full relayout there from 41.5ms to 0.9ms and a scroll to the middle and back from 121.6ms to
+                # 4.7ms.  It changes nothing a reader sees -- find-in-page and the jump anchors both still reach a
+                # skipped row, printing to PDF is unaffected, and the two versions were indistinguishable on screen.
+                # Worth switching on for any of the big reports; Series_by_Country is not one, having only 43 rows.
                 skipOffscreenRows: bool=False,
                 # Alternate titles to merge into the listing as "see <the name it is filed under>" rows.
                 # Each is (sort key, alternate name, canonical name, URL); the list must already be sorted.
