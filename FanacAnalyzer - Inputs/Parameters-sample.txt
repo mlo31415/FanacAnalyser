@@ -37,8 +37,14 @@ Report Directory=FanacAnalyzer - Reports
 mailings csv file=FanacAnalyzer - Reports/mailings.csv
 
 # If this is present and non-empty, reload "Saved Fanzine List.json" instead of re-reading all ~2000 index pages from
-# fanac.org, and write that file after a real read.  Uncomment it to make repeated runs fast while working on a report.
-# Remember that the saved list goes stale.                                          [default: absent, i.e. read the website]
+# fanac.org.  Uncomment it to make repeated runs fast while working on a report.  Every run which reads the website
+# writes the file, whether or not this setting is on, so it is never older than the last real run.
+#
+# DEVELOPER SHORTCUT, NOT A WAY TO PRODUCE REPORTS FOR THE SITE.  A saved-list run does not read
+# Classic_Fanzines.html, which is where a fanzine's alternate titles come from, so its alphabetical reports carry
+# NO "see <the name it is filed under>" cross-references at all.  Its reports are also as old as the saved file.
+# Such a run says so in the error log, naming the file's date.  Turn this off before generating anything for publication.
+#                                                                                   [default: absent, i.e. read the website]
 #Use Saved Fanzine List=True
 
 

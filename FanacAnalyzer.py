@@ -99,6 +99,11 @@ def main():
     # This could because we're not making use of the saved list, or we want to use it, but it does not exist.
     if useSavedList and savedListExists:
         Log("Loading the saved fanzine list", timestamp=True)
+        # Say so in the error log too.  This run's reports are as old as the file and, because the Classic page is not
+        # read, carry none of the alternate-title cross-references.  They are for working on a report, not for the site.
+        LogError(f"***This run used {savedListPathname}, saved {datetime.datetime.fromtimestamp(os.path.getmtime(savedListPathname)):%Y-%m-%d %H:%M},"
+                 f" instead of reading fanac.org.  Its reports are that old and have no alternate-title cross-references."
+                 f"  Turn the 'Use Saved Fanzine List' setting off before generating anything for publication.")
         with open(savedListPathname, "r", encoding="utf-8") as f:
             fanacIssueList=jsonpickle.decode(f.read())
             Log("Loading complete", timestamp=True)
@@ -106,13 +111,19 @@ def main():
         # Read the fanac.org fanzine index page structures and produce a list of all fanzine series directories
         fanacIssueList=FanacOrgReaders.ReadFanacFanzineIssues(rootDir, ReadAllFanacFanzineMainPages(rootDir, classicNames), headerNamed)
         Log("Load of Fanzine list from website complete", timestamp=True)
-        if useSavedList:
-            # We need to save the fanzine list
-            Log("Saving the fanzine list", timestamp=True)
+
+        # Always save it, whether or not this run was asked to use it.  Writing it only when the setting is on left
+        # the file holding whatever was read the last time somebody had the setting on -- one was found eighteen
+        # months out of date -- and turning the setting on then silently produced reports from that stale snapshot.
+        Log("Saving the fanzine list", timestamp=True)
+        try:
             with open(savedListPathname, "w+", encoding="utf-8") as f:
-                dump=jsonpickle.encode(fanacIssueList, indent=2)
-                f.write(dump)
-                Log("Saving complete", timestamp=True)
+                f.write(jsonpickle.encode(fanacIssueList, indent=2))
+            Log("Saving complete", timestamp=True)
+        except Exception as e:
+            # The list is a convenience, so a failure to save it must not lose a run's worth of reading
+            LogError(f"***Could not save the fanzine list to {savedListPathname} ({type(e).__name__}: {e})."
+                     f"  The reports are unaffected, but the next run cannot be a saved-list run.")
 
 
     # Remove issues which have entries, but don't actually point to anything.
