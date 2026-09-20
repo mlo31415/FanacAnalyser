@@ -1,0 +1,35 @@
+# The Python packages FanacAnalyzer needs, pinned to the versions its .venv12 is running as of 2026-09-19.
+#
+#     .venv12\Scripts\python.exe -m pip install -r requirements.txt
+#
+# The versions are pinned deliberately rather than left open.  openpyxl in particular: a 3.2.0b1 beta
+# silently misread "APA Mailings.xlsx" -- 6 sheets of 18 and 265 rows of 332, shifted -- and took a long
+# time to diagnose, so do not let a rebuild wander onto a prerelease.
+
+# Directly imported by the program
+jsonpickle==5.0.0rc1
+openpyxl==3.1.5
+python-dateutil==2.9.0.post0
+requests==2.34.2
+Unidecode==1.4.0
+
+# Pulled in by the above
+certifi==2026.7.22
+charset-normalizer==3.5.1
+et_xmlfile==2.0.0
+idna==3.20
+six==1.17.0
+typing_extensions==4.16.0
+urllib3==2.8.0
+
+# Only needed to build the exe from FanacAnalyzer.spec
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.7
+altgraph==0.17.5
+packaging==26.3
+pefile==2024.8.26
+pywin32-ctypes==0.2.3
+setuptools==84.0.0
+
+# NOT listed on purpose: pypdf.  PDFHelpers.py imports it, but that file is one of the shared modules
+# symlinked into this directory by the mklinks*.bat scripts and nothing in FanacAnalyzer imports it.
