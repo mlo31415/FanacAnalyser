@@ -367,7 +367,8 @@ def main():
                       fanacIssueList,
                       fRowText=lambda fz: fz.IssueName,
                       fGroupText=lambda fz: fz.SeriesName,
-                      topCountText=topcounttext+"\n"+timestamp+"\n")
+                      topCountText=topcounttext+"\n"+timestamp+"\n",
+                      crossReferences=crossReferences)
         Log(f"Complete: {report}", timestamp=True)
 
     report="Alphabetical_Listing_of_Fanzines.html"
@@ -1100,7 +1101,10 @@ def WriteTxtTable(filename: str,
                fGroupAnnot: Callable[[FanzineIssueInfo], str]|None = None,  # Function to supply annotation to the headers
                fCompareRowHeaderText: Callable[[str, str], bool]|None = None,        # If present, is used to determine if the row header text has changed
                topCountText: str= "",
-               fSelector: Callable[[FanzineIssueInfo], bool]|None = None)\
+               fSelector: Callable[[FanzineIssueInfo], bool]|None = None,
+               # Alternate titles to merge into the listing, exactly as WriteHTMLTable does.
+               # Each is (sort key, alternate name, canonical name, URL); the list must already be sorted.
+               crossReferences: list[tuple[str, str, str, str]]|None=None)\
                 -> None:
     Log(f"WriteTxtTable({filename} called")
     if fCompareRowHeaderText is None:
@@ -1115,6 +1119,19 @@ def WriteTxtTable(filename: str,
             f.write(topCountText)
 
         lastRowHeaderSelect: str=""
+        crossRefIndex: int=0                # How far through crossReferences we have got
+
+        def CrossReferenceBlocks(upTo: str) -> str:
+            # Every cross-reference sorting at or before upTo, in the same shape as a fanzine: the name the reader
+            # looked up on its own line, then an indented line pointing at the fanzine it is filed under.
+            nonlocal crossRefIndex
+            block=""
+            while crossReferences is not None and crossRefIndex < len(crossReferences) and crossReferences[crossRefIndex][0] <= upTo:
+                _, altName, canonical, _=crossReferences[crossRefIndex]
+                block+="\n"+altName+"\n   see "+canonical+"\n"
+                crossRefIndex+=1
+            return block
+
         # We walk fanacIssueList by index so we can run a sub-loop for the secondary boxes in the 2nd column.
         for fz in fanacIssueList:
             # Do we skip this fanzine?
@@ -1129,6 +1146,7 @@ def WriteTxtTable(filename: str,
                 if not fCompareRowHeaderText(lastRowHeaderSelect, fRowHeaderSelect(fz)):
                     lastRowHeaderSelect=fRowHeaderSelect(fz)
 
+                    f.write(CrossReferenceBlocks(FlattenTextForSorting(fGroupText(fz), RemoveLeadingArticles=True).replace(" ", "")))
                     f.write("\n"+fGroupText(fz))
                     if fGroupAnnot is not None and fGroupAnnot(fz) is not None:
                         f.write("    "+RemoveAllHTMLTags2(fGroupAnnot(fz)))
@@ -1138,6 +1156,8 @@ def WriteTxtTable(filename: str,
             bodytext=fRowText(fz)
             bodytext=bodytext.replace("|", "", 1)  # Ignore the first  embedded "|" character
             f.write("   "+bodytext+"\n")
+
+        f.write(CrossReferenceBlocks("￿"))   # Any alternate titles which sort after the last fanzine
     Log(f"WriteTxtTable({filename} completed")
 
 
