@@ -8,8 +8,12 @@ import math
 import html
 import datetime
 import csv
+import queue
+import threading
 import jsonpickle
 import urllib.parse
+import tkinter as tk
+from tkinter import scrolledtext
 from collections import defaultdict
 from difflib import SequenceMatcher
 
@@ -1372,9 +1376,113 @@ def ChronButtonText(fz: FanzineIssueInfo) -> str:
     return str(fz.FIS.Year)[0:3]+"0s"
 
 
+# ------------------------------------------------------------------------------------------------
+# Live log window, the same arrangement FancyDownloader uses.  RunWithLogWindow() runs the work function in a
+# background (daemon) thread while a scrollable, minimizable window shows everything it prints.  The Cancel button
+# aborts the run; when the work finishes the window comes to the front and the button becomes Close.
+#
+# This replaces the bare console window a --console build used to put up: a black rectangle with no scrollback worth
+# the name, no way to stop the run, and no icon of its own in the taskbar.
+class _StdoutTee:
+    # Writes to the original stream, if there is one, AND queues the text for the log window.
+    def __init__(self, original, q: queue.Queue):
+        self.original=original
+        self.queue=q
+    def write(self, text: str):
+        if self.original is not None:
+            try:
+                self.original.write(text)
+            except Exception:
+                pass
+        self.queue.put(text)
+    def flush(self):
+        if self.original is not None:
+            try:
+                self.original.flush()
+            except Exception:
+                pass
+
+
 # .........................................................
+# The icon, whether we are running from source or from a one-file build, which unpacks itself into a temporary
+# directory and tells us where in sys._MEIPASS.
+def IconPathname() -> str:
+    return os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))), "FanacAnalyzer.ico")
+
+
+# .........................................................
+def RunWithLogWindow(work) -> None:
+    q: queue.Queue=queue.Queue()
+    sys.stdout=_StdoutTee(sys.stdout, q)
+    sys.stderr=_StdoutTee(sys.stderr, q)
+
+    root=tk.Tk()
+    root.title("FanacAnalyzer")
+    root.geometry("900x600")
+    # Gives the window -- and so the taskbar button -- the program's own icon.  A missing or unreadable icon is not
+    # worth failing the run over, so it is only attempted.
+    try:
+        root.iconbitmap(IconPathname())
+    except Exception:
+        pass
+
+    done=threading.Event()
+
+    def close():
+        if done.is_set():
+            root.destroy()      # work already finished -- exit cleanly
+        else:
+            os._exit(1)         # still running -- hard-abort the whole app (the worker is a daemon thread)
+    button=tk.Button(root, text="Cancel", command=close, width=12)
+    button.pack(side="bottom", pady=4)
+    root.protocol("WM_DELETE_WINDOW", close)
+
+    box=scrolledtext.ScrolledText(root, wrap="word", font=("Consolas", 9))
+    box.pack(side="top", fill="both", expand=True)
+    box.configure(state="disabled")
+
+    def poll():
+        # Drain queued output into the widget (on the Tk main thread); auto-scroll only if already at the bottom.
+        chunks=[]
+        try:
+            while True:
+                chunks.append(q.get_nowait())
+        except queue.Empty:
+            pass
+        if chunks:
+            atBottom=box.yview()[1] >= 0.999
+            box.configure(state="normal")
+            box.insert("end", "".join(chunks))
+            box.configure(state="disabled")
+            if atBottom:
+                box.see("end")
+        if done.is_set() and q.empty():
+            # Finished: bring the window to the front and switch Cancel -> Close.
+            button.config(text="Close")
+            root.title("FanacAnalyzer -- finished")
+            root.deiconify()
+            root.lift()
+            root.attributes("-topmost", True)
+            root.after(700, lambda: root.attributes("-topmost", False))
+            return          # stop polling
+        root.after(100, poll)
+
+    def worker():
+        try:
+            work()
+        except Exception:
+            import traceback
+            traceback.print_exc()   # captured by the tee, so it lands in the window
+        finally:
+            done.set()
+
+    threading.Thread(target=worker, daemon=True).start()
+    root.after(100, poll)
+    root.mainloop()
+
+
 #######################################
 #######################################
 # Run main()
 if __name__ == "__main__":
-    main()
+    RunWithLogWindow(main)

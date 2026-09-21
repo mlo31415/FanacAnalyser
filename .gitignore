@@ -44,6 +44,9 @@ FanacAnalyzer Parameters.txt
 # Local data
 People Canonical Names.txt
 
+# README.md converted to Word for reading or sending on.  README.md is the original; regenerate as needed.
+FA documentation.docx
+
 # The scripts which create the symlinks above.  (The character class covers mkLinksSettings.bat's capital L,
 # which core.ignorecase hides on Windows but would not on a case-sensitive filesystem.)
 mk[lL]inks*.bat
