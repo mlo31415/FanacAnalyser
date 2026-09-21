@@ -63,8 +63,10 @@ def main():
     bogusEditors=ReadList(InputFilePathname(rootDir, "control-BogusEditors.txt"))
 
     # See if the file 'People Canonical Names.txt' exists.  If it does, read it.
+    # It is an input like the control files even though FancyAnalyzer is what produces it: it has to be copied over
+    # by hand, which is a job worth doing now and again rather than often.
     peopleCanonicalNames={}
-    filepathname=os.path.join(reportFilePath, "People Canonical Names.txt") # This file is created by FancyAnalyzer and must be dragged over to FanacAnalyzer's report directory
+    filepathname=InputFilePathname(rootDir, "People Canonical Names.txt")
     if os.path.exists(filepathname):
         with open(filepathname, "r" ,encoding='utf8') as f:
             for line in f:
@@ -74,8 +76,8 @@ def main():
                     n2=line[loc+3:].strip()
                     peopleCanonicalNames[n1]=n2
     else:
-        LogError(f"***{os.path.abspath(filepathname)} was not found."
-                 f"  It is created by FancyAnalyzer and has to be copied here.  Editors' names will not be canonicalized.")
+        LogError(f"***{os.path.abspath(filepathname)} was not found.  FancyAnalyzer writes it and it has to be copied"
+                 f" here by hand; it does not need doing often.  Editors' names will not be canonicalized this run.")
 
     # If the parameter "Use Saved Fanzine List" does not exist or
     #   if it does exist, but no saved fanzine list.json exists, we read a new list of fanzines

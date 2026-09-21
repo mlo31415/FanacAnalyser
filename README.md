@@ -74,6 +74,19 @@ of the file is the page title**; everything after it is dropped into the top of 
 The spreadsheet's sheet names are matched loosely, so "Shadow-FAPA" there and "Shadow FAPA" in the settings are
 recognised as the same APA.
 
+### One file which comes from another program
+
+`People Canonical Names.txt` settles on one spelling for each editor, so that the same person listed three
+different ways on three pages appears once in the by-editor listings.
+
+**FanacAnalyzer does not produce this file — FancyAnalyzer does, and it has to be copied across by hand** into
+`FanacAnalyzer - Inputs\`. Nothing does it automatically and nothing will remind you.
+
+It does not need doing often. New spellings only appear as new fanzines are indexed, so copying a fresh one over
+every few months is ample. If the file is missing altogether the run still completes, but the error log says so
+and editors' names are left exactly as each page spells them — which is the one visible symptom to watch for:
+the same person appearing more than once in the by-editor listings.
+
 
 ## What it writes
 
@@ -113,11 +126,6 @@ with odd page counts.txt` and `Fanzines which are not PDFs.txt` flag things wort
 `Items identified as newszines…` files show how that decision was reached. `mailings.csv` lists every issue
 which appeared in an APA mailing; nothing reads it any more, but it is a useful artifact.
 
-### One oddity
-
-`People Canonical Names.txt` lives in the **Reports** folder but is an input: FancyAnalyzer produces it, and
-FanacAnalyzer reads it to settle on one spelling per editor. Without it the run still works, but editors' names
-are left exactly as the pages spell them.
 
 
 ## Logs
